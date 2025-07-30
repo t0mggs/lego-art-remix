@@ -43,7 +43,7 @@ self.addEventListener(
         const session = new onnx.InferenceSession({ backendHint: "cpu" });
         self.postMessage({ loadingMessage: "Loading Model..." });
 
-        await session.loadModel("../assets/models/model-small.onnx");
+        await session.loadModel("https://drive.google.com/uc?export=download&id=1w9Tw-EBLqynWnsEs-5FVGST5clOPRWVo");
 
         // Run model with Tensor inputs and get the result.
         self.postMessage({ loadingMessage: "Running Inference..." });
