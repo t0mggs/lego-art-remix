@@ -227,7 +227,8 @@
         border-top: 1px solid rgb(50, 50, 50);
       }
     </style>
-  </head>
+  <style>body { background-color: white !important; }</style>
+</head>
 
   <body>
     <div style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 60px)">
@@ -281,7 +282,7 @@
               <div style="width: 100%">
                 <canvas id="step-1-canvas-upscaled" style="width: 100%" class="cropper-img"></canvas>
               </div>
-              
+              <h4>Step 1</h4>
               <small className="step-header-subtitle">Crop + Scale input image</small>
               <div id="step-1-accordion">
                 <div class="card accordion-card">
@@ -468,7 +469,7 @@
               <canvas id="web-worker-output-canvas" hidden></canvas>
               <canvas id="step-1-depth-canvas" hidden></canvas>
               <canvas id="step-1-depth-canvas-upscaled" style="width: 100%"></canvas>
-              
+              <h4>Step 1</h4>
               <small className="step-header-subtitle">Get depth map</small><br />
               <small className="step-header-subtitle">Depth map cropping will match input image</small>
               <div id="step-1-depth-accordion">
@@ -542,7 +543,7 @@
                       </button>
                       <br />
                       <small>This will compute an approximation of the depth map if you do not have one </small>
-                      
+                      <h5 style="margin-top: 4px" id="web-worker-loading-message" hidden></h5>
                       <div>
                         <small>
                           <b style="color: #ff4c00">Important</b>
@@ -618,7 +619,7 @@
             >
               <canvas id="step-2-canvas" hidden></canvas>
               <canvas id="step-2-canvas-upscaled" style="width: 100%"></canvas>
-              
+              <h4>Step 2</h4>
               <small className="step-header-subtitle">Interpolate + Adjust colors</small>
 
               <div id="step-2-accordion">
@@ -846,7 +847,7 @@
               <canvas id="step-2-depth-canvas-cropper-buffer" hidden></canvas>
               <canvas id="step-2-depth-canvas" hidden></canvas>
               <canvas id="step-2-depth-canvas-upscaled" style="width: 100%"></canvas>
-              
+              <h4>Step 2</h4>
               <small className="step-header-subtitle">Make depth discrete</small>
               <div id="step-2-depth-accordion">
                 <div class="card accordion-card">
@@ -1005,7 +1006,7 @@
             >
               <canvas id="step-3-canvas" hidden></canvas>
               <canvas id="step-3-canvas-upscaled" style="width: 100%"></canvas>
-              
+              <h4>Step 3</h4>
               <small className="step-header-subtitle">Align to closest pixel from available colors</small>
               <br />
               <span
@@ -1448,7 +1449,7 @@
             >
               <canvas id="step-3-depth-canvas" hidden></canvas>
               <canvas id="step-3-depth-canvas-upscaled" style="width: 100%"></canvas>
-              
+              <h4>Step 3</h4>
               <small className="step-header-subtitle">Adjust Depth Map</small>
               <div id="step-3-depth-accordion">
                 <div class="card accordion-card">
@@ -1541,7 +1542,7 @@
               <canvas id="step-4-canvas" hidden></canvas>
               <canvas id="bricklink-cache-canvas" hidden></canvas>
               <canvas id="step-4-canvas-upscaled" style="width: 100%"></canvas>
-              
+              <h4>Step 4</h4>
               <small className="step-header-subtitle">Correct for available pieces, if piece counts are limited</small>
               <br />
               <div className="step-header-subtitle text-danger" id="nonzero-missing-pieces-warning" hidden>
@@ -1737,7 +1738,7 @@
               aria-labelledby="step-4-depth-tab"
             >
               <div id="step-4-canvas-3d-upscaled" style="width: 100%"></div>
-              
+              <h4 style="margin-top: 4px; padding-bottom: 4px">3D Preview</h4>
               <small className="step-header-subtitle"
                 >If you can't see the 3D effect when hovering your mouse over the image, check the input from depth step
                 1</small
@@ -1964,38 +1965,8 @@
     <div id="image-input-card" class="card card-body" style="padding-bottom: 10px">
       <div class="row">
         <div class="col-sm">
+          <h3 style="font-weight: 600">Get Started</h3>
           
-          <span class="btn-group" style="margin-top: 8px">
-            <div class="row" style="margin-left: 0px">
-              <div style="margin-right: 4px">
-                <span style="margin-left: 4px; margin-right: 8px; margin-top: 4px; font-weight: 600"
-                  >Input Pieces:</span
-                >
-                <span
-                  data-toggle="tooltip"
-                  title="This can also be changed or adjusted piece by piece later"
-                  data-placement="top"
-                >
-                  <button
-                    class="btn dropdown-toggle btn-outline-dark btn-sm"
-                    type="button"
-                    id="select-starting-custom-stud-map-button"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    disabled
-                  >
-                    Input set
-                  </button>
-                  <div
-                    class="dropdown-menu"
-                    id="select-starting-custom-stud-map-options"
-                    aria-labelledby="select-starting-custom-stud-map-button"
-                  ></div>
-                </span>
-              </div>
-              <div style="margin-left: 2px">
-                <small style="margin-top: 10px" class="text-muted" id="input-stud-map-description"></small>
               </div>
             </div>
           </span>
@@ -2004,7 +1975,7 @@
           <span id="image-input">
             <input type="file" id="input-image-selector-hidden" name="input-image-selector-hidden" hidden />
             <div style="margin-top: 12px">
-              <button class="btn btn-success" type="button" id="input-image-selector" class="upload-btn" disabled>
+              <button class="btn btn-success" type="button" id="input-image-selector" disabled>
                 Select Input Image
               </button>
             </div>
@@ -2034,64 +2005,58 @@
     </div>
 
     
-            <p style="margin-bottom: 4px; margin-top: 15px; font-weight: 600">
-              These are some other articles and videos featuring Lego Art Remix
-            </p>
-            <small>
-              <p style="margin-bottom: 4px">
-                Some are quite interesting even outside the context of this tool in particular, since they go into the
-                history of Lego mosaics
-              </p>
-              <p style="margin-bottom: 4px">Note that some were made when the tool was older</p>
-              <ul>
-                <li>
-                  <a href="https://www.instagram.com/explore/tags/legoartremix/" target="_blank"
-                    >#LegoArtRemix on Instagram</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href="https://globalnews.ca/video/7439079/you-can-store-your-medical-records-on-this-app"
-                    target="_blank"
-                    >Global News Morning Segment</a
-                  >
-                </li>
-                <li>
-                  <span style="display: flex; align-items: center"
-                    ><a
-                      href="https://www.brothers-brick.com/2020/08/27/create-your-own-mosaic-masterpiece-with-lego-art-remix-review-interview/"
-                      target="_blank"
-                      >Brothers Brick Article</a
-                    >
-                    &nbsp;<span style="font-size: 0.925em; display: flex; align-items: center"
-                      >(2020 Top 3 most popular feature)</span
-                    ></span
-                  >
-                </li>
-                <li>
-                  <a
-                    href="http://thebrickblogger.com/2020/12/building-custom-lego-mosaics-with-lego-art-sets/"
-                    target="_blank"
-                    >TheBrickBlogger Article</a
-                  >
-                </li>
-                <li>
-                  <a href="https://www.youtube.com/watch?v=RY4OJnD99VQ" target="_blank">DuckBricks Video</a>
-                </li>
-              </ul>
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    </div>
-    
-      </div>
-    </div>
     <!-- </div> -->
 
-    
+    <script>
+      // add background generation code inline so it loads in before other logic
+      function rgbToHex(r, g, b) {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+      }
+
+      function handleDarkModeChange() {
+        const isDarkModeEnabled = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        Array.from(document.getElementsByClassName("dark-mode-stylesheet")).forEach((stylesheet) => {
+          stylesheet.disabled = !isDarkModeEnabled;
+        });
+
+        const canvas = document.getElementById("background-image-cache-canvas");
+        const ctx = canvas.getContext("2d");
+
+        const CIRCLE_RADIUS = 10;
+        const WIDTH_COUNT = 40;
+        const HEIGHT_COUNT = 20;
+        const MIN_CIRCLE_BRIGHTNESS = 245;
+
+        canvas.width = CIRCLE_RADIUS * WIDTH_COUNT;
+        canvas.height = CIRCLE_RADIUS * HEIGHT_COUNT;
+
+        for (let i = 0; i < HEIGHT_COUNT; i++) {
+          for (let j = 0; j < WIDTH_COUNT; j++) {
+            ctx.beginPath();
+            ctx.arc(
+              CIRCLE_RADIUS + 2 * i * CIRCLE_RADIUS,
+              CIRCLE_RADIUS + 2 * j * CIRCLE_RADIUS,
+              CIRCLE_RADIUS,
+              0,
+              2 * Math.PI
+            );
+            let brightness = MIN_CIRCLE_BRIGHTNESS + Math.floor(Math.random() * (255 - MIN_CIRCLE_BRIGHTNESS));
+            if (isDarkModeEnabled) {
+              brightness = 255 - brightness;
+            }
+            ctx.fillStyle = rgbToHex(brightness, brightness, brightness);
+            ctx.fill();
+          }
+        }
+
+        const dataURL = canvas.toDataURL("image/png", 1.0);
+
+        document.body.style.backgroundImage = `url('${dataURL}')`;
+      }
+
+      handleDarkModeChange();
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", handleDarkModeChange);
+    </script>
 
     <!-- Add firebase to log performance -->
     <script src="https://www.gstatic.com/firebasejs/7.19.0/firebase-app.js"></script>
