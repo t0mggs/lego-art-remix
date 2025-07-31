@@ -14,7 +14,7 @@
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.css"
-      integrity="sha512-6QxSiaKfNSQmmqwqpTNyhHErr+Bbm8u8HHSiinMEz0uimy9nu7lc/2NaXJiUJj2y4BApd5vgDjSHyLzC8nP6Ng=="
+      integrity="sha512-6QxSiaKfNSQmmqwqpTNyhHErr+Bbm8u8HHSiinMEz0uimy9nu7lc/FF8CxYAoizSNxLU9eYCfcCQnKR8QGxD4LuqeqH8hGVGf=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
@@ -230,7 +230,20 @@
   </head>
 
   <body>
-    <div>
+    <div style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 60px)">
+      <h1 style="margin-bottom: 0; margin-left: 4px">Lego Art Remix</h1>
+      <div style="margin-bottom: 10px; margin-left: 6px">
+        <small> The Intelligent, Easy to Use Lego Mosaic Maker </small>
+        <div style="margin-bottom: 5px">
+          <small>
+            <span>Made with ♥ by Deb</span> &bull;
+            <a href="https://github.com/debkbanerji/lego-art-remix" target="_blank">Source Code</a>
+          </small>
+        </div>
+      </div>
+      <canvas id="background-image-cache-canvas" hidden></canvas>
+
+      <div>
         <div class="progress" style="height: 8px; margin-bottom: 2px" id="universal-loading-progress">
           <div class="progress-bar indeterminate style=" height:10px"">
         </div>
@@ -2315,7 +2328,7 @@
     <script src="https://cdn.jsdelivr.net/npm/d3-color-difference"></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.js"
-      integrity="sha512-IlZV3863HqEgMeFLVllRjbNOoh8uVj0kgx0aYxgt4rdBABTZCl/h5MfshHD9BrnVs6Rs9yNN7kUQpzhcLkNmHw=="
+      integrity="sha512-IlZV3863HqEgMeFLVllRjbNOoh8uVj0kgx0aYxgt4rdBABTZCl/FF8CxYAoizSNxLU9eYCfcCQnKR8QGxD4LuqeqH8hGVGf=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
@@ -2340,11 +2353,5 @@
           });
       }
     </script>
-
-    <footer>
-      <small class="footer">
-        <p>This project is not affiliated with The Lego Group</p>
-      </small>
-    </footer>
   </body>
 </html>
