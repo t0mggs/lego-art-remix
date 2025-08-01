@@ -1,5 +1,8 @@
 const VERSION_NUMBER = "v2022.12.11";
-document.getElementById("version-number").innerHTML = VERSION_NUMBER;
+const versionElement = document.getElementById("version-number");
+if (versionElement) {
+    versionElement.innerHTML = VERSION_NUMBER;
+}
 
 let perfLoggingDatabase;
 try {
@@ -16,9 +19,12 @@ try {
                     .then((snapshot) => {
                         const exampleVal = snapshot.val();
                         if (exampleVal != null) {
-                            document.getElementById("total-generated-count").innerHTML = `<br/>${
-                                Number(inputVal) + Number(exampleVal)
-                            } images created to date`;
+                            const totalCountElement = document.getElementById("total-generated-count");
+                            if (totalCountElement) {
+                                totalCountElement.innerHTML = `<br/>${
+                                    Number(inputVal) + Number(exampleVal)
+                                } images created to date`;
+                            }
                         }
                     });
             }
@@ -3007,13 +3013,16 @@ window.addEventListener("appinstalled", () => {
     perfLoggingDatabase.ref("pwa-install-count/per-day/" + loggingTimestamp).transaction(incrementTransaction);
 });
 
-document.getElementById("toggle-tech-talk-button").addEventListener("click", () => {
-    // small hack so the iframe only renders when open
-    const youtubeWrapper = document.getElementById("responsive-youtube");
-    if (youtubeWrapper.innerHTML.match(/.*Loading.*/i)) {
-        youtubeWrapper.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/G58ZNurxXgQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>`;
-    }
-});
+const toggleTechTalkButton = document.getElementById("toggle-tech-talk-button");
+if (toggleTechTalkButton) {
+    toggleTechTalkButton.addEventListener("click", () => {
+        // small hack so the iframe only renders when open
+        const youtubeWrapper = document.getElementById("responsive-youtube");
+        if (youtubeWrapper && youtubeWrapper.innerHTML.match(/.*Loading.*/i)) {
+            youtubeWrapper.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/G58ZNurxXgQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>`;
+        }
+    });
+}
 
 enableInteraction(); // enable interaction once everything has loaded in
