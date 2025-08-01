@@ -43,7 +43,6 @@ const HIGH_DPI = 96;
 const interactionSelectors = [
     "input-image-selector",
     "input-image-selector-hidden",
-    "mix-in-stud-map-button",
     "width-slider",
     "height-slider",
     "hue-slider",
@@ -55,8 +54,6 @@ const interactionSelectors = [
     "download-instructions-button",
     "add-custom-stud-button",
     "export-to-bricklink-button",
-    "export-stud-map-button",
-    "import-stud-map-file-input",
     "bricklink-piece-button",
     "clear-overrides-button",
     "clear-custom-studs-button",
@@ -489,7 +486,7 @@ function mixInStudMap(studMap, runAfterMixIn) {
 
 populateCustomStudSelectors(STUD_MAPS[DEFAULT_STUD_MAP], false);
 
-const mixInStudMapOptions = document.getElementById("mix-in-stud-map-options");
+// Elementos relacionados con stud-maps eliminados - configuración automática a "all_tile_colors"
 
 const bricklinkPieceOptions = document.getElementById("bricklink-piece-options");
 bricklinkPieceOptions.innerHTML = "";
@@ -767,6 +764,10 @@ const NUM_PARTIAL_SET_STUD_MAPS = 7;
 STUD_MAP_KEYS.splice(NUM_SET_STUD_MAPS, 0, DIVIDER);
 STUD_MAP_KEYS.splice(NUM_SET_STUD_MAPS + NUM_PARTIAL_SET_STUD_MAPS + 1, 0, DIVIDER);
 
+/*
+// SECCIÓN ELIMINADA: Configuración de menús dropdown para stud-maps
+// Ahora siempre usa "all_tile_colors" por defecto sin interfaz de selección
+
 STUD_MAP_KEYS.filter((key) => key !== "rgb").forEach((studMap) => {
     if (studMap === DIVIDER) {
         const divider = document.createElement("div");
@@ -806,6 +807,11 @@ STUD_MAP_KEYS.filter((key) => key !== "rgb").forEach((studMap) => {
 
 document.getElementById("select-starting-custom-stud-map-button").innerHTML = STUD_MAPS[DEFAULT_STUD_MAP].name;
 document.getElementById("input-stud-map-description").innerHTML = STUD_MAPS[DEFAULT_STUD_MAP].descriptionHTML ?? "";
+*/ 
+
+/*
+// SECCIÓN ELIMINADA: Import/Export de stud-maps
+// Ya no es necesario porque siempre usamos "all_tile_colors"
 
 constMixInDivider = document.createElement("div");
 constMixInDivider.className = "dropdown-divider";
@@ -819,7 +825,10 @@ importOption.addEventListener("click", () => {
     document.getElementById("import-stud-map-file-input").click();
 });
 mixInStudMapOptions.appendChild(importOption);
+*/
 
+/*
+// SECCIÓN ELIMINADA: Event listener para import stud-map
 document.getElementById("import-stud-map-file-input").addEventListener(
     "change",
     (e) => {
@@ -832,6 +841,7 @@ document.getElementById("import-stud-map-file-input").addEventListener(
     },
     false
 );
+*/
 
 document.getElementById("clear-custom-studs-button").addEventListener("click", () => {
     customStudTableBody.innerHTML = "";
@@ -1215,6 +1225,8 @@ function runStep1() {
     disableInteraction();
     updateStudCountText();
 
+    /*
+    // SECCIÓN ELIMINADA: Export stud-map functionality
     window.URL.revokeObjectURL(document.getElementById("export-stud-map-button").href);
     document.getElementById("export-stud-map-button").setAttribute(
         "href",
@@ -1232,6 +1244,7 @@ function runStep1() {
             )
         )
     );
+    */
 
     step1DepthCanvasUpscaled.width = step1CanvasUpscaled.width;
     step1DepthCanvasUpscaled.height = step1CanvasUpscaled.height;
@@ -2838,11 +2851,14 @@ function handleInputImage(e, dontClearDepth, dontLog) {
             }
         };
         inputImage.src = event.target.result;
+        
+        // Mostrar inmediatamente la interfaz de pasos para permitir el recorte
         document.getElementById("steps-row").hidden = false;
         document.getElementById("input-image-selector").innerHTML = "Reselect Input Image";
         document.getElementById("image-input-new").appendChild(document.getElementById("image-input"));
         document.getElementById("image-input-card").hidden = true;
         document.getElementById("run-example-input-container").hidden = true;
+        
         setTimeout(() => {
             step1CanvasUpscaled.width = SERIALIZE_EDGE_LENGTH;
             step1CanvasUpscaled.height = Math.floor((SERIALIZE_EDGE_LENGTH * inputImage.height) / inputImage.width);
@@ -2998,6 +3014,13 @@ if (imageURL != null) {
 const imageSelectorHidden = document.getElementById("input-image-selector-hidden");
 imageSelectorHidden.addEventListener("change", (e) => handleInputImage(e), false);
 document.getElementById("input-image-selector").addEventListener("click", () => {
+    // Añadir animación de click
+    const button = document.getElementById("input-image-selector");
+    button.style.transform = "scale(0.95)";
+    setTimeout(() => {
+        button.style.transform = "";
+    }, 100);
+    
     imageSelectorHidden.click();
 });
 
