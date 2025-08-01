@@ -86,6 +86,97 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
       }
 
+      /* Estilos personalizados para el botón principal SELECT IMAGE */
+      #input-image-selector {
+        background: transparent !important;
+        border: 2px solid #000000 !important;
+        color: #000000 !important;
+        font-family: 'Dortmund', Arial, sans-serif !important;
+        font-weight: bold !important;
+        padding: 12px 30px !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        margin: 0 auto !important;
+        display: block !important;
+        box-shadow: none !important;
+      }
+
+      #input-image-selector:hover {
+        background: #000000 !important;
+        color: #ffffff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+      }
+
+      #input-image-selector:active {
+        transform: translateY(0) scale(0.98) !important;
+        transition: all 0.1s ease !important;
+        background: #000000 !important;
+        color: #ffffff !important;
+      }
+
+      #input-image-selector:focus {
+        background: transparent !important;
+        border-color: #000000 !important;
+        color: #000000 !important;
+        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25) !important;
+        outline: none !important;
+      }
+
+      #input-image-selector:disabled {
+        background: transparent !important;
+        border-color: #cccccc !important;
+        color: #cccccc !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Sobreescribir completamente los estilos btn-success para este botón específico */
+      #input-image-selector.btn-success {
+        background-color: transparent !important;
+        background-image: none !important;
+        background: transparent !important;
+        border-color: #000000 !important;
+        color: #000000 !important;
+      }
+
+      #input-image-selector.btn-success:hover {
+        background-color: #000000 !important;
+        background-image: none !important;
+        background: #000000 !important;
+        border-color: #000000 !important;
+        color: #ffffff !important;
+      }
+
+      #input-image-selector.btn-success:focus, 
+      #input-image-selector.btn-success:active {
+        background-color: transparent !important;
+        background-image: none !important;
+        background: transparent !important;
+        border-color: #000000 !important;
+        color: #000000 !important;
+        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25) !important;
+      }
+
+      /* Animación de carga sutil */
+      .loading-animation {
+        animation: subtle-pulse 1.5s ease-in-out infinite !important;
+      }
+
+      @keyframes subtle-pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+
+      /* Contenedor centrado para el botón */
+      #image-input {
+        text-align: center !important;
+      }
+
       .paintbrush-controls-button {
         background-color: #f6f6f6;
         border: 1px solid rgba(0, 0, 0, 0.125);
@@ -250,7 +341,7 @@
       <canvas id="background-image-cache-canvas" hidden></canvas>
 
       <div>
-        <div class="progress" style="height: 8px; margin-bottom: 2px" id="universal-loading-progress">
+        <div class="progress" style="height: 8px; margin-bottom: 2px" id="universal-loading-progress" hidden>
           <div class="progress-bar indeterminate style=" height:10px"">
         </div>
       </div>
@@ -1238,7 +1329,7 @@
                         </div>
                         <div style="padding-bottom: 10px">
                           <a id="export-stud-map-button" download="selected-studs.json" href="””">
-                            <button class="btn btn-info" type="button">Export Selected Studs</button>
+                            <!-- REMOVIDO: Botón Export Selected Studs -->
                           </a>
                         </div>
                         <div class="btn-group">
@@ -1250,7 +1341,7 @@
                             aria-haspopup="true"
                             aria-expanded="false"
                           >
-                            Mix in Studs From Existing Set
+                            <!-- REMOVIDO: Mix in Studs From Existing Set -->
                           </button>
                           <div
                             class="dropdown-menu"
@@ -1976,43 +2067,9 @@
       </div>
     </div>
 
-    <div id="image-input-card" class="card card-body" style="padding-bottom: 10px">
+    <div id="image-input-card" style="padding-bottom: 10px">
       <div class="row">
         <div class="col-sm">
-          <span class="btn-group" style="margin-top: 8px">
-            <div class="row" style="margin-left: 0px">
-              <div style="margin-right: 4px">
-                <span style="margin-left: 4px; margin-right: 8px; margin-top: 4px; font-weight: 600"
-                  >Input Pieces:</span
-                >
-                <span
-                  data-toggle="tooltip"
-                  title="This can also be changed or adjusted piece by piece later"
-                  data-placement="top"
-                >
-                  <button
-                    class="btn dropdown-toggle btn-outline-dark btn-sm"
-                    type="button"
-                    id="select-starting-custom-stud-map-button"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    disabled
-                  >
-                    Input set
-                  </button>
-                  <div
-                    class="dropdown-menu"
-                    id="select-starting-custom-stud-map-options"
-                    aria-labelledby="select-starting-custom-stud-map-button"
-                  ></div>
-                </span>
-              </div>
-              <div style="margin-left: 2px">
-                <small style="margin-top: 10px" class="text-muted" id="input-stud-map-description"></small>
-              </div>
-            </div>
-          </span>
           <canvas id="input-canvas" hidden></canvas>
           <canvas id="input-depth-canvas" hidden></canvas>
           <span id="image-input">
