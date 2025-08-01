@@ -11,6 +11,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
       crossorigin="anonymous"
     />
+    
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.css"
@@ -20,50 +21,69 @@
     />
     <link href="assets/png/icon-192x192.png" rel="icon" type="image/x-icon" />
 
-    <title>Lego Art Remix</title>
+    <title>VisuBloq</title>
 
-    <meta property="og:title" content="Lego Art Remix" />
-    <meta property="og:image" content="https://lego-art-remix.com/assets/png/icon-960x960.png" />
-    <meta property="og:description" content="The Intelligent, Easy to Use Lego Mosaic Maker" />
-    <meta name="description" content="The Intelligent, Easy to Use Lego Mosaic Maker" />
-    <meta name="thumbnail" content="https://lego-art-remix.com/assets/png/icon-512x512.png" />
+    <meta property="og:title" content="VisuBloq" />
+    <meta property="og:image" content="assets/png/icon-960x960.png" />
+    <meta property="og:description" content="Herramienta de Creación Visual" />
+    <meta name="description" content="Herramienta de Creación Visual" />
+    <meta name="thumbnail" content="assets/png/icon-512x512.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#FCE4EC" />
+    <meta name="theme-color" content="#000000" />
     <link rel="manifest" href="/manifest.json" />
 
     <PageMap>
       <DataObject type="thumbnail">
-        <Attribute name="src" value="https://lego-art-remix.com/assets/png/icon-512x512.png" />
+        <Attribute name="src" value="assets/png/icon-512x512.png" />
         <Attribute name="width" value="512" />
         <Attribute name="height" value="512" />
       </DataObject>
     </PageMap>
 
     <style>
+      /* Fuente Dortmund para VisuBloq */
+      @font-face {
+        font-family: 'Dortmund';
+        src: url('assets/fonts/Dortmund-ExtraBold.otf') format('opentype');
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+      }
+      
+      /* Aplicar tipografía Dortmund a todos los elementos de texto */
+      body, h1, h2, h3, h4, h5, h6, .btn, small, p, span, div, label, td, th {
+        font-family: 'Dortmund', 'Arial Black', sans-serif;
+        font-weight: bold;
+      }
+      
       a {
         text-decoration: none !important;
-      }
-
-      #responsive-youtube {
-        overflow: hidden;
-        padding-bottom: 56.25%;
-        position: relative;
-        height: 0;
-        font-size: 24px;
-      }
-
-      #responsive-youtube iframe {
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 100%;
-        position: absolute;
       }
 
       .btn-link {
         text-decoration: none !important;
         width: 100%;
         border-width: 0;
+      }
+
+      /* Cambiar botones verdes a esquema blanco y negro */
+      .btn-success {
+        background-color: #000000;
+        border-color: #000000;
+        color: #ffffff;
+      }
+
+      .btn-success:hover {
+        background-color: #333333;
+        border-color: #333333;
+        color: #ffffff;
+      }
+
+      .btn-success:focus, .btn-success:active {
+        background-color: #000000;
+        border-color: #000000;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
       }
 
       .paintbrush-controls-button {
@@ -75,10 +95,6 @@
 
       .paintbrush-controls-button:hover:enabled {
         background-color: #6c6c6c;
-      }
-
-      #step-3-canvas-upscaled {
-        /* cursor: crosshair; TODO: Better cursor*/
       }
 
       .card {
@@ -231,16 +247,6 @@
 
   <body>
     <div style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 60px)">
-      <h1 style="margin-bottom: 0; margin-left: 4px">Lego Art Remix</h1>
-      <div style="margin-bottom: 10px; margin-left: 6px">
-        <small> The Intelligent, Easy to Use Lego Mosaic Maker </small>
-        <div style="margin-bottom: 5px">
-          <small>
-            <span>Made with ♥ by Deb</span> &bull;
-            <a href="https://github.com/debkbanerji/lego-art-remix" target="_blank">Source Code</a>
-          </small>
-        </div>
-      </div>
       <canvas id="background-image-cache-canvas" hidden></canvas>
 
       <div>
@@ -290,8 +296,8 @@
               <div style="width: 100%">
                 <canvas id="step-1-canvas-upscaled" style="width: 100%" class="cropper-img"></canvas>
               </div>
-              <h4>Step 1</h4>
-              <small className="step-header-subtitle">Crop + Scale input image</small>
+              <h4>STEP 1</h4>
+              <small className="step-header-subtitle">CROP + SCALE INPUT IMAGE</small>
               <div id="step-1-accordion">
                 <div class="card accordion-card">
                   <div class="card-header" id="step-1-1-heading">
@@ -303,7 +309,7 @@
                         aria-expanded="false"
                         aria-controls="step-1-1-collapse"
                       >
-                        Resolution
+                        RESOLUTION
                       </button>
                     </h5>
                   </div>
@@ -314,10 +320,10 @@
                     data-parent="#step-1-accordion"
                   >
                     <div class="card-body accordion-card-body">
-                      <b>Target Resolution:</b>
+                      <b>TARGET RESOLUTION:</b>
                       <div style="width: 100%">
                         <div>
-                          Width:
+                          WIDTH:
                           <span id="width-text" data-toggle="tooltip" title="" data-placement="top">48</span>
                         </div>
                         <input
@@ -333,7 +339,7 @@
                       </div>
                       <div style="width: 100%">
                         <div>
-                          Height:
+                          HEIGHT:
                           <span id="height-text" data-toggle="tooltip" title="" data-placement="top">48</span>
                         </div>
                         <input
@@ -400,7 +406,7 @@
                         aria-expanded="false"
                         aria-controls="step-1-3-collapse"
                       >
-                        Input Image
+                        SELECT IMAGE
                       </button>
                     </h5>
                   </div>
@@ -477,9 +483,9 @@
               <canvas id="web-worker-output-canvas" hidden></canvas>
               <canvas id="step-1-depth-canvas" hidden></canvas>
               <canvas id="step-1-depth-canvas-upscaled" style="width: 100%"></canvas>
-              <h4>Step 1</h4>
-              <small className="step-header-subtitle">Get depth map</small><br />
-              <small className="step-header-subtitle">Depth map cropping will match input image</small>
+              <h4>STEP 1</h4>
+              <small className="step-header-subtitle">GET DEPTH MAP</small><br />
+              <small className="step-header-subtitle">DEPTH MAP CROPPING WILL MATCH INPUT IMAGE</small>
               <div id="step-1-depth-accordion">
                 <div class="card accordion-card">
                   <div class="card-header" id="step-1-depth-1-heading">
@@ -627,8 +633,8 @@
             >
               <canvas id="step-2-canvas" hidden></canvas>
               <canvas id="step-2-canvas-upscaled" style="width: 100%"></canvas>
-              <h4>Step 2</h4>
-              <small className="step-header-subtitle">Interpolate + Adjust colors</small>
+              <h4>STEP 2</h4>
+              <small className="step-header-subtitle">INTERPOLATE + ADJUST COLORS</small>
 
               <div id="step-2-accordion">
                 <div class="card accordion-card">
@@ -855,8 +861,8 @@
               <canvas id="step-2-depth-canvas-cropper-buffer" hidden></canvas>
               <canvas id="step-2-depth-canvas" hidden></canvas>
               <canvas id="step-2-depth-canvas-upscaled" style="width: 100%"></canvas>
-              <h4>Step 2</h4>
-              <small className="step-header-subtitle">Make depth discrete</small>
+              <h4>STEP 2</h4>
+              <small className="step-header-subtitle">MAKE DEPTH DISCRETE</small>
               <div id="step-2-depth-accordion">
                 <div class="card accordion-card">
                   <div class="card-header" id="step-2-depth-1-heading">
@@ -1014,8 +1020,8 @@
             >
               <canvas id="step-3-canvas" hidden></canvas>
               <canvas id="step-3-canvas-upscaled" style="width: 100%"></canvas>
-              <h4>Step 3</h4>
-              <small className="step-header-subtitle">Align to closest pixel from available colors</small>
+              <h4>STEP 3</h4>
+              <small className="step-header-subtitle">ALIGN TO CLOSEST PIXEL FROM AVAILABLE COLORS</small>
               <br />
               <span
                 data-toggle="tooltip"
@@ -1457,8 +1463,8 @@
             >
               <canvas id="step-3-depth-canvas" hidden></canvas>
               <canvas id="step-3-depth-canvas-upscaled" style="width: 100%"></canvas>
-              <h4>Step 3</h4>
-              <small className="step-header-subtitle">Adjust Depth Map</small>
+              <h4>STEP 3</h4>
+              <small className="step-header-subtitle">ADJUST DEPTH MAP</small>
               <div id="step-3-depth-accordion">
                 <div class="card accordion-card">
                   <div class="card-header" id="step-3-depth-1-heading">
@@ -1550,8 +1556,8 @@
               <canvas id="step-4-canvas" hidden></canvas>
               <canvas id="bricklink-cache-canvas" hidden></canvas>
               <canvas id="step-4-canvas-upscaled" style="width: 100%"></canvas>
-              <h4>Step 4</h4>
-              <small className="step-header-subtitle">Correct for available pieces, if piece counts are limited</small>
+              <h4>STEP 4</h4>
+              <small className="step-header-subtitle">CORRECT FOR AVAILABLE PIECES, IF PIECE COUNTS ARE LIMITED</small>
               <br />
               <div className="step-header-subtitle text-danger" id="nonzero-missing-pieces-warning" hidden>
                 <small>'Missing Pieces' under 'Available Colors' must be 0 </small>
@@ -1973,7 +1979,6 @@
     <div id="image-input-card" class="card card-body" style="padding-bottom: 10px">
       <div class="row">
         <div class="col-sm">
-          <h3 style="font-weight: 600">Get Started</h3>
           <span class="btn-group" style="margin-top: 8px">
             <div class="row" style="margin-left: 0px">
               <div style="margin-right: 4px">
@@ -2014,7 +2019,7 @@
             <input type="file" id="input-image-selector-hidden" name="input-image-selector-hidden" hidden />
             <div style="margin-top: 12px">
               <button class="btn btn-success" type="button" id="input-image-selector" disabled>
-                Select Input Image
+                SELECT IMAGE
               </button>
             </div>
           </span>
@@ -2042,174 +2047,6 @@
       </div>
     </div>
 
-    <div class="card card-body" style="padding-bottom: 10px; margin-top: 10px">
-      <div class="row">
-        <div class="col-sm">
-          <h5>
-            <a
-              data-toggle="collapse"
-              href="#articles"
-              aria-expanded="false"
-              aria-controls="articles"
-              id="toggle-tech-talk-button"
-            >
-              Tech Talk + Other Media
-            </a>
-          </h5>
-          <div class="collapse" id="articles">
-            <p style="margin-bottom: 4px; font-weight: 600">Below is a recording of my tech talk from BrickCon 2021</p>
-            <small>
-              <p style="margin-bottom: 4px">
-                If you're interested in understanding how this site works, the talk goes over the techniques and
-                algorithms that were used
-              </p>
-              <p style="margin-bottom: 4px">
-                It also goes over some ideas that haven't (yet) been implemented within the tool, so it functions fairly
-                well as a more general overview of the Lego mosaic space
-              </p>
-              <p style="margin-bottom: 4px">
-                You can find the slide deck used in the talk
-                <a
-                  href="https://github.com/debkbanerji/lego-art-remix/blob/master/media/Lego%20Mosaic%20Presentation.pdf"
-                  target="_blank"
-                  >here</a
-                > (with some updates since the talk), and if the video doesn't load, you can find it directly on BrickCon's YouTube channel
-                <a href="https://www.youtube.com/watch?v=G58ZNurxXgQ" target="_blank">here</a>
-              </p>
-            </small>
-            <div class="row">
-              <div class="col-12 col-md-6">
-                <div id="responsive-youtube">Loading...</div>
-              </div>
-            </div>
-            <p style="margin-bottom: 4px; margin-top: 15px; font-weight: 600">
-              These are some other articles and videos featuring Lego Art Remix
-            </p>
-            <small>
-              <p style="margin-bottom: 4px">
-                Some are quite interesting even outside the context of this tool in particular, since they go into the
-                history of Lego mosaics
-              </p>
-              <p style="margin-bottom: 4px">Note that some were made when the tool was older</p>
-              <ul>
-                <li>
-                  <a href="https://www.instagram.com/explore/tags/legoartremix/" target="_blank"
-                    >#LegoArtRemix on Instagram</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href="https://globalnews.ca/video/7439079/you-can-store-your-medical-records-on-this-app"
-                    target="_blank"
-                    >Global News Morning Segment</a
-                  >
-                </li>
-                <li>
-                  <span style="display: flex; align-items: center"
-                    ><a
-                      href="https://www.brothers-brick.com/2020/08/27/create-your-own-mosaic-masterpiece-with-lego-art-remix-review-interview/"
-                      target="_blank"
-                      >Brothers Brick Article</a
-                    >
-                    &nbsp;<span style="font-size: 0.925em; display: flex; align-items: center"
-                      >(2020 Top 3 most popular feature)</span
-                    ></span
-                  >
-                </li>
-                <li>
-                  <a
-                    href="http://thebrickblogger.com/2020/12/building-custom-lego-mosaics-with-lego-art-sets/"
-                    target="_blank"
-                    >TheBrickBlogger Article</a
-                  >
-                </li>
-                <li>
-                  <a href="https://www.youtube.com/watch?v=RY4OJnD99VQ" target="_blank">DuckBricks Video</a>
-                </li>
-              </ul>
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="card card-body" style="padding-bottom: 10px; margin-top: 10px">
-      <div class="row">
-        <div class="col-sm">
-          <h5>
-            <a data-toggle="collapse" href="#about" aria-expanded="false" aria-controls="about"> About </a>
-          </h5>
-          <div class="collapse" id="about">
-            <div style="margin-bottom: 15px">
-              <small>
-                <span id="version-number"></span> &bull; <span>Made with ♥ by Deb</span> &bull;
-                <a href="https://github.com/debkbanerji/lego-art-remix" target="_blank">Source Code</a>
-                <span id="total-generated-count"></span>
-              </small>
-            </div>
-            <h6>What is it?</h6>
-            <p style="margin-bottom: 5px">
-              In 2020, The Lego Group released the
-              <a href="https://www.lego.com/en-us/campaigns/art" target="_blank">Lego Art</a>
-              theme, which allows people to create a predetermined image using lego studs.<br />
-              Lego Art Remix lets you upload your own image, and then uses computer vision to use the studs from a Lego
-              Art set that you already have to recreate the image.
-            </p>
-            <p>This project is not affiliated with The Lego Group</p>
-            <h6>Performance and Security</h6>
-            <p style="margin-bottom: 5px">
-              The computer vision techniques used are pretty inexpensive (with the exception of optional depth map
-              generation), and the resolutions being dealt with are naturally quite low, so as of the time of writing,
-              the algorithm runs quite quickly. This allows for it to be run on the client, and on the machines that I
-              tested, it ran in near real time.
-            </p>
-            <p style="margin-bottom: 5px">
-              The most computationally expensive part of the process, apart from depth map generation, is generating the
-              instructions, since even pdf generation is done client side.
-            </p>
-            <p style="margin-bottom: 5px">
-              Since it runs almost entirely within the browser (see the
-              <a href="https://github.com/debkbanerji/lego-art-remix" target="_blank">source code</a>), no image data is
-              sent to a server and so it's very secure. This also makes it much easier for me to maintain and host. The
-              only server code consists of simple increments to anonymously estimate usage for the purposes for tracking
-              performance in case the static deployment needs to be scaled up, and for the counter in the about section.
-            </p>
-            <p style="margin-bottom: 5px">
-              Even the deep neural network to compute depth maps is being run entirely within the browser, in a web
-              worker, using a modified version of
-              <a href="https://github.com/microsoft/onnxjs" target="_blank">ONNX.js</a>. I've compiled a version of the
-              library based on
-              <a href="https://github.com/microsoft/onnxjs/pull/228" target="_blank">this pull request</a>, with a small
-              additional change I made to support the resize operation in v10. The model used is
-              <a href="https://github.com/intel-isl/MiDaS" target="_blank">MiDaS</a>
-              - more specifically, the small ONNX version which can be found
-              <a href="https://github.com/intel-isl/MiDaS/releases/tag/v2_1" target="_blank">here</a>.
-            </p>
-            <div class="card" style="margin-top: 4px; margin-bottom: 16px; padding: 4px">
-              <b>Citation for Model Used</b>
-              <span>
-                Ranftl, René, Katrin Lasinger, David Hafner, Konrad Schindler, and Vladlen Koltun. "Towards robust
-                monocular depth estimation: Mixing datasets for zero-shot cross-dataset transfer." (2020).
-                <i>IEEE Transactions on Pattern Analysis and Machine Intelligence</i></span
-              >
-            </div>
-            <p></p>
-            <h6>Bugs, Feature Requests, and Algorithm Improvements</h6>
-            <em style="margin-bottom: 5px"
-              >Direct any concerns or ideas for improvements
-              <a href="https://github.com/debkbanerji/lego-art-remix/issues" target="_blank">here</a></em
-            >
-            <p style="margin-bottom: 5px">
-              As of the time of writing, I don't have all of the sets, and I haven't had much time to test. As a result,
-              there's probably a few bugs, so let me know if you find any.
-            </p>
-            <p style="margin-bottom: 5px">
-              Algorithm improvement ideas are always welcome. Improvements that maintain the efficiency to within a
-              reasonable degree would allow the algorithm to keep running on the client, which I really like.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="card card-body" style="padding-bottom: 10px; margin-top: 10px" id="metrics-card" hidden>
       <div class="row">
         <div class="col-sm">
@@ -2237,50 +2074,16 @@
     <!-- </div> -->
 
     <script>
-      // add background generation code inline so it loads in before other logic
-      function rgbToHex(r, g, b) {
-        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-      }
-
+      // Configurar fondo blanco para VisuBloq
       function handleDarkModeChange() {
         const isDarkModeEnabled = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
         Array.from(document.getElementsByClassName("dark-mode-stylesheet")).forEach((stylesheet) => {
           stylesheet.disabled = !isDarkModeEnabled;
         });
 
-        const canvas = document.getElementById("background-image-cache-canvas");
-        const ctx = canvas.getContext("2d");
-
-        const CIRCLE_RADIUS = 10;
-        const WIDTH_COUNT = 40;
-        const HEIGHT_COUNT = 20;
-        const MIN_CIRCLE_BRIGHTNESS = 245;
-
-        canvas.width = CIRCLE_RADIUS * WIDTH_COUNT;
-        canvas.height = CIRCLE_RADIUS * HEIGHT_COUNT;
-
-        for (let i = 0; i < HEIGHT_COUNT; i++) {
-          for (let j = 0; j < WIDTH_COUNT; j++) {
-            ctx.beginPath();
-            ctx.arc(
-              CIRCLE_RADIUS + 2 * i * CIRCLE_RADIUS,
-              CIRCLE_RADIUS + 2 * j * CIRCLE_RADIUS,
-              CIRCLE_RADIUS,
-              0,
-              2 * Math.PI
-            );
-            let brightness = MIN_CIRCLE_BRIGHTNESS + Math.floor(Math.random() * (255 - MIN_CIRCLE_BRIGHTNESS));
-            if (isDarkModeEnabled) {
-              brightness = 255 - brightness;
-            }
-            ctx.fillStyle = rgbToHex(brightness, brightness, brightness);
-            ctx.fill();
-          }
-        }
-
-        const dataURL = canvas.toDataURL("image/png", 1.0);
-
-        document.body.style.backgroundImage = `url('${dataURL}')`;
+        // Establecer fondo blanco para VisuBloq
+        document.body.style.backgroundColor = "#ffffff";
+        document.body.style.backgroundImage = "none";
       }
 
       handleDarkModeChange();
