@@ -276,9 +276,15 @@
         height: 50px;
         text-align: center;
       }
+
+      /* Forzar fondo blanco */
+      html, body {
+        background-color: white !important;
+        background-image: none !important;
+      }
     </style>
 
-    <style class="dark-mode-stylesheet" disabled>
+    <style class="dark-mode-stylesheet" disabled="disabled" style="display: none;">
       html,
       body {
         background-color: black;
@@ -336,19 +342,14 @@
     </style>
   </head>
 
-  <body>
-    <div style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 60px)">
-      <canvas id="background-image-cache-canvas" hidden></canvas>
+  <body style="background-color: white;">
+    <canvas id="background-image-cache-canvas" hidden></canvas>
+    
+    <!-- Barras de progreso ocultas para mantener funcionalidad en segundo plano -->
+    <div id="universal-loading-progress" style="display: none;"></div>
+    <div id="universal-loading-progress-complement" style="display: none;"></div>
 
-      <div>
-        <div class="progress" style="height: 8px; margin-bottom: 2px" id="universal-loading-progress" hidden>
-          <div class="progress-bar indeterminate style=" height:10px"">
-        </div>
-      </div>
-      <div style="height: 8px; margin-bottom: 2px" id="universal-loading-progress-complement" hidden></div>
-    </div>
-
-    <div class="row" id="steps-row" hidden>
+    <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
       <div id="step-1" class="col-6 col-md-3 hide-on-step-3-expansion">
         <div class="card" style="padding: 10px; margin-bottom: 10px">
           <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" hidden>
@@ -508,7 +509,9 @@
                     data-parent="#step-1-accordion"
                   >
                     <div class="card-body accordion-card-body">
-                      <div id="image-input-new"></div>
+                      <div id="image-input-new">
+                        <!-- Botón movido a image-input-card principal -->
+                      </div>
                       <small>
                         <p style="margin-left: 4px; margin-top: 4px">
                           Supported image formats are dependent on your browser's compatibility
@@ -2067,15 +2070,15 @@
       </div>
     </div>
 
-    <div id="image-input-card" style="padding-bottom: 10px">
+    <div id="image-input-card" style="text-align: center; padding-top: 40px; width: 100%;">
       <div class="row">
         <div class="col-sm">
           <canvas id="input-canvas" hidden></canvas>
           <canvas id="input-depth-canvas" hidden></canvas>
           <span id="image-input">
             <input type="file" id="input-image-selector-hidden" name="input-image-selector-hidden" hidden />
-            <div style="margin-top: 12px">
-              <button class="btn btn-success" type="button" id="input-image-selector" disabled>
+            <div>
+              <button class="btn btn-success" type="button" id="input-image-selector">
                 SELECT IMAGE
               </button>
             </div>
@@ -2096,7 +2099,7 @@
               >set 31201</a
             ></small
           >
-          <span id="run-example-input-container" hidden>
+          <span id="run-example-input-container" style="display: none;">
             <span style="margin-left: 8px; margin-right: 8px; font-weight: 600">Or</span>
             <button class="btn btn-success" type="button" id="run-example-input" disabled>See an Example</button>
           </span>
@@ -2129,23 +2132,6 @@
       </div>
     </div>
     <!-- </div> -->
-
-    <script>
-      // Configurar fondo blanco para VisuBloq
-      function handleDarkModeChange() {
-        const isDarkModeEnabled = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        Array.from(document.getElementsByClassName("dark-mode-stylesheet")).forEach((stylesheet) => {
-          stylesheet.disabled = !isDarkModeEnabled;
-        });
-
-        // Establecer fondo blanco para VisuBloq
-        document.body.style.backgroundColor = "#ffffff";
-        document.body.style.backgroundImage = "none";
-      }
-
-      handleDarkModeChange();
-      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", handleDarkModeChange);
-    </script>
 
     <!-- Add firebase to log performance -->
     <script src="https://www.gstatic.com/firebasejs/7.19.0/firebase-app.js"></script>
