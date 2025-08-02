@@ -352,7 +352,7 @@
     <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
       <div id="step-1" class="col-6 col-md-3 hide-on-step-3-expansion">
         <div class="card" style="padding: 10px; margin-bottom: 10px">
-          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" hidden>
+          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
             <li class="nav-item">
               <a
                 class="nav-link active"
@@ -391,7 +391,7 @@
               <h4>STEP 1</h4>
               <small className="step-header-subtitle">CROP + SCALE INPUT IMAGE</small>
               <div id="step-1-accordion">
-                <div class="card accordion-card">
+                <div class="card accordion-card" style="display: none;">
                   <div class="card-header" id="step-1-1-heading">
                     <h5 class="mb-0">
                       <button
@@ -416,7 +416,7 @@
                       <div style="width: 100%">
                         <div>
                           WIDTH:
-                          <span id="width-text" data-toggle="tooltip" title="" data-placement="top">48</span>
+                          <span id="width-text" data-toggle="tooltip" title="" data-placement="top">50</span>
                         </div>
                         <input
                           type="range"
@@ -425,14 +425,14 @@
                           min="16"
                           max="128"
                           step="16"
-                          value="48"
+                          value="50"
                           style="width: 100%"
                         />
                       </div>
                       <div style="width: 100%">
                         <div>
                           HEIGHT:
-                          <span id="height-text" data-toggle="tooltip" title="" data-placement="top">48</span>
+                          <span id="height-text" data-toggle="tooltip" title="" data-placement="top">50</span>
                         </div>
                         <input
                           type="range"
@@ -441,7 +441,7 @@
                           min="16"
                           max="128"
                           step="16"
-                          value="48"
+                          value="50"
                           style="width: 100%"
                         />
                       </div>
@@ -449,7 +449,7 @@
                   </div>
                 </div>
 
-                <div class="card accordion-card" id="enable-depth-button-container">
+                <div class="card accordion-card" id="enable-depth-button-container" style="display: none;">
                   <div class="card-header" id="step-1-2-heading">
                     <h5 class="mb-0">
                       <button
@@ -524,7 +524,7 @@
                   </div>
                 </div>
 
-                <div class="card accordion-card">
+                <div class="card accordion-card" style="display: none;">
                   <div class="card-header" id="step-1-4-heading">
                     <h5 class="mb-0">
                       <button
@@ -692,7 +692,7 @@
 
       <div id="step-2" class="col-6 col-md-3 hide-on-step-3-expansion">
         <div class="card" style="padding: 10px; margin-bottom: 10px">
-          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" hidden>
+          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
             <li class="nav-item">
               <a
                 class="nav-link active"
@@ -731,7 +731,7 @@
               <small className="step-header-subtitle">INTERPOLATE + ADJUST COLORS</small>
 
               <div id="step-2-accordion">
-                <div class="card accordion-card">
+                <div class="card accordion-card" style="display: none;">
                   <div class="card-header" id="step-2-4-heading">
                     <h5 class="mb-0">
                       <button
@@ -787,7 +787,7 @@
                         aria-expanded="false"
                         aria-controls="step-2-1-collapse"
                       >
-                        HSV
+                        EDICION
                       </button>
                     </h5>
                   </div>
@@ -800,25 +800,7 @@
                     <div class="card-body accordion-card-body">
                       <div style="width: 100%">
                         <div>
-                          Hue adjustment:
-                          <span id="hue-text">0<span>&#176;</span></span>
-                        </div>
-                        <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
-                          <button class="btn btn-sm" id="hue-decrement" style="flex-grow: 0">-</button>
-                          <input
-                            type="range"
-                            id="hue-slider"
-                            name="points"
-                            min="-180"
-                            max="180"
-                            style="flex-grow: 1; min-width: 10px"
-                          />
-                          <button class="btn btn-sm" id="hue-increment" style="flex-grow: 0">+</button>
-                        </div>
-                      </div>
-                      <div style="width: 100%">
-                        <div>
-                          Saturation adjustment:
+                          Saturación:
                           <span id="saturation-text">0%</span>
                         </div>
                         <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -836,51 +818,7 @@
                       </div>
                       <div style="width: 100%">
                         <div>
-                          Value adjustment:
-                          <span id="value-text">0%</span>
-                        </div>
-                        <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
-                          <button class="btn btn-sm" id="value-decrement" style="flex-grow: 0">-</button>
-                          <input
-                            type="range"
-                            id="value-slider"
-                            name="points"
-                            min="-100"
-                            max="100"
-                            style="flex-grow: 1; min-width: 10px"
-                          />
-                          <button class="btn btn-sm" id="value-increment" style="flex-grow: 0">+</button>
-                        </div>
-                      </div>
-                      <button class="btn btn-info" type="button" id="reset-hsv-button">Reset HSV</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card accordion-card">
-                  <div class="card-header" id="step-2-2-heading">
-                    <h5 class="mb-0">
-                      <button
-                        class="btn btn-link collapsed"
-                        data-toggle="collapse"
-                        data-target="#step-2-2-collapse"
-                        aria-expanded="false"
-                        aria-controls="step-2-2-collapse"
-                      >
-                        Brightness
-                      </button>
-                    </h5>
-                  </div>
-                  <div
-                    id="step-2-2-collapse"
-                    class="collapse"
-                    aria-labelledby="step-2-2-heading"
-                    data-parent="#step-2-accordion"
-                  >
-                    <div class="card-body accordion-card-body">
-                      <div style="width: 100%">
-                        <div>
-                          Brightness adjustment:
+                          Brillo:
                           <span id="brightness-text">0</span>
                         </div>
                         <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -896,35 +834,9 @@
                           <button class="btn btn-sm" id="brightness-increment" style="flex-grow: 0">+</button>
                         </div>
                       </div>
-                      <button class="btn btn-info" type="button" id="reset-brightness-button">Reset Brightness</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card accordion-card">
-                  <div class="card-header" id="step-2-3-heading">
-                    <h5 class="mb-0">
-                      <button
-                        class="btn btn-link collapsed"
-                        data-toggle="collapse"
-                        data-target="#step-2-3-collapse"
-                        aria-expanded="false"
-                        aria-controls="step-2-3-collapse"
-                      >
-                        Contrast
-                      </button>
-                    </h5>
-                  </div>
-                  <div
-                    id="step-2-3-collapse"
-                    class="collapse"
-                    aria-labelledby="step-2-3-heading"
-                    data-parent="#step-2-accordion"
-                  >
-                    <div class="card-body accordion-card-body">
                       <div style="width: 100%">
                         <div>
-                          Contrast adjustment:
+                          Contraste:
                           <span id="contrast-text">0</span>
                         </div>
                         <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -940,7 +852,11 @@
                           <button class="btn btn-sm" id="contrast-increment" style="flex-grow: 0">+</button>
                         </div>
                       </div>
-                      <button class="btn btn-info" type="button" id="reset-contrast-button">Reset Contrast</button>
+                      <div style="margin-top: 16px;">
+                        <button class="btn btn-info btn-sm" type="button" id="reset-hsv-button" style="margin-right: 8px;">Reset Saturación</button>
+                        <button class="btn btn-info btn-sm" type="button" id="reset-brightness-button" style="margin-right: 8px;">Reset Brillo</button>
+                        <button class="btn btn-info btn-sm" type="button" id="reset-contrast-button">Reset Contraste</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1079,7 +995,7 @@
 
       <div id="step-3" class="col-6 col-md-3">
         <div class="card" style="padding: 10px; margin-bottom: 10px">
-          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" hidden>
+          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
             <li class="nav-item">
               <a
                 class="nav-link active"
@@ -1614,7 +1530,7 @@
 
       <div id="step-4" class="col-6 col-md-3 hide-on-step-3-expansion">
         <div class="card" style="padding: 10px; margin-bottom: 10px">
-          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" hidden>
+          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
             <li class="nav-item">
               <a
                 class="nav-link active"
