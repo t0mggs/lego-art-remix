@@ -43,12 +43,13 @@ const HIGH_DPI = 96;
 const interactionSelectors = [
     "input-image-selector",
     "input-image-selector-hidden",
-    // "width-slider", // Comentado para VisuBloq - resolución fija
-    // "height-slider", // Comentado para VisuBloq - resolución fija
-    // "hue-slider", // Comentado para VisuBloq
+    "width-slider",
+    "height-slider",
+    // "hue-slider", // ELIMINADO: Ya no se usa HSV completo
     "saturation-slider",
-    // "value-slider", // Comentado para VisuBloq
-    "reset-hsv-button",
+    // "value-slider", // ELIMINADO: Ya no se usa HSV completo
+    // "reset-hsv-button", // ELIMINADO: Reemplazado por reset-saturation-button
+    "reset-saturation-button",
     "reset-brightness-button",
     "reset-contrast-button",
     "download-instructions-button",
@@ -152,7 +153,10 @@ const step4Canvas3dUpscaled = document.getElementById("step-4-canvas-3d-upscaled
 
 const bricklinkCacheCanvas = document.getElementById("bricklink-cache-canvas");
 
-let targetResolution = [50, 50];
+let targetResolution = [
+    Number(document.getElementById("width-slider").value),
+    Number(document.getElementById("height-slider").value),
+];
 const PIXEL_WIDTH_CM = 0.8;
 const INCHES_IN_CM = 0.393701;
 const SCALING_FACTOR = 40;
@@ -195,10 +199,8 @@ window.addEventListener("resize", () => {
     });
 });
 
-let depthEnabled = false; // Funcionalidad 3D deshabilitada en VisuBloq
+let depthEnabled = false;
 
-// Funcionalidad 3D completamente deshabilitada para VisuBloq
-/*
 function enableDepth() {
     [...document.getElementsByClassName("3d-selector-tabs")].forEach((tabsList) => (tabsList.hidden = false));
     document.getElementById("enable-depth-button-container").hidden = true;
@@ -220,7 +222,6 @@ document.getElementById("enable-depth-button").addEventListener("click", enableD
 if (window.location.href.includes("enable3d")) {
     enableDepth();
 }
-*/
 
 Object.keys(PLATE_DIMENSIONS_TO_PART_ID).forEach((plate) => {
     ["depth-plates-container", "pixel-dimensions-container"].forEach((container) => {
@@ -343,8 +344,6 @@ function handleResolutionChange() {
     runStep1();
 }
 
-// Resolución fija en 50x50 - event listeners deshabilitados
-/*
 document.getElementById("width-slider").addEventListener(
     "change",
     () => {
@@ -364,7 +363,6 @@ document.getElementById("height-slider").addEventListener(
     },
     false
 );
-*/
 document.getElementById("clear-overrides-button").addEventListener("click", () => {
     overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
     runStep2();
@@ -374,14 +372,11 @@ document.getElementById("clear-depth-overrides-button").addEventListener("click"
     runStep2();
 });
 
-// Botón de aumentar límite de resolución deshabilitado
-/*
 document.getElementById("resolution-limit-increase-button").addEventListener("click", () => {
     document.getElementById("height-slider").max = 256;
     document.getElementById("width-slider").max = 256;
     document.getElementById("resolution-limit-increase-button").hidden = true;
 });
-*/
 
 document.getElementById("color-tie-grouping-factor-slider").addEventListener("change", () => {
     document.getElementById("color-tie-grouping-factor-text").innerHTML = document.getElementById(
@@ -602,10 +597,9 @@ TIEBREAK_TECHNIQUES.forEach((technique) => {
     document.getElementById("color-ties-resolution-options").appendChild(option);
 });
 
-let selectedInterpolationAlgorithm = "avgPooling"; // Fijo en Average Pooling para VisuBloq
-
-// Interpolation algorithms deshabilitado - siempre usa Average Pooling
+let selectedInterpolationAlgorithm = "avgPooling"; // Fixed for optimal results
 /*
+// SECCIÓN ELIMINADA: Array de algoritmos de interpolación - ahora siempre usa Average Pooling
 const INTERPOLATION_ALGORITHMS = [
     {
         name: "Browser Default",
@@ -1000,8 +994,8 @@ document.getElementById("add-custom-stud-button").addEventListener("click", () =
     runCustomStudMap();
 });
 
-// Hue controls comentados para VisuBloq - solo se usa Saturación, Brillo y Contraste
 /*
+// SECCIÓN ELIMINADA: Event listeners para Hue - ya no se usa HSV completo
 const onHueChange = () => {
     document.getElementById("hue-text").innerHTML = document.getElementById("hue-slider").value + "<span>&#176;</span>";
     runStep2();
@@ -1063,8 +1057,8 @@ document.getElementById("saturation-decrement").addEventListener(
     false
 );
 
-// Value controls comentados para VisuBloq - solo se usa Saturación, Brillo y Contraste
 /*
+// SECCIÓN ELIMINADA: Event listeners para Value - ya no se usa HSV completo
 const onValueChange = () => {
     document.getElementById("value-text").innerHTML = document.getElementById("value-slider").value + "%";
     runStep2();
@@ -1200,14 +1194,11 @@ function onDepthMapCountChange() {
     runStep1();
 }
 
-// Event listener de depth levels deshabilitado para VisuBloq
-// document.getElementById("num-depth-levels-slider").addEventListener("change", onDepthMapCountChange, false);
+document.getElementById("num-depth-levels-slider").addEventListener("change", onDepthMapCountChange, false);
 
-// Reset button modificado para VisuBloq - solo resetea Saturación
-document.getElementById("reset-hsv-button").addEventListener(
+document.getElementById("reset-saturation-button").addEventListener(
     "click",
     () => {
-        // Solo resetear saturación para VisuBloq
         document.getElementById("saturation-slider").value = 0;
         document.getElementById("saturation-text").innerHTML = document.getElementById("saturation-slider").value + "%";
         runStep2();
@@ -1312,12 +1303,11 @@ function runStep2() {
             subArrayPoolingFunction
         );
     }
-    // Aplicar ajustes HSV - para VisuBloq: hue=0, value=0, solo usar saturation
     let filteredPixelArray = applyHSVAdjustment(
         inputPixelArray,
-        0, // hue fijo en 0 para VisuBloq
+        0, // Hue fijo en 0 - ya no se usa HSV completo
         document.getElementById("saturation-slider").value / 100,
-        0 // value fijo en 0 para VisuBloq (sin cambio de brillo HSV)
+        0 // Value fijo en 0 - ya no se usa HSV completo
     );
     filteredPixelArray = applyBrightnessAdjustment(
         filteredPixelArray,
@@ -2134,8 +2124,7 @@ step4Canvas3dUpscaled.addEventListener("mouseleave", function (e) {
     }
 });
 
-// Event listener 3D deshabilitado para VisuBloq
-// document.getElementById("3d-effect-intensity").addEventListener("change", create3dPreview, false);
+document.getElementById("3d-effect-intensity").addEventListener("change", create3dPreview, false);
 
 function runStep4(asyncCallback) {
     const step2PixelArray = getPixelArrayFromCanvas(step2Canvas);
@@ -2489,7 +2478,7 @@ async function generateInstructions() {
             await sleep(50);
             if ((i + 1) % (isHighQuality ? 20 : 50) === 0) {
                 addWaterMark(pdf, isHighQuality);
-                pdf.save(`Lego-Art-Remix-Instructions-Part-${numParts}.pdf`);
+                pdf.save(`VisuBloq_Instructions-Part-${numParts}.pdf`);
                 numParts++;
                 pdf = new jsPDF({
                     orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
@@ -2545,7 +2534,7 @@ async function generateInstructions() {
         }
 
         addWaterMark(pdf, isHighQuality);
-        pdf.save(numParts > 1 ? `Lego-Art-Remix-Instructions-Part-${numParts}.pdf` : "Lego-Art-Remix-Instructions.pdf");
+        pdf.save(numParts > 1 ? `VisuBloq_Instructions-Part-${numParts}.pdf` : "VisuBloq_Instructions.pdf");
         document.getElementById("pdf-progress-container").hidden = true;
         document.getElementById("download-instructions-button").hidden = false;
         enableInteraction();
@@ -2658,7 +2647,7 @@ async function generateDepthInstructions() {
             if ((i + 1) % (isHighQuality ? 20 : 50) === 0) {
                 if (pdf != null) {
                     addWaterMark(pdf, isHighQuality);
-                    pdf.save(`Lego-Art-Remix-Instructions-Part-${numParts}.pdf`);
+                    pdf.save(`VisuBloq_Instructions-Part-${numParts}.pdf`);
 
                     numParts++;
                 }
@@ -2689,7 +2678,7 @@ async function generateDepthInstructions() {
         }
 
         addWaterMark(pdf, isHighQuality);
-        pdf.save(numParts > 1 ? `Lego-Art-Remix-Instructions-Part-${numParts}.pdf` : "Lego-Art-Remix-Instructions.pdf");
+        pdf.save(numParts > 1 ? `VisuBloq_Instructions-Part-${numParts}.pdf` : "VisuBloq_Instructions.pdf");
         document.getElementById("depth-pdf-progress-container").hidden = true;
         document.getElementById("download-depth-instructions-button").hidden = false;
         enableInteraction();
@@ -2829,8 +2818,7 @@ function triggerDepthMapGeneration() {
     }, 50); // TODO: find better way to check that input is finished
 }
 
-// Event listener de generate depth deshabilitado para VisuBloq
-// document.getElementById("generate-depth-image").addEventListener("click", triggerDepthMapGeneration);
+document.getElementById("generate-depth-image").addEventListener("click", triggerDepthMapGeneration);
 
 const SERIALIZE_EDGE_LENGTH = 512;
 
@@ -3041,14 +3029,11 @@ document.getElementById("input-image-selector").addEventListener("click", () => 
     imageSelectorHidden.click();
 });
 
-// Event listeners de depth/3D deshabilitados para VisuBloq
-/*
 const depthImageSelectorHidden = document.getElementById("input-depth-image-selector-hidden");
 depthImageSelectorHidden.addEventListener("change", handleInputDepthMapImage, false);
 document.getElementById("input-depth-image-selector").addEventListener("click", () => {
     depthImageSelectorHidden.click();
 });
-*/
 
 window.addEventListener("appinstalled", () => {
     perfLoggingDatabase.ref("pwa-install-count/total").transaction(incrementTransaction);
