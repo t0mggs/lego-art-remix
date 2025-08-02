@@ -787,7 +787,7 @@
                         aria-expanded="false"
                         aria-controls="step-2-1-collapse"
                       >
-                        EDICION
+                        Saturation
                       </button>
                     </h5>
                   </div>
@@ -800,7 +800,7 @@
                     <div class="card-body accordion-card-body">
                       <div style="width: 100%">
                         <div>
-                          Saturación:
+                          Saturation adjustment:
                           <span id="saturation-text">0%</span>
                         </div>
                         <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -816,9 +816,35 @@
                           <button class="btn btn-sm" id="saturation-increment" style="flex-grow: 0">+</button>
                         </div>
                       </div>
+                      <button class="btn btn-info" type="button" id="reset-saturation-button">Reset Saturation</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card accordion-card">
+                  <div class="card-header" id="step-2-2-heading">
+                    <h5 class="mb-0">
+                      <button
+                        class="btn btn-link collapsed"
+                        data-toggle="collapse"
+                        data-target="#step-2-2-collapse"
+                        aria-expanded="false"
+                        aria-controls="step-2-2-collapse"
+                      >
+                        Brightness
+                      </button>
+                    </h5>
+                  </div>
+                  <div
+                    id="step-2-2-collapse"
+                    class="collapse"
+                    aria-labelledby="step-2-2-heading"
+                    data-parent="#step-2-accordion"
+                  >
+                    <div class="card-body accordion-card-body">
                       <div style="width: 100%">
                         <div>
-                          Brillo:
+                          Brightness adjustment:
                           <span id="brightness-text">0</span>
                         </div>
                         <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -834,9 +860,35 @@
                           <button class="btn btn-sm" id="brightness-increment" style="flex-grow: 0">+</button>
                         </div>
                       </div>
+                      <button class="btn btn-info" type="button" id="reset-brightness-button">Reset Brightness</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card accordion-card">
+                  <div class="card-header" id="step-2-3-heading">
+                    <h5 class="mb-0">
+                      <button
+                        class="btn btn-link collapsed"
+                        data-toggle="collapse"
+                        data-target="#step-2-3-collapse"
+                        aria-expanded="false"
+                        aria-controls="step-2-3-collapse"
+                      >
+                        Contrast
+                      </button>
+                    </h5>
+                  </div>
+                  <div
+                    id="step-2-3-collapse"
+                    class="collapse"
+                    aria-labelledby="step-2-3-heading"
+                    data-parent="#step-2-accordion"
+                  >
+                    <div class="card-body accordion-card-body">
                       <div style="width: 100%">
                         <div>
-                          Contraste:
+                          Contrast adjustment:
                           <span id="contrast-text">0</span>
                         </div>
                         <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -852,11 +904,7 @@
                           <button class="btn btn-sm" id="contrast-increment" style="flex-grow: 0">+</button>
                         </div>
                       </div>
-                      <div style="margin-top: 16px;">
-                        <button class="btn btn-info btn-sm" type="button" id="reset-hsv-button" style="margin-right: 8px;">Reset Saturación</button>
-                        <button class="btn btn-info btn-sm" type="button" id="reset-brightness-button" style="margin-right: 8px;">Reset Brillo</button>
-                        <button class="btn btn-info btn-sm" type="button" id="reset-contrast-button">Reset Contraste</button>
-                      </div>
+                      <button class="btn btn-info" type="button" id="reset-contrast-button">Reset Contrast</button>
                     </div>
                   </div>
                 </div>
