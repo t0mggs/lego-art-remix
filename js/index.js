@@ -56,7 +56,7 @@ const interactionSelectors = [
     "add-custom-stud-button",
     "export-to-bricklink-button",
     "bricklink-piece-button",
-    "clear-overrides-button",
+    // "clear-overrides-button", // ELIMINADO: Funcionalidad de pincel removida
     "clear-custom-studs-button",
     "infinite-piece-count-check",
     "color-ties-resolution-button",
@@ -363,10 +363,10 @@ document.getElementById("height-slider").addEventListener(
     },
     false
 );
-document.getElementById("clear-overrides-button").addEventListener("click", () => {
-    overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
-    runStep2();
-});
+// document.getElementById("clear-overrides-button").addEventListener("click", () => {
+//     overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+//     runStep2();
+// });
 document.getElementById("clear-depth-overrides-button").addEventListener("click", () => {
     overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
     runStep2();
@@ -935,11 +935,11 @@ function getColorSelectorDropdown(tooltipPosition) {
     return container;
 }
 
-const paintbrushDropdown = getColorSelectorDropdown("top");
-paintbrushDropdown.children[0].id = "paintbrush-color-dropdown";
-paintbrushDropdown.children[0].className = "btn paintbrush-controls-button";
-paintbrushDropdown.style = "height: 100%;";
-document.getElementById("paintbrush-controls").appendChild(paintbrushDropdown);
+// const paintbrushDropdown = getColorSelectorDropdown("top");
+// paintbrushDropdown.children[0].id = "paintbrush-color-dropdown";
+// paintbrushDropdown.children[0].className = "btn paintbrush-controls-button";
+// paintbrushDropdown.style = "height: 100%;";
+// document.getElementById("paintbrush-controls").appendChild(paintbrushDropdown);
 
 function getNewCustomStudRow() {
     const studRow = document.createElement("tr");
@@ -1519,11 +1519,11 @@ function runStep3() {
     document.getElementById("step-3-quantization-error").innerHTML = step3QuantizationError.toFixed(3);
 
     setTimeout(() => {
-        if (!isStep3ViewExpanded) {
+        // if (!isStep3ViewExpanded) {
             runStep4();
-        } else {
-            enableInteraction();
-        }
+        // } else {
+        //     enableInteraction();
+        // }
         step3CanvasUpscaledContext.imageSmoothingEnabled = false;
         drawStudImageOnCanvas(
             isBleedthroughEnabled()
@@ -1553,31 +1553,31 @@ function runStep3() {
     }, 1); // TODO: find better way to check that input is finished
 }
 
-let isStep3ViewExpanded = false;
+// let isStep3ViewExpanded = false;
 
-[document.getElementById("toggle-expansion-button"), document.getElementById("toggle-depth-expansion-button")].forEach(
-    (button) =>
-        button.addEventListener("click", () => {
-            isStep3ViewExpanded = !isStep3ViewExpanded;
-            const toToggleElements = Array.from(document.getElementsByClassName("hide-on-step-3-expansion"));
-            if (isStep3ViewExpanded) {
-                toToggleElements.forEach((element) => (element.hidden = true));
-                document.getElementById("toggle-expansion-button").title = "Collapse picture";
-                document.getElementById("toggle-depth-expansion-button").innerHTML = "Collapse Picture";
-                document.getElementById("step-3").className = "col-12";
-            } else {
-                toToggleElements.forEach((element) => (element.hidden = false));
-                document.getElementById("toggle-expansion-button").title = "Expand picture";
-                document.getElementById("toggle-depth-expansion-button").innerHTML = "Expand Picture";
-                document.getElementById("step-3").className = "col-6 col-md-3";
-                runStep1();
-            }
-            document.getElementById("expand-picture-svg").hidden = isStep3ViewExpanded;
-            document.getElementById("collapse-picture-svg").hidden = !isStep3ViewExpanded;
-            $('[data-toggle="tooltip"]').tooltip("dispose");
-            $('[data-toggle="tooltip"]').tooltip();
-        })
-);
+// [document.getElementById("toggle-expansion-button"), document.getElementById("toggle-depth-expansion-button")].forEach(
+//     (button) =>
+//         button.addEventListener("click", () => {
+//             isStep3ViewExpanded = !isStep3ViewExpanded;
+//             const toToggleElements = Array.from(document.getElementsByClassName("hide-on-step-3-expansion"));
+//             if (isStep3ViewExpanded) {
+//                 toToggleElements.forEach((element) => (element.hidden = true));
+//                 document.getElementById("toggle-expansion-button").title = "Collapse picture";
+//                 document.getElementById("toggle-depth-expansion-button").innerHTML = "Collapse Picture";
+//                 document.getElementById("step-3").className = "col-12";
+//             } else {
+//                 toToggleElements.forEach((element) => (element.hidden = false));
+//                 document.getElementById("toggle-expansion-button").title = "Expand picture";
+//                 document.getElementById("toggle-depth-expansion-button").innerHTML = "Expand Picture";
+//                 document.getElementById("step-3").className = "col-6 col-md-3";
+//                 runStep1();
+//             }
+//             document.getElementById("expand-picture-svg").hidden = isStep3ViewExpanded;
+//             document.getElementById("collapse-picture-svg").hidden = !isStep3ViewExpanded;
+//             $('[data-toggle="tooltip"]').tooltip("dispose");
+//             $('[data-toggle="tooltip"]').tooltip();
+//         })
+// );
 
 function onDepthOverrideDecrease(row, col) {
     onDepthOverrideChange(row, col, false);
@@ -1613,25 +1613,25 @@ function onDepthOverrideChange(row, col, isIncrease) {
         overrideDepthPixelArray[pixelIndex + i] = newVal;
     }
 
-    if (isStep3ViewExpanded) {
-        // do stuff directly on the canvas for perf
-        const upscaledPixelDisplayVal = Math.round(
-            Math.min(
-                (255 * (pixelDisplayVal + 1)) / Number(document.getElementById("num-depth-levels-slider").value),
-                255
-            )
-        );
-        const radius = SCALING_FACTOR / 2;
-        const i = pixelIndex / 4;
-        const ctx = step3DepthCanvasUpscaledContext;
-        const width = targetResolution[0];
-        ctx.beginPath();
-        ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius, 0, 2 * Math.PI);
-        ctx.fillStyle = rgbToHex(upscaledPixelDisplayVal, upscaledPixelDisplayVal, upscaledPixelDisplayVal);
-        ctx.fill();
-    } else {
+    // if (isStep3ViewExpanded) {
+    //     // do stuff directly on the canvas for perf
+    //     const upscaledPixelDisplayVal = Math.round(
+    //         Math.min(
+    //             (255 * (pixelDisplayVal + 1)) / Number(document.getElementById("num-depth-levels-slider").value),
+    //             255
+    //         )
+    //     );
+    //     const radius = SCALING_FACTOR / 2;
+    //     const i = pixelIndex / 4;
+    //     const ctx = step3DepthCanvasUpscaledContext;
+    //     const width = targetResolution[0];
+    //     ctx.beginPath();
+    //     ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius, 0, 2 * Math.PI);
+    //     ctx.fillStyle = rgbToHex(upscaledPixelDisplayVal, upscaledPixelDisplayVal, upscaledPixelDisplayVal);
+    //     ctx.fill();
+    // } else {
         runStep3();
-    }
+    // }
 }
 
 function onCherryPickColor(row, col) {
@@ -1655,253 +1655,253 @@ function onCherryPickColor(row, col) {
               overridePixelArray[pixelIndex + 2]
           )
         : rgbToHex(step3PixelArray[pixelIndex], step3PixelArray[pixelIndex + 1], step3PixelArray[pixelIndex + 2]);
-    document.getElementById("paintbrush-controls").children[0].children[0].children[0].style.backgroundColor = colorHex;
-    const hexName = ALL_BRICKLINK_SOLID_COLORS.find((color) => color.hex === colorHex).name;
-    document.getElementById("paintbrush-controls").children[0].setAttribute("title", hexName);
-    $('[data-toggle="tooltip"]').tooltip("dispose");
-    $('[data-toggle="tooltip"]').tooltip();
+    // document.getElementById("paintbrush-controls").children[0].children[0].children[0].style.backgroundColor = colorHex;
+    // const hexName = ALL_BRICKLINK_SOLID_COLORS.find((color) => color.hex === colorHex).name;
+    // document.getElementById("paintbrush-controls").children[0].setAttribute("title", hexName);
+    // $('[data-toggle="tooltip"]').tooltip("dispose");
+    // $('[data-toggle="tooltip"]').tooltip();
 }
 
-let activePaintbrushHex = null; // null iff we don't want to paint
-let wasPaintbrushUsed = false; // only propogate changes on mouse leave if this is true
+// let activePaintbrushHex = null; // null iff we don't want to paint
+// let wasPaintbrushUsed = false; // only propogate changes on mouse leave if this is true
 let step3CanvasHoveredPixel = null;
 let step3CanvasPixelsForHover = null; // only used for perf
 
-function onStep3PaintingMouseLift() {
-    activePaintbrushHex = null;
-    // propogate changes
-    if (!isStep3ViewExpanded && wasPaintbrushUsed) {
-        disableInteraction();
-        runStep3();
-        wasPaintbrushUsed = false;
-    }
-}
+// function onStep3PaintingMouseLift() {
+//     activePaintbrushHex = null;
+//     // propogate changes
+//     if (!isStep3ViewExpanded && wasPaintbrushUsed) {
+//         disableInteraction();
+//         runStep3();
+//         wasPaintbrushUsed = false;
+//     }
+// }
 
-step3CanvasUpscaled.addEventListener(
-    "mousedown",
-    function (event) {
-        wasPaintbrushUsed = true;
-        const rawRow =
-            event.clientY -
-            step3CanvasUpscaled.getBoundingClientRect().y -
-            step3CanvasUpscaled.offsetHeight / targetResolution[1] / 2;
-        const rawCol =
-            event.clientX -
-            step3CanvasUpscaled.getBoundingClientRect().x -
-            step3CanvasUpscaled.offsetWidth / targetResolution[0] / 2;
-        const row = Math.round((rawRow * targetResolution[1]) / step3CanvasUpscaled.offsetHeight);
-        const col = Math.round((rawCol * targetResolution[0]) / step3CanvasUpscaled.offsetWidth);
-        const rgb = document
-            .getElementById("paintbrush-controls")
-            .children[0].children[0].children[0].style.backgroundColor.replace("rgb(", "")
-            .replace(")", "")
-            .split(/,\s*/)
-            .map((shade) => parseInt(shade));
-        activePaintbrushHex = rgbToHex(rgb[0], rgb[1], rgb[2]);
-        onMouseMoveOverStep3Canvas(event); // so we paint on a single click
-    },
-    false
-);
+// step3CanvasUpscaled.addEventListener(
+//     "mousedown",
+//     function (event) {
+//         wasPaintbrushUsed = true;
+//         const rawRow =
+//             event.clientY -
+//             step3CanvasUpscaled.getBoundingClientRect().y -
+//             step3CanvasUpscaled.offsetHeight / targetResolution[1] / 2;
+//         const rawCol =
+//             event.clientX -
+//             step3CanvasUpscaled.getBoundingClientRect().x -
+//             step3CanvasUpscaled.offsetWidth / targetResolution[0] / 2;
+//         const row = Math.round((rawRow * targetResolution[1]) / step3CanvasUpscaled.offsetHeight);
+//         const col = Math.round((rawCol * targetResolution[0]) / step3CanvasUpscaled.offsetWidth);
+//         const rgb = document
+//             .getElementById("paintbrush-controls")
+//             .children[0].children[0].children[0].style.backgroundColor.replace("rgb(", "")
+//             .replace(")", "")
+//             .split(/,\s*/)
+//             .map((shade) => parseInt(shade));
+//         activePaintbrushHex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+//         onMouseMoveOverStep3Canvas(event); // so we paint on a single click
+//     },
+//     false
+// );
 
-let selectedPaintbrushTool = "paintbrush-tool-dropdown-option";
-Array.from(document.getElementById("paintbrush-tool-selection-dropdown-options").children).forEach((item) => {
-    const value = item.id;
-    item.addEventListener("click", () => {
-        selectedPaintbrushTool = value;
-        document.getElementById("paintbrush-color-dropdown").disabled = value !== "paintbrush-tool-dropdown-option";
-        document.getElementById("paintbrush-tool-selection-dropdown").innerHTML = item.children[0].innerHTML;
-    });
-});
+// let selectedPaintbrushTool = "paintbrush-tool-dropdown-option";
+// Array.from(document.getElementById("paintbrush-tool-selection-dropdown-options").children).forEach((item) => {
+//     const value = item.id;
+//     item.addEventListener("click", () => {
+//         selectedPaintbrushTool = value;
+//         document.getElementById("paintbrush-color-dropdown").disabled = value !== "paintbrush-tool-dropdown-option";
+//         document.getElementById("paintbrush-tool-selection-dropdown").innerHTML = item.children[0].innerHTML;
+//     });
+// });
 
 let step3PixelArrayForEraser = null;
 
-function onMouseMoveOverStep3Canvas(event) {
-    if (!document.getElementById("universal-loading-progress").hidden) {
-        return; // ignore this - interaction is disabled because we're loading/working
-    }
-    const rawRow =
-        event.clientY -
-        step3CanvasUpscaled.getBoundingClientRect().y -
-        step3CanvasUpscaled.offsetHeight / targetResolution[1] / 2;
-    const rawCol =
-        event.clientX -
-        step3CanvasUpscaled.getBoundingClientRect().x -
-        step3CanvasUpscaled.offsetWidth / targetResolution[0] / 2;
-    const row = Math.round((rawRow * targetResolution[1]) / step3CanvasUpscaled.offsetHeight);
-    const col = Math.round((rawCol * targetResolution[0]) / step3CanvasUpscaled.offsetWidth);
+// function onMouseMoveOverStep3Canvas(event) {
+//     if (!document.getElementById("universal-loading-progress").hidden) {
+//         return; // ignore this - interaction is disabled because we're loading/working
+//     }
+//     const rawRow =
+//         event.clientY -
+//         step3CanvasUpscaled.getBoundingClientRect().y -
+//         step3CanvasUpscaled.offsetHeight / targetResolution[1] / 2;
+//     const rawCol =
+//         event.clientX -
+//         step3CanvasUpscaled.getBoundingClientRect().x -
+//         step3CanvasUpscaled.offsetWidth / targetResolution[0] / 2;
+//     const row = Math.round((rawRow * targetResolution[1]) / step3CanvasUpscaled.offsetHeight);
+//     const col = Math.round((rawCol * targetResolution[0]) / step3CanvasUpscaled.offsetWidth);
 
-    const pixelIndex = 4 * (row * targetResolution[0] + col);
-    const i = pixelIndex / 4;
-    const ctx = step3CanvasUpscaledContext;
-    const width = targetResolution[0];
-    const radius = SCALING_FACTOR / 2;
+//     const pixelIndex = 4 * (row * targetResolution[0] + col);
+//     const i = pixelIndex / 4;
+//     const ctx = step3CanvasUpscaledContext;
+//     const width = targetResolution[0];
+//     const radius = SCALING_FACTOR / 2;
 
-    if (activePaintbrushHex != null) {
-        // mouse is clicked down, so we're handling the click
+//     if (activePaintbrushHex != null) {
+//         // mouse is clicked down, so we're handling the click
 
-        if (selectedPaintbrushTool === "paintbrush-tool-dropdown-option") {
-            const colorRGB = hexToRgb(activePaintbrushHex);
-            // we want to paint - update the override pixel array
-            // do stuff directly on the canvas for perf
-            ctx.beginPath();
-            ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = activePaintbrushHex;
-            ctx.fill();
+//         if (selectedPaintbrushTool === "paintbrush-tool-dropdown-option") {
+//             const colorRGB = hexToRgb(activePaintbrushHex);
+//             // we want to paint - update the override pixel array
+//             // do stuff directly on the canvas for perf
+//             ctx.beginPath();
+//             ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius, 0, 2 * Math.PI);
+//             ctx.fillStyle = activePaintbrushHex;
+//             ctx.fill();
 
-            // update the override pixel array in place
-            overridePixelArray[pixelIndex] = colorRGB[0];
-            overridePixelArray[pixelIndex + 1] = colorRGB[1];
-            overridePixelArray[pixelIndex + 2] = colorRGB[2];
-        } else if (selectedPaintbrushTool === "eraser-tool-dropdown-option") {
-            // null out the override
-            if (
-                overridePixelArray[pixelIndex] != null &&
-                overridePixelArray[pixelIndex + 1] != null &&
-                overridePixelArray[pixelIndex + 2] != null
-            ) {
-                // do stuff directly on the canvas for perf
-                ctx.beginPath();
-                ctx.arc(
-                    ((i % width) * 2 + 1) * radius,
-                    (Math.floor(i / width) * 2 + 1) * radius,
-                    radius,
-                    0,
-                    2 * Math.PI
-                );
-                ctx.fillStyle = rgbToHex(
-                    step3PixelArrayForEraser[pixelIndex],
-                    step3PixelArrayForEraser[pixelIndex + 1],
-                    step3PixelArrayForEraser[pixelIndex + 2]
-                );
-                ctx.fill();
+//             // update the override pixel array in place
+//             overridePixelArray[pixelIndex] = colorRGB[0];
+//             overridePixelArray[pixelIndex + 1] = colorRGB[1];
+//             overridePixelArray[pixelIndex + 2] = colorRGB[2];
+//         } else if (selectedPaintbrushTool === "eraser-tool-dropdown-option") {
+//             // null out the override
+//             if (
+//                 overridePixelArray[pixelIndex] != null &&
+//                 overridePixelArray[pixelIndex + 1] != null &&
+//                 overridePixelArray[pixelIndex + 2] != null
+//             ) {
+//                 // do stuff directly on the canvas for perf
+//                 ctx.beginPath();
+//                 ctx.arc(
+//                     ((i % width) * 2 + 1) * radius,
+//                     (Math.floor(i / width) * 2 + 1) * radius,
+//                     radius,
+//                     0,
+//                     2 * Math.PI
+//                 );
+//                 ctx.fillStyle = rgbToHex(
+//                     step3PixelArrayForEraser[pixelIndex],
+//                     step3PixelArrayForEraser[pixelIndex + 1],
+//                     step3PixelArrayForEraser[pixelIndex + 2]
+//                 );
+//                 ctx.fill();
 
-                // update the override pixel array in place
-                overridePixelArray[pixelIndex] = null;
-                overridePixelArray[pixelIndex + 1] = null;
-                overridePixelArray[pixelIndex + 2] = null;
-            }
-        } else {
-            // dropper tool
-            onCherryPickColor(row, col);
-        }
-    } else if (pixelIndex + 2 < step3CanvasPixelsForHover.length) {
-        // we're not painting - highlight the pixel instead
-        const hoveredPixelRGB = [
-            step3CanvasPixelsForHover[pixelIndex],
-            step3CanvasPixelsForHover[pixelIndex + 1],
-            step3CanvasPixelsForHover[pixelIndex + 2],
-        ];
-        const hoveredPixelHex = rgbToHex(hoveredPixelRGB[0], hoveredPixelRGB[1], hoveredPixelRGB[2]);
-        ctx.beginPath();
-        ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius / 2, 0, 2 * Math.PI);
-        ctx.fillStyle = inverseHex(hoveredPixelHex);
-        ctx.fill();
-    }
+//                 // update the override pixel array in place
+//                 overridePixelArray[pixelIndex] = null;
+//                 overridePixelArray[pixelIndex + 1] = null;
+//                 overridePixelArray[pixelIndex + 2] = null;
+//             }
+//         } else {
+//             // dropper tool
+//             onCherryPickColor(row, col);
+//         }
+//     } else if (pixelIndex + 2 < step3CanvasPixelsForHover.length) {
+//         // we're not painting - highlight the pixel instead
+//         const hoveredPixelRGB = [
+//             step3CanvasPixelsForHover[pixelIndex],
+//             step3CanvasPixelsForHover[pixelIndex + 1],
+//             step3CanvasPixelsForHover[pixelIndex + 2],
+//         ];
+//         const hoveredPixelHex = rgbToHex(hoveredPixelRGB[0], hoveredPixelRGB[1], hoveredPixelRGB[2]);
+//         ctx.beginPath();
+//         ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius / 2, 0, 2 * Math.PI);
+//         ctx.fillStyle = inverseHex(hoveredPixelHex);
+//         ctx.fill();
+//     }
 
-    if (step3CanvasHoveredPixel != null && (step3CanvasHoveredPixel[0] !== row || step3CanvasHoveredPixel[1] !== col)) {
-        // Clear out old highlight
-        const i = step3CanvasHoveredPixel[0] * width + step3CanvasHoveredPixel[1];
-        const pixelIndex = i * 4;
+//     if (step3CanvasHoveredPixel != null && (step3CanvasHoveredPixel[0] !== row || step3CanvasHoveredPixel[1] !== col)) {
+//         // Clear out old highlight
+//         const i = step3CanvasHoveredPixel[0] * width + step3CanvasHoveredPixel[1];
+//         const pixelIndex = i * 4;
 
-        ctx.beginPath();
-        ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius / 2, 0, 2 * Math.PI);
+//         ctx.beginPath();
+//         ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius / 2, 0, 2 * Math.PI);
 
-        let originalPixelRGB = [
-            overridePixelArray[pixelIndex] || step3CanvasPixelsForHover[pixelIndex],
-            overridePixelArray[pixelIndex + 1] || step3CanvasPixelsForHover[pixelIndex + 1],
-            overridePixelArray[pixelIndex + 2] || step3CanvasPixelsForHover[pixelIndex + 2],
-        ];
-        const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
+//         let originalPixelRGB = [
+//             overridePixelArray[pixelIndex] || step3CanvasPixelsForHover[pixelIndex],
+//             overridePixelArray[pixelIndex + 1] || step3CanvasPixelsForHover[pixelIndex + 1],
+//             overridePixelArray[pixelIndex + 2] || step3CanvasPixelsForHover[pixelIndex + 2],
+//         ];
+//         const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
 
-        ctx.fillStyle = originalPixelHex;
-        ctx.fill();
-    }
-    step3CanvasHoveredPixel = [row, col];
-}
+//         ctx.fillStyle = originalPixelHex;
+//         ctx.fill();
+//     }
+//     step3CanvasHoveredPixel = [row, col];
+// }
 
-step3CanvasUpscaled.addEventListener("mouseup", onStep3PaintingMouseLift, false);
+// step3CanvasUpscaled.addEventListener("mouseup", onStep3PaintingMouseLift, false);
 
-step3CanvasUpscaled.addEventListener(
-    "mouseleave",
-    () => {
-        if (step3CanvasHoveredPixel != null) {
-            // Clear out old highlight
-            const i = step3CanvasHoveredPixel[0] * targetResolution[0] + step3CanvasHoveredPixel[1];
-            const pixelIndex = i * 4;
+// step3CanvasUpscaled.addEventListener(
+//     "mouseleave",
+//     () => {
+//         if (step3CanvasHoveredPixel != null) {
+//             // Clear out old highlight
+//             const i = step3CanvasHoveredPixel[0] * targetResolution[0] + step3CanvasHoveredPixel[1];
+//             const pixelIndex = i * 4;
 
-            const radius = SCALING_FACTOR / 2;
-            step3CanvasUpscaledContext.beginPath();
-            step3CanvasUpscaledContext.arc(
-                ((i % targetResolution[0]) * 2 + 1) * radius,
-                (Math.floor(i / targetResolution[0]) * 2 + 1) * radius,
-                radius / 2,
-                0,
-                2 * Math.PI
-            );
+//             const radius = SCALING_FACTOR / 2;
+//             step3CanvasUpscaledContext.beginPath();
+//             step3CanvasUpscaledContext.arc(
+//                 ((i % targetResolution[0]) * 2 + 1) * radius,
+//                 (Math.floor(i / targetResolution[0]) * 2 + 1) * radius,
+//                 radius / 2,
+//                 0,
+//                 2 * Math.PI
+//             );
 
-            let originalPixelRGB = [
-                overridePixelArray[pixelIndex] || step3CanvasPixelsForHover[pixelIndex],
-                overridePixelArray[pixelIndex + 1] || step3CanvasPixelsForHover[pixelIndex + 1],
-                overridePixelArray[pixelIndex + 2] || step3CanvasPixelsForHover[pixelIndex + 2],
-            ];
-            const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
+//             let originalPixelRGB = [
+//                 overridePixelArray[pixelIndex] || step3CanvasPixelsForHover[pixelIndex],
+//                 overridePixelArray[pixelIndex + 1] || step3CanvasPixelsForHover[pixelIndex + 1],
+//                 overridePixelArray[pixelIndex + 2] || step3CanvasPixelsForHover[pixelIndex + 2],
+//             ];
+//             const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
 
-            step3CanvasUpscaledContext.fillStyle = originalPixelHex;
-            step3CanvasUpscaledContext.fill();
-        }
+//             step3CanvasUpscaledContext.fillStyle = originalPixelHex;
+//             step3CanvasUpscaledContext.fill();
+//         }
 
-        step3CanvasHoveredPixel = null;
-        onStep3PaintingMouseLift();
-    },
-    false
-);
+//         step3CanvasHoveredPixel = null;
+//         onStep3PaintingMouseLift();
+//     },
+//     false
+// );
 
-step3CanvasUpscaled.addEventListener("mousemove", onMouseMoveOverStep3Canvas, false);
+// step3CanvasUpscaled.addEventListener("mousemove", onMouseMoveOverStep3Canvas, false);
 
 let isTouchInBounds = false;
-step3CanvasUpscaled.addEventListener(
-    "touchstart",
-    function (e) {
-        isTouchInBounds = true;
-        const { clientX, clientY } = e.touches[0];
-        const mouseEvent = new MouseEvent("mousedown", {
-            clientX,
-            clientY,
-        });
-        step3CanvasUpscaled.dispatchEvent(mouseEvent);
-    },
-    false
-);
-step3CanvasUpscaled.addEventListener(
-    "touchend",
-    function (e) {
-        const mouseEvent = new MouseEvent("mouseup", {});
-        step3CanvasUpscaled.dispatchEvent(mouseEvent);
-    },
-    false
-);
-step3CanvasUpscaled.addEventListener(
-    "touchmove",
-    function (e) {
-        e.preventDefault(); // prevent scrolling
-        if (!isTouchInBounds) {
-            return;
-        }
-        const { clientX, clientY } = e.touches[0];
+// step3CanvasUpscaled.addEventListener(
+//     "touchstart",
+//     function (e) {
+//         isTouchInBounds = true;
+//         const { clientX, clientY } = e.touches[0];
+//         const mouseEvent = new MouseEvent("mousedown", {
+//             clientX,
+//             clientY,
+//         });
+//         step3CanvasUpscaled.dispatchEvent(mouseEvent);
+//     },
+//     false
+// );
+// step3CanvasUpscaled.addEventListener(
+//     "touchend",
+//     function (e) {
+//         const mouseEvent = new MouseEvent("mouseup", {});
+//         step3CanvasUpscaled.dispatchEvent(mouseEvent);
+//     },
+//     false
+// );
+// step3CanvasUpscaled.addEventListener(
+//     "touchmove",
+//     function (e) {
+//         e.preventDefault(); // prevent scrolling
+//         if (!isTouchInBounds) {
+//             return;
+//         }
+//         const { clientX, clientY } = e.touches[0];
 
-        let mouseEventType = "mousemove";
-        if (step3CanvasUpscaled !== document.elementFromPoint(clientX, clientY)) {
-            isTouchInBounds = false;
-            mouseEventType = "mouseleave";
-        }
-        const mouseEvent = new MouseEvent(mouseEventType, {
-            clientX,
-            clientY,
-        });
-        step3CanvasUpscaled.dispatchEvent(mouseEvent);
-    },
-    false
-);
+//         let mouseEventType = "mousemove";
+//         if (step3CanvasUpscaled !== document.elementFromPoint(clientX, clientY)) {
+//             isTouchInBounds = false;
+//             mouseEventType = "mouseleave";
+//         }
+//         const mouseEvent = new MouseEvent(mouseEventType, {
+//             clientX,
+//             clientY,
+//         });
+//         step3CanvasUpscaled.dispatchEvent(mouseEvent);
+//     },
+//     false
+// );
 
 step3DepthCanvasUpscaled.addEventListener(
     "contextmenu",
