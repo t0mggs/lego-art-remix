@@ -13,7 +13,7 @@ let ALL_BRICKLINK_SOLID_COLORS = [
         name: "Very Light Bluish Gray",
         hex: "#e4e8e8",
         id: 99,
-    },
+    },  
     {
         name: "Light Bluish Gray",
         hex: "#afb5c7",
@@ -609,6 +609,10 @@ let ALL_VALID_BRICKLINK_COLORS = ALL_BRICKLINK_SOLID_COLORS.sort((a, b) => {
 // });
 
 const PIXEL_TYPE_OPTIONS = [
+    {
+        name: "1x1 VISUBLOQ Premium",
+        number: "visubloq_premium",
+    },
     {
         name: "1x1 Round Tile",
         number: 98138,
