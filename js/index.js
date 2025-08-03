@@ -317,7 +317,7 @@ let quantizationAlgorithm = defaultQuantizationAlgorithmKey;
 document.getElementById("quantization-algorithm-button").innerHTML =
     quantizationAlgorithmsInfo[defaultQuantizationAlgorithmKey].name;
 
-let selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[0].number;
+let selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[0].number; // VISUBLOQ Premium por defecto
 document.getElementById("bricklink-piece-button").innerHTML = PIXEL_TYPE_OPTIONS[0].name;
 
 // TODO: Make this a function
@@ -525,7 +525,7 @@ PIXEL_TYPE_OPTIONS.forEach((part) => {
 });
 
 function isBleedthroughEnabled() {
-    return [PIXEL_TYPE_OPTIONS[0].number, PIXEL_TYPE_OPTIONS[1].number].includes(selectedPixelPartNumber);
+    return [PIXEL_TYPE_OPTIONS[0].number, PIXEL_TYPE_OPTIONS[1].number, PIXEL_TYPE_OPTIONS[2].number].includes(selectedPixelPartNumber);
 }
 
 let selectedTiebreakTechnique = "alternatingmod";
