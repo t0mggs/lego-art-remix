@@ -869,9 +869,96 @@ function revertDarkenedImage(pixels, darkenedStudsToStuds) {
     return outputPixels;
 }
 
-function drawPixel(ctx, x, y, radius, pixelHex, strokeHex, pixelType) {
+// Función para renderizado VISUBLOQ Premium - LEGO minimalista y elegante
+function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
+    // Convertir coordenadas circulares a cuadradas para LEGO 1x1
+    const pixelSize = radius * 2;
+    const startX = x;
+    const startY = y;
+    
+    // Convertir hex a RGB para cálculos de iluminación
+    const rgb = hexToRgb(pixelHex);
+    const baseColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    
+    // Paleta minimalista y elegante como LEGO real
+    const lightColor = `rgb(${Math.min(255, rgb[0] + 18)}, ${Math.min(255, rgb[1] + 18)}, ${Math.min(255, rgb[2] + 18)})`;
+    const darkColor = `rgb(${Math.max(0, rgb[0] - 12)}, ${Math.max(0, rgb[1] - 12)}, ${Math.max(0, rgb[2] - 12)})`;
+    const subtleShadow = `rgb(${Math.max(0, rgb[0] - 25)}, ${Math.max(0, rgb[1] - 25)}, ${Math.max(0, rgb[2] - 25)})`;
+    
+    // 1. Base limpia de la pieza LEGO
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(startX, startY, pixelSize, pixelSize);
+    
+    // 2. Gradiente sutil para darle vida sin exagerar
+    const gradient = ctx.createLinearGradient(startX, startY, startX + pixelSize * 0.7, startY + pixelSize * 0.7);
+    gradient.addColorStop(0, lightColor);
+    gradient.addColorStop(0.6, baseColor);
+    gradient.addColorStop(1, darkColor);
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(startX, startY, pixelSize, pixelSize);
+    
+    // 3. Bordes minimalistas pero definidos
+    const borderWidth = Math.max(0.5, pixelSize * 0.04); // Más sutil
+    
+    // Highlight superior e izquierdo - muy sutil
+    ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
+    ctx.fillRect(startX, startY, pixelSize, borderWidth);
+    ctx.fillRect(startX, startY, borderWidth, pixelSize);
+    
+    // Sombra inferior y derecha - también sutil
+    ctx.fillStyle = `rgba(0, 0, 0, 0.1)`;
+    ctx.fillRect(startX, startY + pixelSize - borderWidth, pixelSize, borderWidth);
+    ctx.fillRect(startX + pixelSize - borderWidth, startY, borderWidth, pixelSize);
+    
+    // 4. Stud minimalista y elegante
+    const studRadius = pixelSize * 0.18; // Proporción real pero elegante
+    const studCenterX = startX + pixelSize / 2;
+    const studCenterY = startY + pixelSize / 2;
+    
+    // Gradiente limpio para el stud
+    const studGradient = ctx.createRadialGradient(
+        studCenterX - studRadius * 0.4, studCenterY - studRadius * 0.4, 0,
+        studCenterX, studCenterY, studRadius
+    );
+    studGradient.addColorStop(0, `rgba(255, 255, 255, 0.3)`);
+    studGradient.addColorStop(0.3, lightColor);
+    studGradient.addColorStop(0.8, baseColor);
+    studGradient.addColorStop(1, darkColor);
+    
     ctx.beginPath();
-    if ([PIXEL_TYPE_OPTIONS[0].number, PIXEL_TYPE_OPTIONS[1].number].includes(pixelType)) {
+    ctx.arc(studCenterX, studCenterY, studRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = studGradient;
+    ctx.fill();
+    
+    // 5. Highlight muy sutil en el stud
+    ctx.beginPath();
+    ctx.arc(studCenterX - studRadius * 0.25, studCenterY - studRadius * 0.25, studRadius * 0.2, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fill();
+    
+    // 6. Borde del stud - apenas perceptible
+    ctx.beginPath();
+    ctx.arc(studCenterX, studCenterY, studRadius, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+    
+    // 7. Separación entre piezas - muy sutil
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.lineWidth = 0.3;
+    ctx.strokeRect(startX + 0.5, startY + 0.5, pixelSize - 1, pixelSize - 1);
+}
+
+function drawPixel(ctx, x, y, radius, pixelHex, strokeHex, pixelType) {
+    // VISUBLOQ Premium rendering - efecto 3D realista
+    if (pixelType === "visubloq_premium") {
+        drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex);
+        return;
+    }
+    
+    ctx.beginPath();
+    if ([PIXEL_TYPE_OPTIONS[1].number, PIXEL_TYPE_OPTIONS[2].number].includes(pixelType)) {
         // draw a circle
         ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
     } else {
@@ -887,11 +974,11 @@ function drawPixel(ctx, x, y, radius, pixelHex, strokeHex, pixelType) {
     }
     if (
         [
-            PIXEL_TYPE_OPTIONS[1].number,
-            PIXEL_TYPE_OPTIONS[3].number,
+            PIXEL_TYPE_OPTIONS[2].number,
             PIXEL_TYPE_OPTIONS[4].number,
-            PIXEL_TYPE_OPTIONS[6].number,
+            PIXEL_TYPE_OPTIONS[5].number,
             PIXEL_TYPE_OPTIONS[7].number,
+            PIXEL_TYPE_OPTIONS[8].number,
         ].includes(pixelType)
     ) {
         // draw a circle on top of the piece to represent a stud
