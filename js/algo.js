@@ -869,7 +869,7 @@ function revertDarkenedImage(pixels, darkenedStudsToStuds) {
     return outputPixels;
 }
 
-// Función para renderizado VISUBLOQ Premium - LEGO minimalista y elegante
+// Función para renderizado VISUBLOQ Premium - Estilo moderno y limpio
 function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
     // Validación de seguridad
     if (!ctx || !pixelHex || radius <= 0) return;
@@ -885,49 +885,52 @@ function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
     
     const baseColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
     
-    // Paleta minimalista y elegante como LEGO real
-    const lightColor = `rgb(${Math.min(255, rgb[0] + 18)}, ${Math.min(255, rgb[1] + 18)}, ${Math.min(255, rgb[2] + 18)})`;
-    const darkColor = `rgb(${Math.max(0, rgb[0] - 12)}, ${Math.max(0, rgb[1] - 12)}, ${Math.max(0, rgb[2] - 12)})`;
+    // Paleta moderna - colores más sutiles
+    const lightColor = `rgb(${Math.min(255, rgb[0] + 20)}, ${Math.min(255, rgb[1] + 20)}, ${Math.min(255, rgb[2] + 20)})`;
+    const darkColor = `rgb(${Math.max(0, rgb[0] - 15)}, ${Math.max(0, rgb[1] - 15)}, ${Math.max(0, rgb[2] - 15)})`;
+    const shadowColor = `rgb(${Math.max(0, rgb[0] - 35)}, ${Math.max(0, rgb[1] - 35)}, ${Math.max(0, rgb[2] - 35)})`;
     
-    // 1. Base limpia de la pieza LEGO
-    ctx.fillStyle = baseColor;
+    // 1. Base de la pieza con gradiente sutil y moderno
+    const backgroundGradient = ctx.createLinearGradient(startX, startY, startX + pixelSize, startY + pixelSize);
+    backgroundGradient.addColorStop(0, lightColor);
+    backgroundGradient.addColorStop(0.6, baseColor);
+    backgroundGradient.addColorStop(1, darkColor);
+    
+    ctx.fillStyle = backgroundGradient;
     ctx.fillRect(startX, startY, pixelSize, pixelSize);
     
-    // 2. Gradiente sutil para darle vida sin exagerar
-    const gradient = ctx.createLinearGradient(startX, startY, startX + pixelSize * 0.7, startY + pixelSize * 0.7);
-    gradient.addColorStop(0, lightColor);
-    gradient.addColorStop(0.6, baseColor);
-    gradient.addColorStop(1, darkColor);
+    // 2. Bordes minimalistas - mucho más sutiles
+    const borderSize = Math.max(0.5, pixelSize * 0.03); // Reducido significativamente
     
-    ctx.fillStyle = gradient;
-    ctx.fillRect(startX, startY, pixelSize, pixelSize);
+    // Borde superior e izquierdo (luz muy sutil)
+    ctx.fillStyle = `rgba(255, 255, 255, 0.15)`;
+    ctx.fillRect(startX, startY, pixelSize, borderSize);
+    ctx.fillRect(startX, startY, borderSize, pixelSize);
     
-    // 3. Bordes minimalistas pero definidos
-    const borderWidth = Math.max(0.5, pixelSize * 0.04);
-    
-    // Highlight superior e izquierdo - muy sutil
-    ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
-    ctx.fillRect(startX, startY, pixelSize, borderWidth);
-    ctx.fillRect(startX, startY, borderWidth, pixelSize);
-    
-    // Sombra inferior y derecha - también sutil
+    // Borde inferior y derecho (sombra muy sutil)
     ctx.fillStyle = `rgba(0, 0, 0, 0.1)`;
-    ctx.fillRect(startX, startY + pixelSize - borderWidth, pixelSize, borderWidth);
-    ctx.fillRect(startX + pixelSize - borderWidth, startY, borderWidth, pixelSize);
+    ctx.fillRect(startX, startY + pixelSize - borderSize, pixelSize, borderSize);
+    ctx.fillRect(startX + pixelSize - borderSize, startY, borderSize, pixelSize);
     
-    // 4. Stud minimalista y elegante
-    const studRadius = pixelSize * 0.18;
+    // 3. Stud circular central - estilo moderno
+    const studRadius = pixelSize * 0.26; // Aumentado para mayor presencia visual
     const studCenterX = startX + pixelSize / 2;
     const studCenterY = startY + pixelSize / 2;
     
-    // Gradiente limpio para el stud
+    // Sombra del stud más sutil
+    ctx.beginPath();
+    ctx.arc(studCenterX + 0.8, studCenterY + 0.8, studRadius + 0.5, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(0, 0, 0, 0.1)`;
+    ctx.fill();
+    
+    // Gradiente radial moderno del stud
     const studGradient = ctx.createRadialGradient(
-        studCenterX - studRadius * 0.4, studCenterY - studRadius * 0.4, 0,
+        studCenterX - studRadius * 0.3, studCenterY - studRadius * 0.3, 0,
         studCenterX, studCenterY, studRadius
     );
     studGradient.addColorStop(0, `rgba(255, 255, 255, 0.3)`);
-    studGradient.addColorStop(0.3, lightColor);
-    studGradient.addColorStop(0.8, baseColor);
+    studGradient.addColorStop(0.2, lightColor);
+    studGradient.addColorStop(0.7, baseColor);
     studGradient.addColorStop(1, darkColor);
     
     ctx.beginPath();
@@ -935,22 +938,22 @@ function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
     ctx.fillStyle = studGradient;
     ctx.fill();
     
-    // 5. Highlight muy sutil en el stud
-    ctx.beginPath();
-    ctx.arc(studCenterX - studRadius * 0.25, studCenterY - studRadius * 0.25, studRadius * 0.2, 0, 2 * Math.PI);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.fill();
-    
-    // 6. Borde del stud - apenas perceptible
+    // 4. Contorno del stud minimalista
     ctx.beginPath();
     ctx.arc(studCenterX, studCenterY, studRadius, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-    ctx.lineWidth = 0.3;
+    ctx.strokeStyle = `rgba(0, 0, 0, 0.2)`;
+    ctx.lineWidth = 0.8;
     ctx.stroke();
     
-    // 7. Separación entre piezas - muy sutil
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
-    ctx.lineWidth = 0.3;
+    // 5. Highlight moderno en el stud
+    ctx.beginPath();
+    ctx.arc(studCenterX - studRadius * 0.25, studCenterY - studRadius * 0.25, studRadius * 0.18, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(255, 255, 255, 0.4)`;
+    ctx.fill();
+    
+    // 6. Separación entre piezas - líneas muy sutiles
+    ctx.strokeStyle = `rgba(0, 0, 0, 0.15)`;
+    ctx.lineWidth = 0.5;
     ctx.strokeRect(startX + 0.5, startY + 0.5, pixelSize - 1, pixelSize - 1);
 }
 
