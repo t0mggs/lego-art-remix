@@ -871,19 +871,23 @@ function revertDarkenedImage(pixels, darkenedStudsToStuds) {
 
 // Función para renderizado VISUBLOQ Premium - LEGO minimalista y elegante
 function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
+    // Validación de seguridad
+    if (!ctx || !pixelHex || radius <= 0) return;
+    
     // Convertir coordenadas circulares a cuadradas para LEGO 1x1
     const pixelSize = radius * 2;
     const startX = x;
     const startY = y;
     
-    // Convertir hex a RGB para cálculos de iluminación
+    // Convertir hex a RGB para cálculos de iluminación - FIX: usar array [r,g,b]
     const rgb = hexToRgb(pixelHex);
+    if (!rgb || rgb.length !== 3) return; // Validación extra
+    
     const baseColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
     
     // Paleta minimalista y elegante como LEGO real
     const lightColor = `rgb(${Math.min(255, rgb[0] + 18)}, ${Math.min(255, rgb[1] + 18)}, ${Math.min(255, rgb[2] + 18)})`;
     const darkColor = `rgb(${Math.max(0, rgb[0] - 12)}, ${Math.max(0, rgb[1] - 12)}, ${Math.max(0, rgb[2] - 12)})`;
-    const subtleShadow = `rgb(${Math.max(0, rgb[0] - 25)}, ${Math.max(0, rgb[1] - 25)}, ${Math.max(0, rgb[2] - 25)})`;
     
     // 1. Base limpia de la pieza LEGO
     ctx.fillStyle = baseColor;
@@ -899,7 +903,7 @@ function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
     ctx.fillRect(startX, startY, pixelSize, pixelSize);
     
     // 3. Bordes minimalistas pero definidos
-    const borderWidth = Math.max(0.5, pixelSize * 0.04); // Más sutil
+    const borderWidth = Math.max(0.5, pixelSize * 0.04);
     
     // Highlight superior e izquierdo - muy sutil
     ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
@@ -912,7 +916,7 @@ function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
     ctx.fillRect(startX + pixelSize - borderWidth, startY, borderWidth, pixelSize);
     
     // 4. Stud minimalista y elegante
-    const studRadius = pixelSize * 0.18; // Proporción real pero elegante
+    const studRadius = pixelSize * 0.18;
     const studCenterX = startX + pixelSize / 2;
     const studCenterY = startY + pixelSize / 2;
     
