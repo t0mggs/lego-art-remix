@@ -53,11 +53,10 @@ const interactionSelectors = [
     "reset-brightness-button",
     "reset-contrast-button",
     "download-instructions-button",
-    "add-custom-stud-button",
     "export-to-bricklink-button",
     "bricklink-piece-button",
     // "clear-overrides-button", // ELIMINADO: Funcionalidad de pincel removida
-    "clear-custom-studs-button",
+    // "clear-custom-studs-button", // ELIMINADO: Paleta fija no modificable
     "infinite-piece-count-check",
     "color-ties-resolution-button",
     "resolution-limit-increase-button",
@@ -485,7 +484,13 @@ function mixInStudMap(studMap, runAfterMixIn) {
     runCustomStudMap(!runAfterMixIn);
 }
 
-populateCustomStudSelectors(STUD_MAPS[DEFAULT_STUD_MAP], false);
+// Cargar paleta fija cuando el DOM esté completamente listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, cargando paleta fija...');
+    setTimeout(() => {
+        loadFixedColorPalette();
+    }, 500);
+});
 
 // Elementos relacionados con stud-maps eliminados - configuración automática a "all_tile_colors"
 
@@ -768,90 +773,77 @@ const NUM_PARTIAL_SET_STUD_MAPS = 7;
 STUD_MAP_KEYS.splice(NUM_SET_STUD_MAPS, 0, DIVIDER);
 STUD_MAP_KEYS.splice(NUM_SET_STUD_MAPS + NUM_PARTIAL_SET_STUD_MAPS + 1, 0, DIVIDER);
 
-/*
-// SECCIÓN ELIMINADA: Configuración de menús dropdown para stud-maps
-// Ahora siempre usa "all_tile_colors" por defecto sin interfaz de selección
-
-STUD_MAP_KEYS.filter((key) => key !== "rgb").forEach((studMap) => {
-    if (studMap === DIVIDER) {
-        const divider = document.createElement("div");
-        divider.className = "dropdown-divider";
-        mixInStudMapOptions.appendChild(divider);
-    } else {
-        const option = document.createElement("a");
-        option.className = "dropdown-item btn";
-        option.textContent = STUD_MAPS[studMap].name;
-        option.value = studMap;
-        option.addEventListener("click", () => {
-            mixInStudMap(STUD_MAPS[studMap], true);
-        });
-        mixInStudMapOptions.appendChild(option);
-    }
-});
-
-STUD_MAP_KEYS.filter((key) => key !== "rgb").forEach((studMap) => {
-    if (studMap === DIVIDER) {
-        const divider = document.createElement("div");
-        divider.className = "dropdown-divider";
-        document.getElementById("select-starting-custom-stud-map-options").appendChild(divider);
-    } else {
-        const option = document.createElement("a");
-        option.className = "dropdown-item btn";
-        option.textContent = STUD_MAPS[studMap].name;
-        option.value = studMap;
-        option.addEventListener("click", () => {
-            customStudTableBody.innerHTML = "";
-            mixInStudMap(STUD_MAPS[studMap], false);
-            document.getElementById("select-starting-custom-stud-map-button").innerHTML = STUD_MAPS[studMap].name;
-            document.getElementById("input-stud-map-description").innerHTML = STUD_MAPS[studMap].descriptionHTML ?? "";
-        });
-        document.getElementById("select-starting-custom-stud-map-options").appendChild(option);
-    }
-});
-
-document.getElementById("select-starting-custom-stud-map-button").innerHTML = STUD_MAPS[DEFAULT_STUD_MAP].name;
-document.getElementById("input-stud-map-description").innerHTML = STUD_MAPS[DEFAULT_STUD_MAP].descriptionHTML ?? "";
-*/ 
-
-/*
-// SECCIÓN ELIMINADA: Import/Export de stud-maps
-// Ya no es necesario porque siempre usamos "all_tile_colors"
-
-constMixInDivider = document.createElement("div");
-constMixInDivider.className = "dropdown-divider";
-mixInStudMapOptions.appendChild(constMixInDivider);
-
-const importOption = document.createElement("a");
-importOption.className = "dropdown-item btn";
-importOption.textContent = "Import From File";
-importOption.value = null;
-importOption.addEventListener("click", () => {
-    document.getElementById("import-stud-map-file-input").click();
-});
-mixInStudMapOptions.appendChild(importOption);
-*/
-
-/*
-// SECCIÓN ELIMINADA: Event listener para import stud-map
-document.getElementById("import-stud-map-file-input").addEventListener(
-    "change",
-    (e) => {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            mixInStudMap(JSON.parse(reader.result, true));
-            document.getElementById("import-stud-map-file-input").value = null;
+// Configuración de paleta fija - carga automática desde archivo JSON
+async function loadFixedColorPalette() {
+    try {
+        // Paleta fija definida directamente en el código
+        const paletteData = {
+            "studMap": {
+                "#212121": 99999,
+                "#0057a6": 99999,
+                "#10cb31": 99999,
+                "#f7ba30": 99999,
+                "#f88379": 99999,
+                "#3399ff": 99999,
+                "#595d60": 99999,
+                "#b30006": 99999,
+                "#7c9051": 99999,
+                "#fffc00": 99999,
+                "#89351d": 99999,
+                "#907450": 99999,
+                "#898788": 99999,
+                "#ffbbff": 99999,
+                "#e3a05b": 99999,
+                "#ffffff": 99999
+            },
+            "sortedStuds": [
+                "#212121",
+                "#0057a6",
+                "#10cb31",
+                "#f7ba30",
+                "#f88379",
+                "#3399ff",
+                "#595d60",
+                "#b30006",
+                "#7c9051",
+                "#fffc00",
+                "#89351d",
+                "#907450",
+                "#898788",
+                "#ffbbff",
+                "#e3a05b",
+                "#ffffff"
+            ]
         };
-        reader.readAsText(e.target.files[0]);
-    },
-    false
-);
-*/
+        
+        // Cargar la paleta fija
+        console.log('Cargando paleta fija con', paletteData.sortedStuds.length, 'colores:', paletteData.sortedStuds);
+        customStudTableBody.innerHTML = "";
+        paletteData.sortedStuds.forEach((stud) => {
+            const studRow = getNewCustomStudRow();
+            studRow.children[0].children[0].children[0].children[0].style.backgroundColor = stud;
+            studRow.children[0].children[0].setAttribute("title", HEX_TO_COLOR_NAME[stud] || stud);
+            studRow.children[1].children[0].children[0].value = paletteData.studMap[stud];
+            customStudTableBody.appendChild(studRow);
+        });
+        
+        console.log('Paleta de colores fija cargada exitosamente. Filas en tabla:', customStudTableBody.children.length);
+        
+        // Activar la paleta personalizada
+        runCustomStudMap(true);
+        console.log('Paleta fija activada como selectedStudMap');
+        
+        // Activar automáticamente "Infinite Piece Counts" para evitar problemas
+        document.getElementById("infinite-piece-count-check").checked = true;
+        onInfinitePieceCountChange();
+    } catch (error) {
+        console.error('Error al cargar la paleta fija:', error);
+        // Usar paleta por defecto en caso de error
+        populateCustomStudSelectors(STUD_MAPS[DEFAULT_STUD_MAP], false);
+    }
+}
 
-document.getElementById("clear-custom-studs-button").addEventListener("click", () => {
-    customStudTableBody.innerHTML = "";
-    runCustomStudMap();
-});
-
+// Función para inicializar la paleta después de seleccionar imagen
 function runCustomStudMap(skipStep1) {
     const customStudMap = {};
     const customSortedStuds = [];
@@ -884,7 +876,7 @@ function getColorSquare(hex) {
     return result;
 }
 
-function getColorSelectorDropdown(tooltipPosition) {
+function getColorSelectorDropdown(tooltipPosition, isReadOnly = false) {
     if (!tooltipPosition) {
         tooltipPosition = "left";
     }
@@ -894,44 +886,54 @@ function getColorSelectorDropdown(tooltipPosition) {
     const button = document.createElement("button");
     button.className = "btn btn-outline-secondary";
     button.type = "button";
-    button.setAttribute("data-toggle", "dropdown");
-    button.setAttribute("aria-haspopup", "true");
-    button.setAttribute("aria-expanded", "false");
+    
+    if (!isReadOnly) {
+        button.setAttribute("data-toggle", "dropdown");
+        button.setAttribute("aria-haspopup", "true");
+        button.setAttribute("aria-expanded", "false");
+    } else {
+        button.disabled = true;
+        button.style.cursor = "not-allowed";
+    }
+    
     button.id = id;
     button.appendChild(getColorSquare(DEFAULT_COLOR));
     button.value = DEFAULT_COLOR;
 
-    const dropdown = document.createElement("div");
-    dropdown.setAttribute("aria-labelledby", id);
-    dropdown.className = "dropdown-menu pre-scrollable";
+    if (!isReadOnly) {
+        const dropdown = document.createElement("div");
+        dropdown.setAttribute("aria-labelledby", id);
+        dropdown.className = "dropdown-menu pre-scrollable";
 
-    ALL_VALID_BRICKLINK_COLORS.forEach((color) => {
-        const option = document.createElement("a");
-        option.style.display = "flex";
-        option.className = "dropdown-item btn";
-        const text = document.createElement("span");
-        text.innerHTML = "&nbsp;" + color.name;
-        const colorSquare = getColorSquare(color.hex);
-        colorSquare.style.marginTop = "3px";
-        option.appendChild(colorSquare);
-        option.appendChild(text);
-        option.addEventListener("click", () => {
-            button.innerHTML = "";
-            button.appendChild(getColorSquare(color.hex));
-            container.setAttribute("title", color.name);
-            $('[data-toggle="tooltip"]').tooltip("dispose");
-            $('[data-toggle="tooltip"]').tooltip();
-            runCustomStudMap();
+        ALL_VALID_BRICKLINK_COLORS.forEach((color) => {
+            const option = document.createElement("a");
+            option.style.display = "flex";
+            option.className = "dropdown-item btn";
+            const text = document.createElement("span");
+            text.innerHTML = "&nbsp;" + color.name;
+            const colorSquare = getColorSquare(color.hex);
+            colorSquare.style.marginTop = "3px";
+            option.appendChild(colorSquare);
+            option.appendChild(text);
+            option.addEventListener("click", () => {
+                button.innerHTML = "";
+                button.appendChild(getColorSquare(color.hex));
+                container.setAttribute("title", color.name);
+                $('[data-toggle="tooltip"]').tooltip("dispose");
+                $('[data-toggle="tooltip"]').tooltip();
+                runCustomStudMap();
+            });
+            dropdown.appendChild(option);
         });
-        dropdown.appendChild(option);
-    });
+
+        container.appendChild(dropdown);
+    }
 
     container.setAttribute("data-toggle", "tooltip");
     container.setAttribute("data-placement", tooltipPosition);
     container.setAttribute("title", DEFAULT_COLOR_NAME);
     setTimeout(() => $('[data-toggle="tooltip"]').tooltip(), 10);
     container.appendChild(button);
-    container.appendChild(dropdown);
     return container;
 }
 
@@ -986,13 +988,6 @@ function getNewCustomStudRow() {
     studRow.appendChild(numberCell);
     return studRow;
 }
-
-document.getElementById("add-custom-stud-button").addEventListener("click", () => {
-    const studRow = getNewCustomStudRow();
-
-    customStudTableBody.appendChild(studRow);
-    runCustomStudMap();
-});
 
 /*
 // SECCIÓN ELIMINADA: Event listeners para Hue - ya no se usa HSV completo
@@ -2882,6 +2877,7 @@ function handleInputImage(e, dontClearDepth, dontLog) {
             overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
             overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
             initializeCropper();
+            
             runStep1();
         }, 50); // TODO: find better way to check that input is finished
 
