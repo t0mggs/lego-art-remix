@@ -801,7 +801,7 @@
               <canvas id="step-3-canvas" hidden></canvas>
               <canvas id="step-3-canvas-upscaled" style="width: 100%"></canvas>
               <h4>STEP 3</h4>
-              <small className="step-header-subtitle">ALIGN TO CLOSEST PIXEL FROM AVAILABLE COLORS</small>
+              <small className="step-header-subtitle">PROCESS IMAGE WITH FIXED COLOR PALETTE</small>
               <br />
               <span
                 data-toggle="tooltip"
@@ -813,7 +813,7 @@
               </span>
 
               <div id="step-3-accordion">
-                <div class="card accordion-card">
+                <div class="card accordion-card" style="display: none !important;">
                   <div class="card-header" id="step-3-2-heading">
                     <h5 class="mb-0">
                       <button
@@ -832,6 +832,7 @@
                     class="collapse"
                     aria-labelledby="step-3-2-heading"
                     data-parent="#step-3-accordion"
+                    style="display: none !important;"
                   >
                     <div class="card-body accordion-card-body">
                       <div id="custom-stud-map-controls" style="margin-top: 4px">
@@ -855,7 +856,27 @@
                             <b>Missing Pieces: <span id="missing-studs"></span></b><br />
                           </small>
                         </div>
-                        <div style="padding-bottom: 10px">
+                        <div class="btn-group" style="margin-bottom: 10px;">
+                          <button
+                            class="btn dropdown-toggle btn-info"
+                            type="button"
+                            id="select-starting-custom-stud-map-button"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                          >
+                            Starting Custom Stud Map
+                          </button>
+                          <div
+                            class="dropdown-menu"
+                            id="select-starting-custom-stud-map-options"
+                            aria-labelledby="select-starting-custom-stud-map-button"
+                          ></div>
+                        </div>
+                        <div style="margin-left: 4px; margin-bottom: 10px;">
+                          <small id="input-stud-map-description"></small>
+                        </div>
+                        <div style="padding-bottom: 10px; display: none;">
                           <button class="btn btn-warning" type="button" id="clear-custom-studs-button">
                             Clear Available Pieces
                           </button>
@@ -900,49 +921,29 @@
                           <tbody id="custom-stud-table-body"></tbody>
                         </table>
                         <div style="padding-bottom: 10px">
-                          <button class="btn btn-success" id="add-custom-stud-button">
-                            <span class="glyphicon glyphicon-plus"></span>+ Add Stud
-                          </button>
                         </div>
                         <div style="padding-bottom: 10px">
                           <a id="export-stud-map-button" download="selected-studs.json" href="””">
-                            <!-- REMOVIDO: Botón Export Selected Studs -->
+                            <button class="btn btn-info" type="button">Export Selected Studs</button>
                           </a>
                         </div>
-                        <div class="btn-group">
+                        <div style="padding-bottom: 10px">
                           <button
-                            class="btn dropdown-toggle btn-info"
+                            class="btn btn-info"
                             type="button"
-                            id="mix-in-stud-map-button"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false"
+                            id="load-fixed-palette-button"
+                            style="display: none;"
                           >
-                            <!-- REMOVIDO: Mix in Studs From Existing Set -->
+                            Loading Color Palette...
                           </button>
-                          <div
-                            class="dropdown-menu"
-                            id="mix-in-stud-map-options"
-                            aria-labelledby="mix-in-stud-map-button"
-                          ></div>
-                          <input type="file" id="import-stud-map-file-input" name="import-stud-map-file-input" hidden />
-                        </div>
-                        <div style="margin-left: 4px">
-                          <small><b>Mixed in studs are added to studs already selected</b></small>
-                        </div>
-                        <div style="margin-left: 4px; padding-top: 4px">
-                          <small>
-                            <b>Make sure the set you're mixing in studs from matches the selected pixel piece</b></small
-                          >
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- COMENTADO: Sección Pixel Piece - ahora fijo en 1x1 Round Tile por defecto -->
-                <!-- Elementos esenciales para que funcione el JavaScript, pero ocultos del usuario -->
-                <div class="card accordion-card hide-on-step-3-expansion" style="display: none;">
+                <!-- Sección Pixel Piece -->
+                <div class="card accordion-card hide-on-step-3-expansion">
                   <div class="card-header" id="step-3-3-heading">
                     <h5 class="mb-0">
                       <button
@@ -1230,7 +1231,7 @@
               <small className="step-header-subtitle">CORRECT FOR AVAILABLE PIECES, IF PIECE COUNTS ARE LIMITED</small>
               <br />
               <div className="step-header-subtitle text-danger" id="nonzero-missing-pieces-warning" hidden>
-                <small>'Missing Pieces' under 'Available Colors' must be 0 </small>
+                <small>Image processing requires proper color configuration</small>
               </div>
               <span
                 data-toggle="tooltip"
