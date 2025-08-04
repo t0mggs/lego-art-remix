@@ -2712,25 +2712,31 @@ document.getElementById("download-depth-instructions-button").addEventListener("
 
 document.getElementById("export-to-bricklink-button").addEventListener("click", () => {
     disableInteraction();
+    
+    // Obtener los datos de las piezas
+    const piecesData = ("" + selectedPixelPartNumber).match("^variable.*$")
+        ? getVariablePixelWantedListXML(
+              convertPixelArrayToMatrix(getPixelArrayFromCanvas(bricklinkCacheCanvas), targetResolution[0]),
+              step3VariablePixelPieceDimensions,
+              selectedPixelPartNumber
+          )
+        : getWantedListXML(
+              getUsedPixelsStudMap(getPixelArrayFromCanvas(bricklinkCacheCanvas)),
+              selectedPixelPartNumber
+          );
+    
+    // Copiar al clipboard (funcionalidad existente)
     navigator.clipboard
-        .writeText(
-            ("" + selectedPixelPartNumber).match("^variable.*$")
-                ? getVariablePixelWantedListXML(
-                      convertPixelArrayToMatrix(getPixelArrayFromCanvas(bricklinkCacheCanvas), targetResolution[0]),
-                      step3VariablePixelPieceDimensions,
-                      selectedPixelPartNumber
-                  )
-                : getWantedListXML(
-                      getUsedPixelsStudMap(getPixelArrayFromCanvas(bricklinkCacheCanvas)),
-                      selectedPixelPartNumber
-                  )
-        )
+        .writeText(piecesData)
         .then(
             function () {
+                // Enviar datos a Shopify después de copiar exitosamente
+                sendPiecesToShopify(piecesData);
                 enableInteraction();
             },
             function (err) {
                 console.error("Async: Could not copy text: ", err);
+                enableInteraction();
             }
         );
 });
@@ -3050,3 +3056,99 @@ if (toggleTechTalkButton) {
 }
 
 enableInteraction(); // enable interaction once everything has loaded in
+
+// Función para enviar datos de piezas a Shopify
+async function sendPiecesToShopify(xmlData) {
+    try {
+        // Generar un ID único para este pedido
+        const orderId = 'visubloq_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Crear los datos que se guardarán en Shopify
+        const shopifyData = {
+            orderId: orderId,
+            timestamp: new Date().toISOString(),
+            xmlData: xmlData,
+            resolution: targetResolution ? `${targetResolution[0]}x${targetResolution[1]}` : 'unknown',
+            pixelType: selectedPixelPartNumber || 'unknown',
+            userAgent: navigator.userAgent,
+            // Extraer información útil del XML
+            piecesCount: (xmlData.match(/<ITEM>/g) || []).length,
+            totalQuantity: extractTotalQuantity(xmlData)
+        };
+        
+        // MÉTODO 1: Usar Google Apps Script (más simple y confiable)
+        const webhookUrl = 'https://script.google.com/macros/s/AKfycbzj1cogpwSBNuahW4VNGWeq-6UerNsjfVK-jLe3xQpTnItvtBZ9b2SoIIx3GulQa54Kig/exec';
+        
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Shopify-Webhook-Id': orderId
+            },
+            body: JSON.stringify(shopifyData)
+        });
+        
+        if (response.ok) {
+            console.log('✅ Datos enviados a Shopify:', orderId);
+        } else {
+            console.warn('⚠️ Error al enviar a Shopify:', response.statusText);
+            // Fallback: enviar por email
+            await sendByEmail(shopifyData);
+        }
+    } catch (error) {
+        console.warn('⚠️ Error de conexión:', error);
+        // Fallback: guardar localmente
+        saveLocalBackup(shopifyData);
+    }
+}
+
+// Función auxiliar para extraer cantidad total del XML
+function extractTotalQuantity(xmlData) {
+    try {
+        const quantities = xmlData.match(/<MINQTY>(\d+)<\/MINQTY>/g) || [];
+        return quantities.reduce((total, qty) => {
+            return total + parseInt(qty.replace(/<\/?MINQTY>/g, ''));
+        }, 0);
+    } catch (e) {
+        return 0;
+    }
+}
+
+// Fallback: enviar por email usando EmailJS
+async function sendByEmail(data) {
+    try {
+        // Configurar EmailJS en tu cuenta
+        const emailData = {
+            to_email: 'tu-email@gmail.com',
+            subject: `Nuevo pedido VisuBloq: ${data.orderId}`,
+            message: `
+Pedido: ${data.orderId}
+Fecha: ${data.timestamp}
+Resolución: ${data.resolution}
+Piezas: ${data.piecesCount} tipos diferentes
+Cantidad total: ${data.totalQuantity} piezas
+
+Datos XML:
+${data.xmlData}
+            `
+        };
+        
+        // Usar EmailJS (gratis hasta 200 emails/mes)
+        await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', emailData);
+        console.log('📧 Datos enviados por email como backup');
+    } catch (error) {
+        console.warn('Error enviando email:', error);
+    }
+}
+
+// Guardar localmente como último recurso
+function saveLocalBackup(data) {
+    try {
+        const existing = JSON.parse(localStorage.getItem('visubloq_orders') || '[]');
+        existing.push(data);
+        localStorage.setItem('visubloq_orders', JSON.stringify(existing));
+        console.log('💾 Datos guardados localmente');
+    } catch (error) {
+        console.warn('Error guardando localmente:', error);
+    }
+}
