@@ -2725,20 +2725,62 @@ document.getElementById("export-to-bricklink-button").addEventListener("click", 
               selectedPixelPartNumber
           );
     
-    // Copiar al clipboard (funcionalidad existente)
-    navigator.clipboard
-        .writeText(piecesData)
-        .then(
-            function () {
-                // Enviar datos a Shopify después de copiar exitosamente
+    // Método alternativo de copia que funciona mejor
+    function copyToClipboardFallback(text) {
+        // Crear elemento textarea temporal
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            console.log('📋 Texto copiado al clipboard:', successful ? 'exitoso' : 'falló');
+            return successful;
+        } catch (err) {
+            console.warn('⚠️ Error al copiar:', err);
+            return false;
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    }
+    
+    // Intentar copiar con API moderna primero, luego fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+            .writeText(piecesData)
+            .then(() => {
+                console.log('✅ Copiado con Clipboard API');
                 sendPiecesToShopify(piecesData);
                 enableInteraction();
-            },
-            function (err) {
-                console.error("Async: Could not copy text: ", err);
+            })
+            .catch((err) => {
+                console.warn('⚠️ Clipboard API falló, usando método alternativo:', err);
+                const success = copyToClipboardFallback(piecesData);
+                if (success) {
+                    sendPiecesToShopify(piecesData);
+                } else {
+                    console.error('❌ No se pudo copiar al clipboard');
+                    // Aún enviar a Shopify aunque falle la copia
+                    sendPiecesToShopify(piecesData);
+                }
                 enableInteraction();
-            }
-        );
+            });
+    } else {
+        // Usar método alternativo directamente
+        const success = copyToClipboardFallback(piecesData);
+        if (success) {
+            console.log('✅ Copiado con método alternativo');
+        } else {
+            console.warn('⚠️ No se pudo copiar, pero continuando con envío a Shopify');
+        }
+        sendPiecesToShopify(piecesData);
+        enableInteraction();
+    }
 });
 
 document.getElementById("export-depth-to-bricklink-button").addEventListener("click", () => {
