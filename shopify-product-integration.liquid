@@ -1,0 +1,103 @@
+<!-- CÓDIGO PARA AÑADIR AL TEMPLATE DE TU PRODUCTO "VisuBloq Personalizado" -->
+<!-- Archivo: sections/product-visubloq.liquid o en tu product.liquid -->
+
+<script>
+// 🎯 CAPTURAR DATOS DEL DISEÑO DESDE URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const designData = urlParams.get('design_data');
+    
+    if (designData) {
+        try {
+            const design = JSON.parse(decodeURIComponent(designData));
+            
+            // Mostrar información del diseño en la página
+            displayDesignInfo(design);
+            
+            // Guardar para enviar con el pedido
+            setupDesignOrder(design);
+            
+        } catch (error) {
+            console.error('Error procesando datos del diseño:', error);
+        }
+    }
+});
+
+function displayDesignInfo(design) {
+    // Crear sección de información del diseño
+    const productInfo = document.querySelector('.product-info') || document.querySelector('.product-single');
+    
+    if (productInfo) {
+        const designInfoHTML = `
+            <div class="visubloq-design-info" style="border: 2px solid #28a745; padding: 15px; margin: 15px 0; border-radius: 5px; background: #f8f9fa;">
+                <h3>🎯 Tu diseño LEGO personalizado</h3>
+                <p><strong>Total de piezas:</strong> ${design.total_pieces}</p>
+                <p><strong>Colores diferentes:</strong> ${design.piece_types}</p>
+                <p><strong>Resolución:</strong> ${design.resolution}</p>
+                <p><small>Generado: ${new Date(design.generated_at).toLocaleString()}</small></p>
+                
+                <details style="margin-top: 10px;">
+                    <summary style="cursor: pointer; font-weight: bold;">📋 Ver detalle de piezas por color</summary>
+                    <div id="pieces-detail" style="margin-top: 10px; max-height: 200px; overflow-y: auto;">
+                        <!-- Se llena con JavaScript -->
+                    </div>
+                </details>
+            </div>
+        `;
+        
+        productInfo.insertAdjacentHTML('afterbegin', designInfoHTML);
+        
+        // Llenar detalle de piezas
+        const detailDiv = document.getElementById('pieces-detail');
+        if (detailDiv && design.pieces_detail) {
+            let detailHTML = '<ul>';
+            Object.entries(design.pieces_detail).forEach(([color, count]) => {
+                detailHTML += `<li><span style="display:inline-block; width:15px; height:15px; background:${color}; margin-right:5px; border:1px solid #ccc;"></span> ${color}: ${count} piezas</li>`;
+            });
+            detailHTML += '</ul>';
+            detailDiv.innerHTML = detailHTML;
+        }
+    }
+}
+
+function setupDesignOrder(design) {
+    // Añadir datos del diseño como propiedades del producto
+    const form = document.querySelector('form[action*="/cart/add"]');
+    
+    if (form) {
+        // Crear campos ocultos con los datos del diseño
+        const designFields = [
+            { name: 'properties[Piezas totales]', value: design.total_pieces },
+            { name: 'properties[Colores diferentes]', value: design.piece_types },
+            { name: 'properties[Resolución]', value: design.resolution },
+            { name: 'properties[Datos del diseño]', value: JSON.stringify(design.pieces_detail) },
+            { name: 'properties[Generado el]', value: new Date(design.generated_at).toLocaleString() }
+        ];
+        
+        designFields.forEach(field => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = field.name;
+            input.value = field.value;
+            form.appendChild(input);
+        });
+        
+        console.log('✅ Datos del diseño añadidos al formulario de compra');
+    }
+}
+</script>
+
+<style>
+.visubloq-design-info {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.visubloq-design-info details[open] summary {
+    margin-bottom: 10px;
+}
+</style>

@@ -125,6 +125,62 @@ async function saveToShopifyMetafields(orderId, studMap, pdfBase64) {
     }
 }
 
+// 💳 Función principal: Comprar diseño actual
+async function buyCurrentDesign() {
+    try {
+        // Verificar que hay un diseño cargado
+        if (!step4Canvas || step4Canvas.width === 0) {
+            alert('❌ No hay ningún diseño cargado. Carga una imagen y procésala primero.');
+            return;
+        }
+        
+        // Generar datos del diseño
+        const step4PixelArray = getPixelArrayFromCanvas(step4Canvas);
+        const resultImage = isBleedthroughEnabled()
+            ? revertDarkenedImage(step4PixelArray, getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex)))
+            : step4PixelArray;
+        
+        const studMap = getUsedPixelsStudMap(resultImage);
+        const totalPieces = Object.values(studMap).reduce((sum, count) => sum + count, 0);
+        const pieceTypes = Object.keys(studMap).length;
+        
+        // Crear resumen del diseño
+        const designData = {
+            total_pieces: totalPieces,
+            piece_types: pieceTypes,
+            resolution: `${targetResolution[0]}x${targetResolution[1]}`,
+            pieces_detail: studMap,
+            generated_at: new Date().toISOString()
+        };
+        
+        // Codificar datos para URL
+        const encodedData = encodeURIComponent(JSON.stringify(designData));
+        
+        // Construir URL del producto con datos
+        const productUrl = `https://visubloq.com/products/visubloq-personalizado?design_data=${encodedData}`;
+        
+        // Mostrar información antes de redirigir
+        const confirmMessage = `🎯 Tu diseño LEGO está listo:\n\n• ${totalPieces} piezas totales\n• ${pieceTypes} colores diferentes\n• Resolución: ${targetResolution[0]}x${targetResolution[1]}\n\n¿Quieres proceder a comprarlo por 19,99€?`;
+        
+        if (confirm(confirmMessage)) {
+            // Abrir en nueva ventana para no perder el diseño actual
+            window.open(productUrl, '_blank');
+            
+            // Opcional: Guardar diseño en localStorage para recuperación
+            localStorage.setItem('visubloq_last_design', JSON.stringify({
+                designData,
+                timestamp: Date.now()
+            }));
+            
+            console.log('🛒 Redirigiendo a producto con datos del diseño');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error preparando compra:', error);
+        alert(`❌ Error: ${error.message}`);
+    }
+}
+
 // 🎯 Función principal para el usuario
 async function saveCurrentDesignToShopify() {
     try {
@@ -267,24 +323,35 @@ async function testShopifyConnection() {
     }
 }
 
-// 🔧 Añadir botón para guardar en Shopify
+// 🔧 Añadir botones para el flujo de VisuBloq
 function addShopifyButton() {
     // Buscar el botón de descargar instrucciones
     const downloadButton = document.getElementById('download-instructions-button');
     
-    if (downloadButton && !document.getElementById('shopify-save-button')) {
-        // Crear nuevo botón
-        const shopifyButton = document.createElement('button');
-        shopifyButton.id = 'shopify-save-button';
-        shopifyButton.className = downloadButton.className;
-        shopifyButton.textContent = '🛒 Guardar en Shopify';
-        shopifyButton.style.marginLeft = '10px';
-        shopifyButton.onclick = saveCurrentDesignToShopify;
+    if (downloadButton && !document.getElementById('visubloq-buy-button')) {
+        // 1. BOTÓN PRINCIPAL: Comprar diseño
+        const buyButton = document.createElement('button');
+        buyButton.id = 'visubloq-buy-button';
+        buyButton.className = downloadButton.className;
+        buyButton.textContent = '� Comprar este diseño LEGO (19,99€)';
+        buyButton.style.marginLeft = '10px';
+        buyButton.style.backgroundColor = '#28a745';
+        buyButton.style.color = 'white';
+        buyButton.style.fontWeight = 'bold';
+        buyButton.onclick = buyCurrentDesign;
         
-        // Añadir después del botón de descarga
-        downloadButton.parentNode.insertBefore(shopifyButton, downloadButton.nextSibling);
+        // 2. BOTÓN ADMIN: Asociar a pedido (solo para testing)
+        const adminButton = document.createElement('button');
+        adminButton.id = 'admin-associate-button';
+        adminButton.className = downloadButton.className;
+        adminButton.textContent = '🔧 Admin: Asociar a pedido';
+        adminButton.style.marginLeft = '10px';
+        adminButton.style.backgroundColor = '#17a2b8';
+        adminButton.style.color = 'white';
+        adminButton.style.fontSize = '0.8em';
+        adminButton.onclick = saveCurrentDesignToShopify;
         
-        // Añadir botón de test
+        // 3. BOTÓN TEST: Conexión Shopify
         const testButton = document.createElement('button');
         testButton.textContent = '🧪 Test Conexión';
         testButton.className = downloadButton.className;
@@ -292,9 +359,12 @@ function addShopifyButton() {
         testButton.style.fontSize = '0.8em';
         testButton.onclick = testShopifyConnection;
         
-        shopifyButton.parentNode.insertBefore(testButton, shopifyButton.nextSibling);
+        // Añadir en orden
+        downloadButton.parentNode.insertBefore(buyButton, downloadButton.nextSibling);
+        buyButton.parentNode.insertBefore(adminButton, buyButton.nextSibling);
+        adminButton.parentNode.insertBefore(testButton, adminButton.nextSibling);
         
-        console.log('✅ Botones de Shopify añadidos');
+        console.log('✅ Botones de VisuBloq añadidos');
     }
 }
 
@@ -305,4 +375,4 @@ if (document.readyState === 'loading') {
     addShopifyButton();
 }
 
-console.log('🛒 Integración con Shopify cargada. Usa testShopifyConnection() para probar.');
+console.log('🛒 Integración VisuBloq cargada. Funciones disponibles:\n- buyCurrentDesign(): Comprar diseño actual\n- testShopifyConnection(): Probar conexión admin\n- saveCurrentDesignToShopify(): Asociar a pedido (admin)');
