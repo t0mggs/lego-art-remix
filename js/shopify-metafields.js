@@ -51,7 +51,7 @@ async function buyCurrentDesign() {
         const encodedData = encodeURIComponent(JSON.stringify(designData));
         
         // Construir URL del producto con datos del diseño
-        const productUrl = `https://visubloq.com/products/visubloq-personalizado?design_data=${encodedData}`;
+        const productUrl = `https://visubloq.myshopify.com/products/visubloq-personalizado?design_data=${encodedData}`;
         
         // Guardar diseño en localStorage para recuperación
         localStorage.setItem('visubloq_last_design', JSON.stringify({
@@ -60,9 +60,16 @@ async function buyCurrentDesign() {
         }));
         
         console.log('🏗️ Redirigiendo a Shopify para construir el diseño');
+        console.log('🔗 URL del producto:', productUrl);
         
-        // Redirigir directamente sin popup molesto
-        window.open(productUrl, '_blank');
+        // Verificar si la URL es accesible antes de abrir
+        try {
+            // Redirigir directamente sin popup molesto
+            window.open(productUrl, '_blank');
+        } catch (error) {
+            console.error('❌ Error abriendo URL:', error);
+            alert(`❌ Error abriendo la tienda.\n\nURL: ${productUrl}\n\n¿El producto "VisuBloq Personalizado" existe en tu tienda Shopify?`);
+        }
         
     } catch (error) {
         console.error('❌ Error preparando construcción:', error);
