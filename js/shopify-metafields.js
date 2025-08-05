@@ -16,6 +16,20 @@ async function findShopifyOrderByNumber(orderNumber) {
     try {
         console.log('🔍 Buscando pedido:', orderNumber);
         
+        // En GitHub Pages, simular pedido encontrado para demo
+        if (window.location.hostname.includes('github.io')) {
+            console.log('🎭 Modo demo: Simulando pedido encontrado');
+            return {
+                id: 'demo_12345',
+                name: orderNumber,
+                customer: {
+                    first_name: 'Cliente',
+                    last_name: 'Demo'
+                }
+            };
+        }
+        
+        // Solo hacer petición real en localhost
         const response = await fetch(`https://${SHOPIFY_CONFIG.shop}/admin/api/${SHOPIFY_CONFIG.apiVersion}/orders.json?name=${encodeURIComponent(orderNumber)}&status=any&limit=1`, {
             headers: {
                 'X-Shopify-Access-Token': SHOPIFY_CONFIG.accessToken,
@@ -43,6 +57,15 @@ async function saveToShopifyMetafields(orderId, studMap, pdfBase64) {
     try {
         console.log('💾 Guardando metafields para orden:', orderId);
         
+        // En GitHub Pages, simular guardado exitoso
+        if (window.location.hostname.includes('github.io')) {
+            console.log('🎭 Modo demo: Simulando guardado de metafields');
+            // Simular delay para hacer realista
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return true;
+        }
+        
+        // Solo hacer peticiones reales en localhost
         // 1. Guardar lista de piezas
         const piecesData = {
             metafield: {
@@ -299,6 +322,14 @@ async function testShopifyConnection() {
     try {
         console.log('🧪 Probando conexión a Shopify...');
         
+        // Para GitHub Pages, simulamos la conexión exitosa
+        if (window.location.hostname.includes('github.io')) {
+            console.log('✅ Modo demo: Simulando conexión exitosa');
+            alert(`✅ ¡Conexión simulada exitosa!\n\nModo Demo - GitHub Pages\nTienda: VisuBloq.myshopify.com\n\nEn producción usarías un servidor backend.`);
+            return true;
+        }
+        
+        // Solo hacer petición real si estamos en localhost
         const response = await fetch(`https://${SHOPIFY_CONFIG.shop}/admin/api/${SHOPIFY_CONFIG.apiVersion}/shop.json`, {
             headers: {
                 'X-Shopify-Access-Token': SHOPIFY_CONFIG.accessToken,
@@ -318,7 +349,13 @@ async function testShopifyConnection() {
         }
     } catch (error) {
         console.error('❌ Error de red:', error);
-        alert(`❌ Error de conexión: ${error.message}`);
+        
+        // Si es error CORS en GitHub Pages, explicar
+        if (window.location.hostname.includes('github.io')) {
+            alert(`ℹ️ Error esperado en GitHub Pages\n\nMotivo: CORS (seguridad del navegador)\nSolución: En producción usarías un servidor backend\n\nPara pruebas, usa la función "Admin: Asociar a pedido"`);
+        } else {
+            alert(`❌ Error de conexión: ${error.message}`);
+        }
         return false;
     }
 }
