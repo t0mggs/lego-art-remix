@@ -1,0 +1,217 @@
+<!-- CÓDIGO PARA PRODUCT.LIQUID - MÚLTIPLES VISUBLOQ PERSONALIZADO -->
+<!-- Este código va en la página del producto "VisuBloq Personalizado" -->
+
+<script>
+// 🎯 MANEJO DE MÚLTIPLES DISEÑOS VISUBLOQ EN EL CARRITO
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const designData = urlParams.get('design_data');
+    
+    if (designData) {
+        try {
+            const design = JSON.parse(decodeURIComponent(designData));
+            console.log('🎨 Diseño recibido:', design);
+            
+            // Mostrar información del diseño en la página
+            displayDesignInfo(design);
+            
+            // Configurar el formulario para añadir al carrito
+            setupMultipleDesignCart(design);
+            
+        } catch (error) {
+            console.error('Error procesando datos del diseño:', error);
+        }
+    }
+});
+
+function displayDesignInfo(design) {
+    // Crear sección de información del diseño
+    const productForm = document.querySelector('form[action="/cart/add"]') || document.querySelector('.product-form');
+    
+    if (productForm) {
+        // Crear contenedor para la información del diseño
+        const designInfoHTML = `
+            <div class="visubloq-design-preview" style="border: 3px solid #ff6b35; padding: 20px; margin: 20px 0; border-radius: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <h3 style="color: #ff6b35; margin: 0 0 15px 0; display: flex; align-items: center;">
+                    🏗️ Tu Diseño LEGO Personalizado
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                    <div class="design-image" style="text-align: center;">
+                        <img src="${design.design_image}" alt="Tu diseño LEGO" 
+                             style="max-width: 100%; height: auto; border: 2px solid #dee2e6; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    </div>
+                    <div class="design-specs">
+                        <p><strong>📊 Total de piezas:</strong> ${design.total_pieces}</p>
+                        <p><strong>🎨 Colores diferentes:</strong> ${design.piece_types}</p>
+                        <p><strong>📐 Resolución:</strong> ${design.resolution}</p>
+                        <p><strong>🕒 Creado:</strong> ${new Date(design.generated_at).toLocaleString('es-ES')}</p>
+                        <p style="font-size: 0.9em; color: #6c757d; margin-top: 10px;">
+                            <strong>ID único:</strong> ${design.unique_id}
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                    <p style="margin: 0; font-size: 0.9em; color: #856404;">
+                        <strong>💡 Consejo:</strong> Puedes añadir múltiples diseños al carrito. Cada uno se procesará individualmente con sus piezas específicas.
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        // Insertar antes del formulario de compra
+        productForm.insertAdjacentHTML('beforebegin', designInfoHTML);
+        
+        // Añadir detalles expandibles con la lista de piezas
+        const detailsHTML = `
+            <details style="margin-top: 15px;">
+                <summary style="cursor: pointer; font-weight: bold; padding: 5px 0;">📋 Ver lista completa de piezas por color</summary>
+                <div id="pieces-detail" style="margin-top: 10px; max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                    ${generatePiecesTable(design.pieces_detail)}
+                </div>
+            </details>
+        `;
+        
+        document.querySelector('.visubloq-design-preview').insertAdjacentHTML('beforeend', detailsHTML);
+    }
+}
+
+function generatePiecesTable(piecesDetail) {
+    if (!piecesDetail || typeof piecesDetail !== 'object') {
+        return '<p>No hay detalles de piezas disponibles.</p>';
+    }
+    
+    let tableHTML = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+            <thead>
+                <tr style="background: #e9ecef;">
+                    <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Color</th>
+                    <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">Muestra</th>
+                    <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    for (const [colorHex, quantity] of Object.entries(piecesDetail)) {
+        tableHTML += `
+            <tr>
+                <td style="border: 1px solid #dee2e6; padding: 8px;">${colorHex}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">
+                    <div style="width: 20px; height: 20px; background-color: ${colorHex}; border: 1px solid #999; border-radius: 3px; margin: 0 auto;"></div>
+                </td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; font-weight: bold;">${quantity}</td>
+            </tr>
+        `;
+    }
+    
+    tableHTML += `
+            </tbody>
+        </table>
+    `;
+    
+    return tableHTML;
+}
+
+function setupMultipleDesignCart(design) {
+    // Buscar el formulario de añadir al carrito
+    const cartForm = document.querySelector('form[action="/cart/add"]');
+    
+    if (cartForm) {
+        // Crear campos ocultos con la información del diseño
+        const designFields = [
+            { name: 'properties[Diseño VisuBloq]', value: `${design.total_pieces} piezas, ${design.piece_types} colores, ${design.resolution}` },
+            { name: 'properties[ID Único]', value: design.unique_id },
+            { name: 'properties[Total de piezas]', value: design.total_pieces },
+            { name: 'properties[Colores diferentes]', value: design.piece_types },
+            { name: 'properties[Resolución]', value: design.resolution },
+            { name: 'properties[Lista de piezas]', value: JSON.stringify(design.pieces_detail) },
+            { name: 'properties[Imagen del diseño]', value: design.design_image },
+            { name: 'properties[Generado el]', value: new Date(design.generated_at).toLocaleString('es-ES') }
+        ];
+        
+        // Eliminar campos anteriores si existen
+        const existingFields = cartForm.querySelectorAll('input[name*="properties"]');
+        existingFields.forEach(field => field.remove());
+        
+        // Añadir nuevos campos
+        designFields.forEach(field => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = field.name;
+            input.value = field.value;
+            cartForm.appendChild(input);
+        });
+        
+        // Actualizar el texto del botón de añadir al carrito
+        const addToCartButton = cartForm.querySelector('button[type="submit"], input[type="submit"]');
+        if (addToCartButton) {
+            addToCartButton.textContent = '🛒 Añadir este diseño al carrito';
+            addToCartButton.style.backgroundColor = '#ff6b35';
+            addToCartButton.style.color = 'white';
+            addToCartButton.style.fontWeight = 'bold';
+            addToCartButton.style.padding = '15px 25px';
+            addToCartButton.style.fontSize = '1.1em';
+        }
+        
+        console.log('✅ Formulario configurado para múltiples diseños');
+    }
+}
+
+// Función para manejar la adición al carrito
+document.addEventListener('submit', function(e) {
+    if (e.target.action && e.target.action.includes('/cart/add')) {
+        const designId = e.target.querySelector('input[name="properties[ID Único]"]');
+        if (designId) {
+            console.log('🛒 Añadiendo diseño al carrito:', designId.value);
+            
+            // Mostrar mensaje de confirmación temporal
+            setTimeout(() => {
+                const notification = document.createElement('div');
+                notification.innerHTML = `
+                    <div style="position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 20px; border-radius: 5px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        ✅ Diseño añadido al carrito<br>
+                        <small>Puedes añadir más diseños antes de finalizar</small>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }, 500);
+        }
+    }
+});
+</script>
+
+<style>
+.visubloq-design-preview {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.visubloq-design-preview:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.2);
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .visubloq-design-preview > div:first-child {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+}
+</style>
