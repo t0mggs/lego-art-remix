@@ -1,13 +1,4 @@
-# 📋 PANEL ADMIN VISUBLOQ PARA SHOPIFY - MÚLTIPLES DISEÑOS
-
-## 🎯 Código actualizado para múltiples diseños por pedido
-
-### CÓDIGO COMPLETO PARA `templates/order.liquid`:
-
-⚠️ **IMPORTANTE:** Este es el código CORRECTO y ACTUALIZADO para múltiples diseños.
-
-```liquid
-<!-- VisuBloq Admin Panel - Múltiples Diseños -->
+<!-- VisuBloq Admin Panel - Múltiples Diseños - VERSION LIMPIA -->
 {% assign visubloq_pieces = order.metafields.visubloq.pieces_list %}
 {% assign visubloq_summary = order.metafields.visubloq.order_summary %}
 {% assign visubloq_pdf = order.metafields.visubloq.instructions_pdf %}
@@ -24,7 +15,7 @@
 {% if visubloq_pieces or visubloq_summary or has_visubloq_designs %}
 <div style="background: #f8f9fa; border: 3px solid #ff6b35; border-radius: 10px; padding: 25px; margin: 25px 0; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.1);">
   <h3 style="color: #ff6b35; margin: 0 0 20px 0; display: flex; align-items: center; font-size: 1.3em;">
-    �️ Pedido VisuBloq - Múltiples Diseños
+    🏗️ Pedido VisuBloq - Múltiples Diseños
   </h3>
   
   {% comment %} Mostrar información general del pedido {% endcomment %}
@@ -85,7 +76,7 @@
     {% endif %}
   {% endfor %}
   
-  {% comment %} Metafields legacy (compatibilidad) {% endcomment %}
+  {% comment %} Metafields legacy - compatibilidad {% endcomment %}
   {% if visubloq_pieces %}
     <div style="margin: 20px 0; padding: 15px; background: #e7f3ff; border-radius: 5px;">
       <strong>🧱 Metafields legacy:</strong>
@@ -98,8 +89,8 @@
   
   {% if visubloq_pdf %}
     <div style="margin: 20px 0;">
-      <strong>📄 PDF de instrucciones (legacy):</strong>
-      <a href="{{ visubloq_pdf }}" download="instrucciones-{{ order.name }}.pdf" 
+      <strong>📄 PDF de instrucciones - legacy:</strong>
+      <a href="{{ visubloq_pdf | asset_url }}" download="instrucciones-{{ order.name }}.pdf" 
          style="background: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-left: 10px;">
         📥 Descargar PDF
       </a>
@@ -117,33 +108,3 @@
   </div>
 </div>
 {% endif %}
-```
-
-### OPCIÓN 2: Dashboard completo (más avanzado)
-
-Para crear un dashboard completo de todos los pedidos VisuBloq, necesitarías:
-
-1. **Crear una página de admin personalizada en Shopify**
-2. **Usar Shopify Admin API para filtrar pedidos con metafields VisuBloq**
-3. **Mostrar tabla con todos los pedidos VisuBloq**
-
-## 🛠️ IMPLEMENTACIÓN PASO A PASO:
-
-### Paso 1: Modifica un template de pedido en Shopify
-1. Ve a tu Shopify Admin → Tienda online → Temas → Acciones → Editar código
-2. Busca `templates/order.liquid` (o créalo si no existe)
-3. Añade el código de arriba donde quieras que aparezca la información
-
-### Paso 2: Para ver todos los pedidos VisuBloq (Dashboard)
-Esto requiere una app de Shopify más avanzada. Como alternativa:
-
-1. **Filtrar en Shopify Admin:** Ve a Pedidos y busca por propiedades personalizadas
-2. **Usar tags:** Modificar el código para añadir tags automáticamente a pedidos VisuBloq
-3. **Crear app de Shopify:** Para un dashboard completo personalizado
-
-## 🎯 LO MÁS FÁCIL PARA EMPEZAR:
-
-**RECOMENDACIÓN:** Empezar con OPCIÓN 1 - modificar template de pedido individual.
-Esto te permitirá ver toda la información de VisuBloq cuando abras un pedido específico.
-
-¿Quieres que te ayude a implementar alguna de estas opciones?

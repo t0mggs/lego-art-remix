@@ -62,14 +62,8 @@ async function buyCurrentDesign() {
         console.log('🏗️ Redirigiendo a Shopify para construir el diseño');
         console.log('🔗 URL del producto:', productUrl);
         
-        // Verificar si la URL es accesible antes de abrir
-        try {
-            // Redirigir directamente sin popup molesto
-            window.open(productUrl, '_blank');
-        } catch (error) {
-            console.error('❌ Error abriendo URL:', error);
-            alert(`❌ Error abriendo la tienda.\n\nURL: ${productUrl}\n\n¿El producto "VisuBloq Personalizado" existe en tu tienda Shopify?`);
-        }
+        // Redirigir en la misma pestaña
+        window.location.href = productUrl;
         
     } catch (error) {
         console.error('❌ Error preparando construcción:', error);
