@@ -99,6 +99,21 @@ function enableInteraction() {
     }
 }
 
+// Funciones para transición de carga de previsualización LEGO
+function showLegoPreviewLoading() {
+    const overlay = document.getElementById('lego-preview-loading-overlay');
+    if (overlay) {
+        overlay.classList.add('show');
+    }
+}
+
+function hideLegoPreviewLoading() {
+    const overlay = document.getElementById('lego-preview-loading-overlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
+}
+
 if (window.location.href.includes("forceUnsupportedDimensions")) {
     ["height-slider", "width-slider"].forEach((id) => {
         document.getElementById(id).step = 1;
@@ -1261,43 +1276,118 @@ function runStep1() {
 }
 
 function runStep2() {
-    let inputPixelArray;
-    if (selectedInterpolationAlgorithm === "default") {
-        const croppedCanvas = inputImageCropper.getCroppedCanvas({
-            width: targetResolution[0],
-            height: targetResolution[1],
-            maxWidth: 4096,
-            maxHeight: 4096,
-            imageSmoothingEnabled: false,
-        });
-        inputPixelArray = getPixelArrayFromCanvas(croppedCanvas);
-    } else {
-        // We're using adaptive pooling
-        const croppedCanvas = inputImageCropper.getCroppedCanvas({
-            maxWidth: 4096,
-            maxHeight: 4096,
-            imageSmoothingEnabled: false,
-        });
-        rawCroppedData = getPixelArrayFromCanvas(croppedCanvas);
-        let subArrayPoolingFunction;
-        if (selectedInterpolationAlgorithm === "maxPooling") {
-            subArrayPoolingFunction = maxPoolingKernel;
-        } else if (selectedInterpolationAlgorithm === "minPooling") {
-            subArrayPoolingFunction = minPoolingKernel;
-        } else if (selectedInterpolationAlgorithm === "avgPooling") {
-            subArrayPoolingFunction = avgPoolingKernel;
+    // Mostrar transición de carga para previsualización LEGO
+    showLegoPreviewLoading();
+    
+    // Pequeña pausa para que se vea la transición antes del procesamiento intensivo
+    setTimeout(() => {
+        let inputPixelArray;
+        if (selectedInterpolationAlgorithm === "default") {
+            const croppedCanvas = inputImageCropper.getCroppedCanvas({
+                width: targetResolution[0],
+                height: targetResolution[1],
+                maxWidth: 4096,
+                maxHeight: 4096,
+                imageSmoothingEnabled: false,
+            });
+            inputPixelArray = getPixelArrayFromCanvas(croppedCanvas);
         } else {
-            //  selectedInterpolationAlgorithm === "dualMinMaxPooling"
-            subArrayPoolingFunction = dualMinMaxPoolingKernel;
+            // We're using adaptive pooling
+            const croppedCanvas = inputImageCropper.getCroppedCanvas({
+                maxWidth: 4096,
+                maxHeight: 4096,
+                imageSmoothingEnabled: false,
+            });
+            rawCroppedData = getPixelArrayFromCanvas(croppedCanvas);
+            let subArrayPoolingFunction;
+            if (selectedInterpolationAlgorithm === "maxPooling") {
+                subArrayPoolingFunction = maxPoolingKernel;
+            } else if (selectedInterpolationAlgorithm === "minPooling") {
+                subArrayPoolingFunction = minPoolingKernel;
+            } else if (selectedInterpolationAlgorithm === "avgPooling") {
+                subArrayPoolingFunction = avgPoolingKernel;
+            } else {
+                //  selectedInterpolationAlgorithm === "dualMinMaxPooling"
+                subArrayPoolingFunction = dualMinMaxPoolingKernel;
+            }
+            inputPixelArray = resizeImagePixelsWithAdaptivePooling(
+                rawCroppedData,
+                croppedCanvas.width,
+                targetResolution[0],
+                targetResolution[1],
+                subArrayPoolingFunction
+            );
         }
-        inputPixelArray = resizeImagePixelsWithAdaptivePooling(
-            rawCroppedData,
-            croppedCanvas.width,
-            targetResolution[0],
-            targetResolution[1],
-            subArrayPoolingFunction
+
+        const hsv = rgbToHsv(
+            Number(document.getElementById("saturation-slider").value),
+            Number(document.getElementById("brightness-slider").value),
+            Number(document.getElementById("contrast-slider").value)
         );
-    }
+        const adjustedPixelArray = adjustPixelArraySaturationBrightnessContrast(inputPixelArray, hsv);
+
+        step2Canvas.width = targetResolution[0];
+        step2Canvas.height = targetResolution[1];
+        drawPixelsOnCanvas(adjustedPixelArray, step2Canvas);
+
+        const step1Cropper = new Cropper(step1DepthCanvasUpscaled, {
+            autoCrop: false,
+        });
+        step1Cropper.setData(inputImageCropper.getData());
+
+        const cropperData = step1Cropper.getData();
+        const cropperBufferCanvas = document.getElementById("step-2-depth-canvas-cropper-buffer");
+        const cropperBufferCanvasContext = cropperBufferCanvas.getContext("2d");
+        cropperBufferCanvas.width = targetResolution[0];
+        cropperBufferCanvas.height = targetResolution[1];
+        cropperBufferCanvasContext.drawImage(
+            step1DepthCanvasUpscaled,
+            cropperData.x,
+            cropperData.y,
+            cropperData.width,
+            cropperData.height,
+            0,
+            0,
+            targetResolution[0],
+            targetResolution[1]
+        );
+        const inputDepthPixelArray = getPixelArrayFromCanvas(cropperBufferCanvas);
+
+        const discreteDepthPixels = getDiscreteDepthPixels(
+            inputDepthPixelArray,
+            [...document.getElementById("depth-threshold-sliders-containers").children].map((slider) =>
+                Number(slider.value)
+            )
+        );
+        drawPixelsOnCanvas(discreteDepthPixels, step2DepthCanvas);
+
+        setTimeout(() => {
+            runStep3();
+            step2CanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
+            step2CanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
+            step2CanvasUpscaledContext.imageSmoothingEnabled = false;
+            step2CanvasUpscaledContext.drawImage(
+                step2Canvas,
+                0,
+                0,
+                targetResolution[0] * SCALING_FACTOR,
+                targetResolution[1] * SCALING_FACTOR
+            );
+            step2DepthCanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
+            step2DepthCanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
+            drawStudImageOnCanvas(
+                scaleUpDiscreteDepthPixelsForDisplay(
+                    discreteDepthPixels,
+                    document.getElementById("num-depth-levels-slider").value
+                ),
+                targetResolution[0],
+                SCALING_FACTOR,
+                step2DepthCanvasUpscaled,
+                selectedPixelPartNumber
+            );
+        }, 1); // TODO: find better way to check that input is finished
+    }, 100); // Pausa para mostrar la transición
+}
     let filteredPixelArray = applyHSVAdjustment(
         inputPixelArray,
         0, // Hue fijo en 0 - ya no se usa HSV completo
@@ -1545,6 +1635,9 @@ function runStep3() {
             step3DepthCanvasUpscaled,
             selectedPixelPartNumber
         );
+        
+        // Ocultar la transición de carga una vez completada la previsualización
+        hideLegoPreviewLoading();
     }, 1); // TODO: find better way to check that input is finished
 }
 
