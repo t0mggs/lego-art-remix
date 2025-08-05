@@ -5,7 +5,7 @@
 // Configuración
 const SHOPIFY_CONFIG = {
     shop: 'VisuBloq.myshopify.com',
-    accessToken: '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', // Token directo para evitar problemas
+    accessToken: window.SHOPIFY_TOKEN || 'DEMO_MODE', // Token se carga desde shopify-config.js
     apiVersion: '2024-01'
 };
 
@@ -16,6 +16,11 @@ async function buyCurrentDesign() {
         if (!step4Canvas || step4Canvas.width === 0) {
             alert('❌ No hay ningún diseño cargado. Carga una imagen y procésala primero.');
             return;
+        }
+        
+        // Verificar modo demo
+        if (SHOPIFY_CONFIG.accessToken === 'DEMO_MODE' || !SHOPIFY_CONFIG.accessToken) {
+            console.log('🧪 Modo demo: redirigiendo directamente a Shopify sin metafields');
         }
         
         // Generar datos del diseño
