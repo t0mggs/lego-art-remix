@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Shopify Integration - VisuBloq</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; text-align: center; }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .test-button { 
+            background: #007cba; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover { background: #005a87; }
+        .console-output { 
+            background: #000; 
+            color: #0f0; 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            margin: 10px 0;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        .instructions { 
+            background: #e7f3ff; 
+            padding: 15px; 
+            border-left: 4px solid #007cba; 
+            margin: 15px 0;
+        }
+        .warning { 
+            background: #fff3cd; 
+            padding: 15px; 
+            border-left: 4px solid #ffc107; 
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Shopify Integration - VisuBloq</h1>
+        
+        <div class="warning">
+            <strong>⚠️ IMPORTANTE:</strong> Este archivo es solo para testing. Los datos de Shopify están configurados con tus credenciales reales.
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Instrucciones para Testing:</h3>
+            <ol>
+                <li>Abre la <strong>Consola del Navegador</strong> (F12 → Console)</li>
+                <li>Haz clic en los botones de abajo para ejecutar las pruebas</li>
+                <li>Observa los resultados en la consola</li>
+                <li>Los mensajes aparecerán aquí abajo también</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Test 1: Generar PDF y Guardarlo en Shopify</h3>
+            <p>Simula un pedido real y guarda el PDF en Shopify usando la API Admin.</p>
+            <button class="test-button" onclick="testShopifyOrderComplete()">
+                🚀 Ejecutar Test Completo
+            </button>
+            <button class="test-button" onclick="testShopifyOrderMinimal()">
+                📝 Test Mínimo (Rápido)
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>📥 Test 2: Descargar PDF desde Shopify</h3>
+            <p>Prueba la descarga de un PDF guardado previamente en un pedido.</p>
+            <button class="test-button" onclick="testDownloadPDFFromShopify()">
+                ⬇️ Descargar PDF de Prueba
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test 3: Validación de Pedidos</h3>
+            <p>Prueba el sistema de validación de pedidos reales vs pruebas.</p>
+            <button class="test-button" onclick="testOrderValidation()">
+                ✅ Test Validación
+            </button>
+        </div>
+
+        <div class="console-output" id="output">
+            === Console Output ===
+            Abre la consola del navegador (F12) para ver logs detallados...
+        </div>
+    </div>
+
+    <!-- Cargar todas las librerías necesarias -->
+    <script src="js/pixi.min.js"></script>
+    <script src="js/ndarray-browser-min.js"></script>
+    <script src="js/onnx.min.js"></script>
+    <script src="js/heap.js"></script>
+    <script src="js/algo.js"></script>
+    <script src="js/bricklink-colors.js"></script>
+    <script src="js/depth-map-web-worker.js"></script>
+    <script src="js/stud-maps.js"></script>
+    <script src="js/metrics.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/test-functions.js"></script>
+
+    <script>
+        // Configuración de output visual
+        const outputDiv = document.getElementById('output');
+        
+        function addToOutput(message) {
+            outputDiv.textContent += message + '\n';
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+
+        // Override console.log para mostrar también en la página
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToOutput(args.join(' '));
+        };
+
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToOutput('ERROR: ' + args.join(' '));
+        };
+
+        // ============ FUNCIONES DE TEST ============
+
+        async function testShopifyOrderComplete() {
+            addToOutput('\n🚀 === INICIANDO TEST COMPLETO DE SHOPIFY ===');
+            
+            try {
+                // Simular datos de pedido real
+                const mockOrderData = {
+                    id: 5678901234,
+                    order_number: "VB" + Math.floor(Math.random() * 10000),
+                    email: "testcustomer@example.com",
+                    total_price: "29.99",
+                    financial_status: "paid",
+                    customer: {
+                        first_name: "Test",
+                        last_name: "Customer",
+                        email: "testcustomer@example.com"
+                    },
+                    webhook_verified: true
+                };
+
+                console.log('📦 Datos del pedido de prueba:', mockOrderData);
+                
+                // Simular generación de mosaico para el PDF
+                await simulateMosaicGeneration();
+                
+                // Ejecutar el proceso completo
+                await testShopifyOrderWithPDF(mockOrderData);
+                
+                addToOutput('✅ Test completo finalizado - revisa la consola para detalles');
+                
+            } catch (error) {
+                console.error('❌ Error en test completo:', error);
+            }
+        }
+
+        async function testShopifyOrderMinimal() {
+            addToOutput('\n📝 === TEST MÍNIMO DE SHOPIFY ===');
+            
+            try {
+                const mockOrderData = {
+                    id: 1234567890,
+                    order_number: "VB" + Math.floor(Math.random() * 1000),
+                    email: "test@visubloq.com",
+                    total_price: "19.99",
+                    financial_status: "paid",
+                    customer: {
+                        first_name: "Usuario",
+                        last_name: "Prueba"
+                    },
+                    webhook_verified: true
+                };
+
+                console.log('📦 Pedido mínimo:', mockOrderData);
+                
+                // Usar función existente de index.js
+                if (typeof testShopifyOrderWithPDF === 'function') {
+                    await testShopifyOrderWithPDF(mockOrderData);
+                } else {
+                    console.error('❌ Función testShopifyOrderWithPDF no encontrada');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en test mínimo:', error);
+            }
+        }
+
+        async function testDownloadPDFFromShopify() {
+            addToOutput('\n⬇️ === TEST DESCARGA PDF ===');
+            
+            try {
+                // Usar un ID de pedido que sabemos que existe o el último creado
+                const orderId = prompt('Ingresa el ID del pedido con PDF (o deja vacío para usar uno de prueba):', '5678901234');
+                
+                if (orderId) {
+                    console.log('🔍 Intentando descargar PDF del pedido:', orderId);
+                    
+                    if (typeof testDownloadPDF === 'function') {
+                        await testDownloadPDF(orderId);
+                    } else {
+                        console.error('❌ Función testDownloadPDF no encontrada');
+                    }
+                } else {
+                    console.log('⚠️ Test cancelado - no se proporcionó ID de pedido');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en test de descarga:', error);
+            }
+        }
+
+        async function testOrderValidation() {
+            addToOutput('\n🔍 === TEST VALIDACIÓN DE PEDIDOS ===');
+            
+            console.log('Testing orden válida...');
+            const validOrder = {
+                order_number: "VB1234",
+                email: "customer@example.com",
+                total_price: "25.00",
+                financial_status: "paid",
+                customer: { first_name: "John", last_name: "Doe" },
+                webhook_verified: true
+            };
+            
+            const isValid = isValidShopifyOrder(validOrder);
+            console.log('✅ Orden válida resultado:', isValid);
+            
+            console.log('\nTesting orden inválida (sin pago)...');
+            const invalidOrder = {
+                order_number: "VB0000",
+                email: "test@test.com",
+                total_price: "0.00",
+                financial_status: "pending",
+                customer: { first_name: "Test" },
+                webhook_verified: false
+            };
+            
+            const isInvalid = isValidShopifyOrder(invalidOrder);
+            console.log('❌ Orden inválida resultado:', isInvalid);
+            
+            addToOutput('✅ Tests de validación completados');
+        }
+
+        async function simulateMosaicGeneration() {
+            addToOutput('🎨 Simulando generación de mosaico...');
+            
+            // Simular datos mínimos del mosaico
+            window.currentMosaic = {
+                width: 32,
+                height: 32,
+                brickData: new Array(32 * 32).fill(0).map(() => Math.floor(Math.random() * 10)),
+                pieceCount: 1024,
+                colors: ['White', 'Black', 'Red', 'Blue', 'Yellow'],
+                image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+            };
+            
+            addToOutput('✅ Mosaico simulado generado');
+        }
+
+        // Inicialización
+        addToOutput('🔧 Página de testing cargada');
+        addToOutput('📋 Usa los botones arriba para ejecutar las pruebas');
+        addToOutput('👁️ Abre la consola del navegador (F12) para logs detallados\n');
+    </script>
+</body>
+</html>

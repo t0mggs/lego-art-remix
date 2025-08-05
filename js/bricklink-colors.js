@@ -13,7 +13,7 @@ let ALL_BRICKLINK_SOLID_COLORS = [
         name: "Very Light Bluish Gray",
         hex: "#e4e8e8",
         id: 99,
-    },  
+    },
     {
         name: "Light Bluish Gray",
         hex: "#afb5c7",

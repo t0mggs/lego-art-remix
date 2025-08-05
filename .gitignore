@@ -1,0 +1,17 @@
+# Configuración privada con tokens
+js/shopify-config.js
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+
+# Dependencias
+node_modules/
