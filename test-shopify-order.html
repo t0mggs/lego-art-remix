@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Test VisuBloq Shopify Order</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .button { background: #007bff; color: white; padding: 15px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; }
+        .button:hover { background: #0056b3; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .code { background: #f8f9fa; border: 1px solid #e9ecef; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Simulador de Pedido VisuBloq</h1>
+    
+    <p>Este script simulará una compra completa con datos de prueba para verificar que el panel admin funciona.</p>
+    
+    <button class="button" onclick="createTestOrder()">🎯 Crear Pedido de Prueba</button>
+    <button class="button" onclick="showTestData()">📊 Mostrar Datos de Prueba</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        // Datos de prueba que simularían un diseño real
+        const testDesignData = {
+            pieces: {
+                "Rojo brillante": 156,
+                "Azul brillante": 89,
+                "Amarillo brillante": 234,
+                "Blanco": 445,
+                "Negro": 167
+            },
+            summary: "Mosaico de 32x32 con 1091 piezas totales",
+            timestamp: new Date().toISOString(),
+            imageUrl: "https://example.com/test-image.jpg"
+        };
+        
+        async function createTestOrder() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>🔄 Creando pedido de prueba...</p>';
+            
+            try {
+                // Simular la creación de metafields
+                const response = await fetch('https://visubloq.myshopify.com/admin/api/2023-10/orders.json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Shopify-Access-Token': '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'
+                    },
+                    body: JSON.stringify({
+                        order: {
+                            line_items: [{
+                                variant_id: 'TU_VARIANT_ID_AQUI', // Necesitas el ID de tu producto
+                                quantity: 1,
+                                properties: [
+                                    { name: 'Diseño VisuBloq', value: testDesignData.summary },
+                                    { name: 'Generado en', value: new Date().toLocaleString('es-ES') }
+                                ]
+                            }],
+                            customer: {
+                                first_name: 'Test',
+                                last_name: 'Usuario',
+                                email: 'test@visubloq.com'
+                            },
+                            financial_status: 'paid',
+                            note: 'Pedido de prueba para VisuBloq'
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ ¡Pedido de prueba creado!<br>
+                            <strong>ID:</strong> ${order.order.id}<br>
+                            <strong>Número:</strong> #${order.order.order_number}
+                        </div>
+                        <p>Ahora ve a Shopify Admin → Pedidos para ver el panel VisuBloq.</p>
+                    `;
+                } else {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}<br>
+                        <small>Nota: Necesitas configurar el variant_id del producto primero.</small>
+                    </div>
+                `;
+            }
+        }
+        
+        function showTestData() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h3>📊 Datos de prueba que se enviarían:</h3>
+                <div class="code">${JSON.stringify(testDesignData, null, 2)}</div>
+                <p><strong>💡 Estos datos aparecerían en el panel admin después de la compra.</strong></p>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 // Configuración
 const SHOPIFY_CONFIG = {
     shop: 'VisuBloq.myshopify.com',
-    accessToken: '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', // Token directo para evitar problemas
+    accessToken: window.SHOPIFY_TOKEN || prompt('🔑 Introduce tu token de Shopify:'),
     apiVersion: '2024-01'
 };
 
