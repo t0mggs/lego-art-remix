@@ -4,7 +4,7 @@
 
 // Configuración
 const SHOPIFY_CONFIG = {
-    shop: 'VisuBloq.myshopify.com',
+    shop: 'visubloq.com',
     accessToken: window.SHOPIFY_TOKEN || 'DEMO_MODE', // Token se carga desde shopify-config.js
     apiVersion: '2024-01'
 };
@@ -51,7 +51,7 @@ async function buyCurrentDesign() {
         const encodedData = encodeURIComponent(JSON.stringify(designData));
         
         // Construir URL del producto con datos del diseño
-        const productUrl = `https://visubloq.myshopify.com/products/visubloq-personalizado?design_data=${encodedData}`;
+        const productUrl = `https://visubloq.com/products/visubloq-personalizado?design_data=${encodedData}`;
         
         // Guardar diseño en localStorage para recuperación
         localStorage.setItem('visubloq_last_design', JSON.stringify({
@@ -62,13 +62,64 @@ async function buyCurrentDesign() {
         console.log('🏗️ Redirigiendo a Shopify para construir el diseño');
         console.log('🔗 URL del producto:', productUrl);
         
-        // Redirigir en la misma pestaña
-        window.location.href = productUrl;
+        // Mostrar transición de carga elegante
+        showLoadingTransition(() => {
+            // Redirigir en la misma pestaña
+            window.location.href = productUrl;
+        });
         
     } catch (error) {
         console.error('❌ Error preparando construcción:', error);
         alert(`❌ Error: ${error.message}`);
     }
+}
+
+// 🎨 Función para mostrar transición de carga elegante
+function showLoadingTransition(callback) {
+    // Crear overlay de carga
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    `;
+    
+    loadingOverlay.innerHTML = `
+        <div style="text-align: center; color: white;">
+            <div style="width: 80px; height: 80px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            <h2 style="margin: 0 0 10px 0; font-size: 1.8em; font-weight: bold;">🏗️ Preparando tu diseño LEGO</h2>
+            <p style="margin: 0; font-size: 1.1em; opacity: 0.9;">Redirigiendo a la tienda...</p>
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    `;
+    
+    // Añadir al DOM
+    document.body.appendChild(loadingOverlay);
+    
+    // Mostrar con animación
+    setTimeout(() => {
+        loadingOverlay.style.opacity = '1';
+    }, 50);
+    
+    // Ejecutar callback después de la animación
+    setTimeout(() => {
+        callback();
+    }, 1500); // 1.5 segundos de transición elegante
 }
 
 // ℹ️ Mostrar información sobre el proceso
