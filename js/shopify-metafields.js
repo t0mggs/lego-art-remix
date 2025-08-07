@@ -96,17 +96,21 @@ function showLoadingTransition(callback) {
     
     loadingOverlay.innerHTML = `
         <div style="text-align: center; color: white;">
-            <div style="width: 80px; height: 80px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            <div style="width: 80px; height: 80px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: visubloq-spin 1s linear infinite; margin: 0 auto 20px;"></div>
             <h2 style="margin: 0 0 10px 0; font-size: 1.8em; font-weight: bold;">🏗️ Preparando tu diseño LEGO</h2>
             <p style="margin: 0; font-size: 1.1em; opacity: 0.9;">Redirigiendo a la tienda...</p>
         </div>
-        <style>
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        </style>
     `;
+    
+    // Agregar CSS para la animación
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes visubloq-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
     
     // Añadir al DOM
     document.body.appendChild(loadingOverlay);
