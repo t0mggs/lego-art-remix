@@ -1442,31 +1442,32 @@ function runStep2() {
     );
     drawPixelsOnCanvas(discreteDepthPixels, step2DepthCanvas);
 
-    setTimeout(() => {
-        runStep3();
-        step2CanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
-        step2CanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
-        step2CanvasUpscaledContext.imageSmoothingEnabled = false;
-        step2CanvasUpscaledContext.drawImage(
-            step2Canvas,
-            0,
-            0,
-            targetResolution[0] * SCALING_FACTOR,
-            targetResolution[1] * SCALING_FACTOR
-        );
-        step2DepthCanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
-        step2DepthCanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
-        drawStudImageOnCanvas(
-            scaleUpDiscreteDepthPixelsForDisplay(
-                discreteDepthPixels,
-                document.getElementById("num-depth-levels-slider").value
-            ),
-            targetResolution[0],
-            SCALING_FACTOR,
-            step2DepthCanvasUpscaled,
-            selectedPixelPartNumber
-        );
-    }, 1); // TODO: find better way to check that input is finished
+        setTimeout(() => {
+            runStep3();
+            step2CanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
+            step2CanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
+            step2CanvasUpscaledContext.imageSmoothingEnabled = false;
+            step2CanvasUpscaledContext.drawImage(
+                step2Canvas,
+                0,
+                0,
+                targetResolution[0] * SCALING_FACTOR,
+                targetResolution[1] * SCALING_FACTOR
+            );
+            step2DepthCanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
+            step2DepthCanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
+            drawStudImageOnCanvas(
+                scaleUpDiscreteDepthPixelsForDisplay(
+                    discreteDepthPixels,
+                    document.getElementById("num-depth-levels-slider").value
+                ),
+                targetResolution[0],
+                SCALING_FACTOR,
+                step2DepthCanvasUpscaled,
+                selectedPixelPartNumber
+            );
+        }, 1); // TODO: find better way to check that input is finished
+    }, 100); // Pausa para mostrar la transición de carga
 }
 
 function getVariablePixelAvailablePartDimensions() {
