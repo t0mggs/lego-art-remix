@@ -490,6 +490,14 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         loadFixedColorPalette();
     }, 500);
+
+    // Evento para el botón de compra/CONSTRUIR
+    var buyButton = document.getElementById('visubloq-buy-button');
+    if (buyButton) {
+        buyButton.onclick = function() {
+            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
+        };
+    }
 });
 
 // Elementos relacionados con stud-maps eliminados - configuraciÃ³n automÃ¡tica a "all_tile_colors"
