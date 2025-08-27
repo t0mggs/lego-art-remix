@@ -858,7 +858,22 @@
               role="tabpanel"
               aria-labelledby="step-3-color-tab"
             >
-                <!-- STEP 3 eliminado de la interfaz por requerimiento del usuario -->
+                <!-- STEP 3 restaurado oculto para compatibilidad con el JS -->
+                <canvas id="step-3-canvas" hidden></canvas>
+                <canvas id="step-3-canvas-upscaled" style="width: 100%; display: none;"></canvas>
+                <div style="display: none;">
+                  <h4>STEP 3</h4>
+                  <small class="step-header-subtitle">PROCESS IMAGE WITH FIXED COLOR PALETTE</small>
+                  <br />
+                  <span
+                    data-toggle="tooltip"
+                    title="This is the average per pixel quantization error. The lower this value is, the closer this image is to the image in step 2 (according to the chosen color distance function)"
+                    data-placement="top"
+                  >
+                    <small>Average</small> &#x3F5;:
+                    <small id="step-3-quantization-error"></small>
+                  </span>
+                </div>
 
               <div id="step-3-accordion">
                 <div class="card accordion-card" style="display: none !important;">
