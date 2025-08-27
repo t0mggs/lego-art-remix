@@ -1,4 +1,4 @@
-﻿const VERSION_NUMBER = "v2022.12.11";
+const VERSION_NUMBER = "v2022.12.11";
 const versionElement = document.getElementById("version-number");
 if (versionElement) {
     versionElement.innerHTML = VERSION_NUMBER;
@@ -494,9 +494,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evento para el botón de compra/CONSTRUIR
     var buyButton = document.getElementById('visubloq-buy-button');
     if (buyButton) {
-        buyButton.onclick = function() {
+        // Eliminar el botón original
+        buyButton.parentNode.removeChild(buyButton);
+    }
+
+    // Crear el botón alternativo en el mismo contenedor
+    var altButtonId = 'visubloq-buy-button-alt';
+    if (!document.getElementById(altButtonId)) {
+        var altButton = document.createElement('button');
+        altButton.id = altButtonId;
+        altButton.className = 'btn btn-success';
+        altButton.innerText = 'CONSTRUIR';
+        altButton.style = 'margin: 10px; font-weight: bold;';
+        altButton.onclick = function() {
+            // Guardar atributos antes de redirigir
+            guardarDatosPedido();
             window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
         };
+        // Insertar el botón en el mismo contenedor donde estaba el original
+        var contenedor = document.getElementById('contenedor-boton-construir') || document.body;
+        contenedor.appendChild(altButton);
+    }
+
+    // Crear un nuevo botón alternativo que redirige correctamente
+    var altButtonId = 'visubloq-buy-button-alt';
+    if (!document.getElementById(altButtonId)) {
+        var altButton = document.createElement('button');
+        altButton.id = altButtonId;
+        altButton.className = 'btn btn-success';
+        altButton.innerText = 'CONSTRUIR (alternativo)';
+        altButton.style = 'margin: 10px; font-weight: bold;';
+        altButton.onclick = function() {
+            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
+        };
+        // Insertar el botón en el DOM, por ejemplo, al final del body
+        document.body.appendChild(altButton);
     }
 });
 
