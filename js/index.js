@@ -491,45 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadFixedColorPalette();
     }, 500);
 
-    // Evento para el botón de compra/CONSTRUIR
-    var buyButton = document.getElementById('visubloq-buy-button');
-    if (buyButton) {
-        // Eliminar el botón original
-        buyButton.parentNode.removeChild(buyButton);
-    }
-
-    // Crear el botón alternativo en el mismo contenedor
-    var altButtonId = 'visubloq-buy-button-alt';
-    if (!document.getElementById(altButtonId)) {
-        var altButton = document.createElement('button');
-        altButton.id = altButtonId;
-        altButton.className = 'btn btn-success';
-        altButton.innerText = 'CONSTRUIR';
-        altButton.style = 'margin: 10px; font-weight: bold;';
-        altButton.onclick = function() {
-            // Guardar atributos antes de redirigir
-            guardarDatosPedido();
-            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
-        };
-        // Insertar el botón en el mismo contenedor donde estaba el original
-        var contenedor = document.getElementById('contenedor-boton-construir') || document.body;
-        contenedor.appendChild(altButton);
-    }
-
-    // Crear un nuevo botón alternativo que redirige correctamente
-    var altButtonId = 'visubloq-buy-button-alt';
-    if (!document.getElementById(altButtonId)) {
-        var altButton = document.createElement('button');
-        altButton.id = altButtonId;
-        altButton.className = 'btn btn-success';
-        altButton.innerText = 'CONSTRUIR (alternativo)';
-        altButton.style = 'margin: 10px; font-weight: bold;';
-        altButton.onclick = function() {
-            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
-        };
-        // Insertar el botón en el DOM, por ejemplo, al final del body
-        document.body.appendChild(altButton);
-    }
+    // Eliminado el botón CONSTRUIR de la interfaz por requerimiento del usuario
 });
 
 // Elementos relacionados con stud-maps eliminados - configuraciÃ³n automÃ¡tica a "all_tile_colors"
