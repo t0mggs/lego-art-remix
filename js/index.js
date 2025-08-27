@@ -494,9 +494,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evento para el botón de compra/CONSTRUIR
     var buyButton = document.getElementById('visubloq-buy-button');
     if (buyButton) {
-        buyButton.onclick = function() {
+        // Eliminar el botón original
+        buyButton.parentNode.removeChild(buyButton);
+    }
+
+    // Crear el botón alternativo en el mismo contenedor
+    var altButtonId = 'visubloq-buy-button-alt';
+    if (!document.getElementById(altButtonId)) {
+        var altButton = document.createElement('button');
+        altButton.id = altButtonId;
+        altButton.className = 'btn btn-success';
+        altButton.innerText = 'CONSTRUIR';
+        altButton.style = 'margin: 10px; font-weight: bold;';
+        altButton.onclick = function() {
+            // Guardar atributos antes de redirigir
+            guardarDatosPedido();
             window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
         };
+        // Insertar el botón en el mismo contenedor donde estaba el original
+        var contenedor = document.getElementById('contenedor-boton-construir') || document.body;
+        contenedor.appendChild(altButton);
+    }
+
+    // Crear un nuevo botón alternativo que redirige correctamente
+    var altButtonId = 'visubloq-buy-button-alt';
+    if (!document.getElementById(altButtonId)) {
+        var altButton = document.createElement('button');
+        altButton.id = altButtonId;
+        altButton.className = 'btn btn-success';
+        altButton.innerText = 'CONSTRUIR (alternativo)';
+        altButton.style = 'margin: 10px; font-weight: bold;';
+        altButton.onclick = function() {
+            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
+        };
+        // Insertar el botón en el DOM, por ejemplo, al final del body
+        document.body.appendChild(altButton);
     }
 });
 
@@ -666,6 +698,1145 @@ function RGBPixelDistanceSquared(pixel1, pixel2) {
 const colorDistanceFunctionsInfo = {
     euclideanRGB: {
         name: "Euclidean RGB",
+        func: RGBPixelDistanceSquared,
+    },
+    euclideanLAB: {
+        name: "Euclidean LAB",
+        func: d3ColorDistanceWrapper(d3.differenceEuclideanLab),
+    },
+    // HCL and HSL don't always work
+    // euclideanHCL: {
+    //     name: "Euclidean HCL",
+    //     func: d3ColorDistanceWrapper(d3.differenceEuclideanHCL)
+    // },
+    // euclideanHSL: {
+    //     name: "Euclidean HSL",
+    //     func: d3ColorDistanceWrapper(d3.differenceEuclideanHSL)
+    // },
+    // CMC sometimes looks odd (symmetry issues?)
+    // cmc: {
+    //     name: "CMC",
+    //     func: d3ColorDistanceWrapper(d3.differenceCmc)
+    // },
+    cie94: {
+        name: "CIE94",
+        func: d3ColorDistanceWrapper(d3.differenceCie94),
+    },
+    ciede2000: {
+        name: "CIEDE2000",
+        func: d3ColorDistanceWrapper(d3.differenceCiede2000),
+    },
+    din99o: {
+        name: "DIN99o",
+        func: d3ColorDistanceWrapper(d3.differenceDin99o),
+    },
+};
+
+const defaultDistanceFunctionKey = "ciede2000";
+let colorDistanceFunction = colorDistanceFunctionsInfo[defaultDistanceFunctionKey].func;
+document.getElementById("distance-function-button").innerHTML =
+    colorDistanceFunctionsInfo[defaultDistanceFunctionKey].name;
+
+Object.keys(colorDistanceFunctionsInfo).forEach((key) => {
+    const distanceFunction = colorDistanceFunctionsInfo[key];
+    const option = document.createElement("a");
+    option.className = "dropdown-item btn";
+    option.textContent = distanceFunction.name;
+    option.value = key;
+    option.addEventListener("click", () => {
+        document.getElementById("distance-function-button").innerHTML = distanceFunction.name;
+        colorDistanceFunction = distanceFunction.func;
+        disableInteraction();
+        runStep3();
+    });
+    document.getElementById("distance-function-options").appendChild(option);
+});
+
+function onInfinitePieceCountChange() {
+    const isUsingInfinite =
+        document.getElementById("infinite-piece-count-check").checked ||
+        Object.keys(quantizationAlgorithmToTraditionalDitheringKernel).includes(quantizationAlgorithm) ||
+        ("" + selectedPixelPartNumber).match("^variable.*$");
+    [...document.getElementsByClassName("piece-count-input")].forEach(
+        (numberInput) => (numberInput.hidden = isUsingInfinite)
+    );
+    [...document.getElementsByClassName("piece-count-infinity-placeholder")].forEach(
+        (placeholder) => (placeholder.hidden = !isUsingInfinite)
+    );
+    updateStudCountText();
+}
+document.getElementById("infinite-piece-count-check").addEventListener("change", () => {
+    onInfinitePieceCountChange();
+    runStep4();
+});
+
+function updateForceInfinitePieceCountText() {
+    const isInfinitePieceCountForced =
+        Object.keys(quantizationAlgorithmToTraditionalDitheringKernel).includes(quantizationAlgorithm) ||
+        ("" + selectedPixelPartNumber).match("^variable.*$");
+    document.getElementById("infinite-piece-count-check-container").hidden = isInfinitePieceCountForced;
+    document.getElementById("forced-infinite-piece-count-warning").hidden = !isInfinitePieceCountForced;
+}
+
+Object.keys(quantizationAlgorithmsInfo).forEach((key) => {
+    const algorithm = quantizationAlgorithmsInfo[key];
+    const option = document.createElement("a");
+    option.className = "dropdown-item btn";
+    option.textContent = algorithm.name;
+    option.value = key;
+    option.addEventListener("click", () => {
+        document.getElementById("quantization-algorithm-button").innerHTML = algorithm.name;
+        quantizationAlgorithm = key;
+
+        // Only 2 phase supports color tie resolution
+        document.getElementById("color-ties-resolution-section").hidden = quantizationAlgorithm != "twoPhase";
+
+        const isTraditionalErrorDithering = Object.keys(quantizationAlgorithmToTraditionalDitheringKernel).includes(
+            quantizationAlgorithm
+        );
+        [...document.getElementsByClassName("traditional-dithering-algorithm-warning")].forEach(
+            (item) => (item.hidden = !isTraditionalErrorDithering)
+        );
+        updateForceInfinitePieceCountText();
+
+        disableInteraction();
+        onInfinitePieceCountChange();
+        runStep3();
+    });
+    document.getElementById("quantization-algorithm-options").appendChild(option);
+});
+
+const DIVIDER = "DIVIDER";
+const STUD_MAP_KEYS = Object.keys(STUD_MAPS);
+const NUM_SET_STUD_MAPS = 12;
+const NUM_PARTIAL_SET_STUD_MAPS = 7;
+STUD_MAP_KEYS.splice(NUM_SET_STUD_MAPS, 0, DIVIDER);
+STUD_MAP_KEYS.splice(NUM_SET_STUD_MAPS + NUM_PARTIAL_SET_STUD_MAPS + 1, 0, DIVIDER);
+
+// ConfiguraciÃ³n de paleta fija - carga automÃ¡tica desde archivo JSON
+async function loadFixedColorPalette() {
+    try {
+        // Paleta fija definida directamente en el cÃ³digo
+        const paletteData = {
+            "studMap": {
+                "#212121": 99999,
+                "#0057a6": 99999,
+                "#10cb31": 99999,
+                "#f7ba30": 99999,
+                "#f88379": 99999,
+                "#3399ff": 99999,
+                "#595d60": 99999,
+                "#b30006": 99999,
+                "#7c9051": 99999,
+                "#fffc00": 99999,
+                "#89351d": 99999,
+                "#907450": 99999,
+                "#898788": 99999,
+                "#ffbbff": 99999,
+                "#e3a05b": 99999,
+                "#ffffff": 99999
+            },
+            "sortedStuds": [
+                "#212121",
+                "#0057a6",
+                "#10cb31",
+                "#f7ba30",
+                "#f88379",
+                "#3399ff",
+                "#595d60",
+                "#b30006",
+                "#7c9051",
+                "#fffc00",
+                "#89351d",
+                "#907450",
+                "#898788",
+                "#ffbbff",
+                "#e3a05b",
+                "#ffffff"
+            ]
+        };
+        
+        // Cargar la paleta fija
+        console.log('Cargando paleta fija con', paletteData.sortedStuds.length, 'colores:', paletteData.sortedStuds);
+        customStudTableBody.innerHTML = "";
+        paletteData.sortedStuds.forEach((stud) => {
+            const studRow = getNewCustomStudRow();
+            studRow.children[0].children[0].children[0].children[0].style.backgroundColor = stud;
+            studRow.children[0].children[0].setAttribute("title", HEX_TO_COLOR_NAME[stud] || stud);
+            studRow.children[1].children[0].children[0].value = paletteData.studMap[stud];
+            customStudTableBody.appendChild(studRow);
+        });
+        
+        console.log('Paleta de colores fija cargada exitosamente. Filas en tabla:', customStudTableBody.children.length);
+        
+        // Activar la paleta personalizada
+        runCustomStudMap(true);
+        console.log('Paleta fija activada como selectedStudMap');
+        
+        // Activar automÃ¡ticamente "Infinite Piece Counts" para evitar problemas
+        document.getElementById("infinite-piece-count-check").checked = true;
+        onInfinitePieceCountChange();
+    } catch (error) {
+        console.error('Error al cargar la paleta fija:', error);
+        // Usar paleta por defecto en caso de error
+        populateCustomStudSelectors(STUD_MAPS[DEFAULT_STUD_MAP], false);
+    }
+}
+
+// FunciÃ³n para inicializar la paleta despuÃ©s de seleccionar imagen
+function runCustomStudMap(skipStep1) {
+    const customStudMap = {};
+    const customSortedStuds = [];
+    Array.from(customStudTableBody.children).forEach((stud) => {
+        const rgb = stud.children[0].children[0].children[0].children[0].style.backgroundColor
+            .replace("rgb(", "")
+            .replace(")", "")
+            .split(/,\s*/)
+            .map((shade) => parseInt(shade));
+        const studHex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+        customSortedStuds.push(studHex);
+        const numStuds = parseInt(stud.children[1].children[0].children[0].value);
+        customStudMap[studHex] = (customStudMap[studHex] || 0) + numStuds;
+    });
+    if (customSortedStuds.length > 0) {
+        selectedStudMap = customStudMap;
+        selectedFullSetName = "Custom";
+        selectedSortedStuds = customSortedStuds;
+    }
+    if (!skipStep1) {
+        runStep1();
+    }
+}
+
+function getColorSquare(hex) {
+    const result = document.createElement("div");
+    result.style.backgroundColor = hex;
+    result.style.width = "1em";
+    result.style.height = "1em";
+    return result;
+}
+
+function getColorSelectorDropdown(tooltipPosition, isReadOnly = false) {
+    if (!tooltipPosition) {
+        tooltipPosition = "left";
+    }
+    const container = document.createElement("div");
+    const id = "color-selector" + uuidv4();
+
+    const button = document.createElement("button");
+    button.className = "btn btn-outline-secondary";
+    button.type = "button";
+    
+    if (!isReadOnly) {
+        button.setAttribute("data-toggle", "dropdown");
+        button.setAttribute("aria-haspopup", "true");
+        button.setAttribute("aria-expanded", "false");
+    } else {
+        button.disabled = true;
+        button.style.cursor = "not-allowed";
+    }
+    
+    button.id = id;
+    button.appendChild(getColorSquare(DEFAULT_COLOR));
+    button.value = DEFAULT_COLOR;
+
+    if (!isReadOnly) {
+        const dropdown = document.createElement("div");
+        dropdown.setAttribute("aria-labelledby", id);
+        dropdown.className = "dropdown-menu pre-scrollable";
+
+        ALL_VALID_BRICKLINK_COLORS.forEach((color) => {
+            const option = document.createElement("a");
+            option.style.display = "flex";
+            option.className = "dropdown-item btn";
+            const text = document.createElement("span");
+            text.innerHTML = "&nbsp;" + color.name;
+            const colorSquare = getColorSquare(color.hex);
+            colorSquare.style.marginTop = "3px";
+            option.appendChild(colorSquare);
+            option.appendChild(text);
+            option.addEventListener("click", () => {
+                button.innerHTML = "";
+                button.appendChild(getColorSquare(color.hex));
+                container.setAttribute("title", color.name);
+                $('[data-toggle="tooltip"]').tooltip("dispose");
+                $('[data-toggle="tooltip"]').tooltip();
+                runCustomStudMap();
+            });
+            dropdown.appendChild(option);
+        });
+
+        container.appendChild(dropdown);
+    }
+
+    container.setAttribute("data-toggle", "tooltip");
+    container.setAttribute("data-placement", tooltipPosition);
+    container.setAttribute("title", DEFAULT_COLOR_NAME);
+    setTimeout(() => $('[data-toggle="tooltip"]').tooltip(), 10);
+    container.appendChild(button);
+    return container;
+}
+
+// const paintbrushDropdown = getColorSelectorDropdown("top");
+// paintbrushDropdown.children[0].id = "paintbrush-color-dropdown";
+// paintbrushDropdown.children[0].className = "btn paintbrush-controls-button";
+// paintbrushDropdown.style = "height: 100%;";
+// document.getElementById("paintbrush-controls").appendChild(paintbrushDropdown);
+
+function getNewCustomStudRow() {
+    const studRow = document.createElement("tr");
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "btn btn-danger";
+    removeButton.style = "padding: 2px; margin-left: 4px;";
+    removeButton.innerHTML = "X";
+    removeButton.addEventListener("click", () => {
+        customStudTableBody.removeChild(studRow);
+        runCustomStudMap();
+    });
+
+    const colorCell = document.createElement("td");
+    const colorInput = getColorSelectorDropdown();
+    colorCell.appendChild(colorInput);
+    studRow.appendChild(colorCell);
+
+    const numberCell = document.createElement("td");
+    const numberCellChild = document.createElement("div");
+    const numberInput = document.createElement("input");
+    numberInput.style = "max-width: 80px";
+    numberInput.type = "number";
+    numberInput.value = 10;
+    numberInput.className = "form-control form-control-sm piece-count-input";
+    numberInput.addEventListener("change", (v) => {
+        numberInput.value = Math.round(Math.min(Math.max(parseFloat(numberInput.value) || 0, 0), 99999));
+        runCustomStudMap();
+    });
+    numberInput.hidden =
+        document.getElementById("infinite-piece-count-check").checked ||
+        Object.keys(quantizationAlgorithmToTraditionalDitheringKernel).includes(quantizationAlgorithm) ||
+        ("" + selectedPixelPartNumber).match("^variable.*$");
+    infinityPlaceholder = document.createElement("div");
+    infinityPlaceholder.hidden = !numberInput.hidden;
+    infinityPlaceholder.className = "piece-count-infinity-placeholder";
+    infinityPlaceholder.innerHTML = "âˆž";
+    numberCellChild.style = "display: flex; flex-direction: horizontal;";
+    numberCellChild.appendChild(numberInput);
+    numberCellChild.appendChild(infinityPlaceholder);
+
+    numberCellChild.appendChild(removeButton);
+    numberCell.appendChild(numberCellChild);
+    studRow.appendChild(numberCell);
+    return studRow;
+}
+
+/*
+// SECCIÃ“N ELIMINADA: Event listeners para Hue - ya no se usa HSV completo
+const onHueChange = () => {
+    document.getElementById("hue-text").innerHTML = document.getElementById("hue-slider").value + "<span>&#176;</span>";
+    runStep2();
+};
+document.getElementById("hue-slider").addEventListener("change", onHueChange, false);
+document.getElementById("hue-increment").addEventListener(
+    "click",
+    () => {
+        if (Number(document.getElementById("hue-slider").value) < Number(document.getElementById("hue-slider").max)) {
+            document.getElementById("hue-slider").value = Number(document.getElementById("hue-slider").value) + 1;
+            onHueChange();
+        }
+    },
+    false
+);
+document.getElementById("hue-decrement").addEventListener(
+    "click",
+    () => {
+        if (Number(document.getElementById("hue-slider").value) > Number(document.getElementById("hue-slider").min)) {
+            document.getElementById("hue-slider").value = Number(document.getElementById("hue-slider").value) - 1;
+            onHueChange();
+        }
+    },
+    false
+);
+*/
+
+const onSaturationChange = () => {
+    document.getElementById("saturation-text").innerHTML = document.getElementById("saturation-slider").value + "%";
+    runStep2();
+};
+document.getElementById("saturation-slider").addEventListener("change", onSaturationChange, false);
+document.getElementById("saturation-increment").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("saturation-slider").value) <
+            Number(document.getElementById("saturation-slider").max)
+        ) {
+            document.getElementById("saturation-slider").value =
+                Number(document.getElementById("saturation-slider").value) + 1;
+            onSaturationChange();
+        }
+    },
+    false
+);
+document.getElementById("saturation-decrement").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("saturation-slider").value) >
+            Number(document.getElementById("saturation-slider").min)
+        ) {
+            document.getElementById("saturation-slider").value =
+                Number(document.getElementById("saturation-slider").value) - 1;
+            onSaturationChange();
+        }
+    },
+    false
+);
+
+/*
+// SECCIÃ“N ELIMINADA: Event listeners para Value - ya no se usa HSV completo
+const onValueChange = () => {
+    document.getElementById("value-text").innerHTML = document.getElementById("value-slider").value + "%";
+    runStep2();
+};
+document.getElementById("value-slider").addEventListener("change", onValueChange, false);
+document.getElementById("value-increment").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("value-slider").value) < Number(document.getElementById("value-slider").max)
+        ) {
+            document.getElementById("value-slider").value = Number(document.getElementById("value-slider").value) + 1;
+            onValueChange();
+        }
+    },
+    false
+);
+document.getElementById("value-decrement").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("value-slider").value) > Number(document.getElementById("value-slider").min)
+        ) {
+            document.getElementById("value-slider").value = Number(document.getElementById("value-slider").value) - 1;
+            onValueChange();
+        }
+    },
+    false
+);
+*/
+
+const onBrightnessChange = () => {
+    document.getElementById("brightness-text").innerHTML =
+        (document.getElementById("brightness-slider").value > 0 ? "+" : "") +
+        document.getElementById("brightness-slider").value;
+    runStep2();
+};
+document.getElementById("brightness-slider").addEventListener("change", onBrightnessChange, false);
+document.getElementById("brightness-increment").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("brightness-slider").value) <
+            Number(document.getElementById("brightness-slider").max)
+        ) {
+            document.getElementById("brightness-slider").value =
+                Number(document.getElementById("brightness-slider").value) + 1;
+            onBrightnessChange();
+        }
+    },
+    false
+);
+document.getElementById("brightness-decrement").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("brightness-slider").value) >
+            Number(document.getElementById("brightness-slider").min)
+        ) {
+            document.getElementById("brightness-slider").value =
+                Number(document.getElementById("brightness-slider").value) - 1;
+            onBrightnessChange();
+        }
+    },
+    false
+);
+
+const onContrastChange = () => {
+    document.getElementById("contrast-text").innerHTML =
+        (document.getElementById("contrast-slider").value > 0 ? "+" : "") +
+        document.getElementById("contrast-slider").value;
+    runStep2();
+};
+document.getElementById("contrast-slider").addEventListener("change", onContrastChange, false);
+document.getElementById("contrast-increment").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("contrast-slider").value) <
+            Number(document.getElementById("contrast-slider").max)
+        ) {
+            document.getElementById("contrast-slider").value =
+                Number(document.getElementById("contrast-slider").value) + 1;
+            onContrastChange();
+        }
+    },
+    false
+);
+document.getElementById("contrast-decrement").addEventListener(
+    "click",
+    () => {
+        if (
+            Number(document.getElementById("contrast-slider").value) >
+            Number(document.getElementById("contrast-slider").min)
+        ) {
+            document.getElementById("contrast-slider").value =
+                Number(document.getElementById("contrast-slider").value) - 1;
+            onContrastChange();
+        }
+    },
+    false
+);
+
+function onDepthMapCountChange() {
+    const numLevels = Number(document.getElementById("num-depth-levels-slider").value);
+    overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+    document.getElementById("num-depth-levels-text").innerHTML = numLevels;
+    const inputs = [];
+    const inputsContainer = document.getElementById("depth-threshold-sliders-containers");
+    inputsContainer.innerHTML = "";
+    for (let i = 0; i < numLevels - 1; i++) {
+        const input = document.createElement("input");
+        input.type = "range";
+        input.min = 0;
+        input.max = 255;
+        input.value = Math.floor(255 * ((i + 1) / numLevels));
+        input.style = "width: 100%";
+        input.addEventListener("change", () => {
+            for (let j = 0; j < i; j++) {
+                inputs[j].value = Math.min(inputs[j].value, input.value);
+            }
+            for (let j = i + 1; j < numLevels - 1; j++) {
+                inputs[j].value = Math.max(inputs[j].value, input.value);
+            }
+            runStep1();
+        });
+        inputs.push(input);
+        inputsContainer.appendChild(input);
+    }
+
+    [...document.getElementsByClassName("threshold-plural-s")].forEach((s) => (s.hidden = numLevels < 3));
+
+    runStep1();
+}
+
+document.getElementById("num-depth-levels-slider").addEventListener("change", onDepthMapCountChange, false);
+
+document.getElementById("reset-saturation-button").addEventListener(
+    "click",
+    () => {
+        document.getElementById("saturation-slider").value = 0;
+        document.getElementById("saturation-text").innerHTML = document.getElementById("saturation-slider").value + "%";
+        runStep2();
+    },
+    false
+);
+
+document.getElementById("reset-brightness-button").addEventListener(
+    "click",
+    () => {
+        document.getElementById("brightness-slider").value = 0;
+        document.getElementById("brightness-text").innerHTML = document.getElementById("brightness-slider").value;
+        runStep2();
+    },
+    false
+);
+
+document.getElementById("reset-contrast-button").addEventListener(
+    "click",
+    () => {
+        document.getElementById("contrast-slider").value = 0;
+        document.getElementById("contrast-text").innerHTML = document.getElementById("contrast-slider").value;
+        runStep2();
+    },
+    false
+);
+
+function runStep1() {
+    disableInteraction();
+    updateStudCountText();
+
+    /*
+    // SECCIÃ“N ELIMINADA: Export stud-map functionality
+    window.URL.revokeObjectURL(document.getElementById("export-stud-map-button").href);
+    document.getElementById("export-stud-map-button").setAttribute(
+        "href",
+        window.URL.createObjectURL(
+            new Blob(
+                [
+                    JSON.stringify({
+                        studMap: selectedStudMap,
+                        sortedStuds: Object.keys(selectedStudMap),
+                    }),
+                ],
+                {
+                    type: "text/plain",
+                }
+            )
+        )
+    );
+    */
+
+    step1DepthCanvasUpscaled.width = step1CanvasUpscaled.width;
+    step1DepthCanvasUpscaled.height = step1CanvasUpscaled.height;
+    step1DepthCanvasUpscaledContext.drawImage(
+        inputDepthCanvas,
+        0,
+        0,
+        step1CanvasUpscaled.width,
+        step1CanvasUpscaled.height
+    );
+    setTimeout(() => {
+        runStep2();
+    }, 1); // TODO: find better way to check that input is finished
+}
+
+function runStep2() {
+    let inputPixelArray;
+    if (selectedInterpolationAlgorithm === "default") {
+        const croppedCanvas = inputImageCropper.getCroppedCanvas({
+            width: targetResolution[0],
+            height: targetResolution[1],
+            maxWidth: 4096,
+            maxHeight: 4096,
+            imageSmoothingEnabled: false,
+        });
+        inputPixelArray = getPixelArrayFromCanvas(croppedCanvas);
+    } else {
+        // We're using adaptive pooling
+        const croppedCanvas = inputImageCropper.getCroppedCanvas({
+            maxWidth: 4096,
+            maxHeight: 4096,
+            imageSmoothingEnabled: false,
+        });
+        rawCroppedData = getPixelArrayFromCanvas(croppedCanvas);
+        let subArrayPoolingFunction;
+        if (selectedInterpolationAlgorithm === "maxPooling") {
+            subArrayPoolingFunction = maxPoolingKernel;
+        } else if (selectedInterpolationAlgorithm === "minPooling") {
+            subArrayPoolingFunction = minPoolingKernel;
+        } else if (selectedInterpolationAlgorithm === "avgPooling") {
+            subArrayPoolingFunction = avgPoolingKernel;
+        } else {
+            //  selectedInterpolationAlgorithm === "dualMinMaxPooling"
+            subArrayPoolingFunction = dualMinMaxPoolingKernel;
+        }
+        inputPixelArray = resizeImagePixelsWithAdaptivePooling(
+            rawCroppedData,
+            croppedCanvas.width,
+            targetResolution[0],
+            targetResolution[1],
+            subArrayPoolingFunction
+        );
+    }
+    let filteredPixelArray = applyHSVAdjustment(
+        inputPixelArray,
+        0, // Hue fijo en 0 - ya no se usa HSV completo
+        document.getElementById("saturation-slider").value / 100,
+        0 // Value fijo en 0 - ya no se usa HSV completo
+    );
+    filteredPixelArray = applyBrightnessAdjustment(
+        filteredPixelArray,
+        Number(document.getElementById("brightness-slider").value)
+    );
+    filteredPixelArray = applyContrastAdjustment(
+        filteredPixelArray,
+        Number(document.getElementById("contrast-slider").value)
+    );
+    step2Canvas.width = targetResolution[0];
+    step2Canvas.height = targetResolution[1];
+    drawPixelsOnCanvas(filteredPixelArray, step2Canvas);
+
+    step2DepthCanvas.width = targetResolution[0];
+    step2DepthCanvas.height = targetResolution[1];
+
+    // Map the crop to the depth image
+    const cropperData = inputImageCropper.getData();
+    const rawCroppedDepthImage = step1DepthCanvasUpscaledContext.getImageData(
+        cropperData.x,
+        cropperData.y,
+        cropperData.width,
+        cropperData.height
+    );
+    const cropperBufferCanvas = document.getElementById("step-2-depth-canvas-cropper-buffer");
+    const cropperBufferCanvasContext = cropperBufferCanvas.getContext("2d");
+    cropperBufferCanvas.width = targetResolution[0];
+    cropperBufferCanvas.height = targetResolution[1];
+    cropperBufferCanvasContext.drawImage(
+        step1DepthCanvasUpscaled,
+        cropperData.x,
+        cropperData.y,
+        cropperData.width,
+        cropperData.height,
+        0,
+        0,
+        targetResolution[0],
+        targetResolution[1]
+    );
+    const inputDepthPixelArray = getPixelArrayFromCanvas(cropperBufferCanvas);
+
+    const discreteDepthPixels = getDiscreteDepthPixels(
+        inputDepthPixelArray,
+        [...document.getElementById("depth-threshold-sliders-containers").children].map((slider) =>
+            Number(slider.value)
+        )
+    );
+    drawPixelsOnCanvas(discreteDepthPixels, step2DepthCanvas);
+
+    setTimeout(() => {
+        runStep3();
+        step2CanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
+        step2CanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
+        step2CanvasUpscaledContext.imageSmoothingEnabled = false;
+        step2CanvasUpscaledContext.drawImage(
+            step2Canvas,
+            0,
+            0,
+            targetResolution[0] * SCALING_FACTOR,
+            targetResolution[1] * SCALING_FACTOR
+        );
+        step2DepthCanvasUpscaled.width = targetResolution[0] * SCALING_FACTOR;
+        step2DepthCanvasUpscaled.height = targetResolution[1] * SCALING_FACTOR;
+        drawStudImageOnCanvas(
+            scaleUpDiscreteDepthPixelsForDisplay(
+                discreteDepthPixels,
+                document.getElementById("num-depth-levels-slider").value
+            ),
+            targetResolution[0],
+            SCALING_FACTOR,
+            step2DepthCanvasUpscaled,
+            selectedPixelPartNumber
+        );
+    }, 1); // TODO: find better way to check that input is finished
+}
+
+const quantizationAlgorithmsInfo = {
+    twoPhase: {
+        name: "2 Phase",
+    },
+    floydSteinberg: {
+        name: "Floyd-Steinberg Dithering",
+    },
+    jarvisJudiceNinkeDithering: {
+        name: "Jarvis-Judice-Ninke Dithering",
+    },
+    atkinsonDithering: {
+        name: "Atkinson Dithering",
+    },
+    sierraDithering: {
+        name: "Sierra Dithering",
+    },
+    greedy: {
+        name: "Greedy",
+    },
+    greedyWithDithering: {
+        name: "Greedy Gaussian Dithering",
+    },
+};
+
+const quantizationAlgorithmToTraditionalDitheringKernel = {
+    floydSteinberg: FLOYD_STEINBERG_DITHERING_KERNEL,
+    jarvisJudiceNinkeDithering: JARVIS_JUDICE_NINKE_DITHERING_KERNEL,
+    atkinsonDithering: ATKINSON_DITHERING_KERNEL,
+    sierraDithering: SIERRA_DITHERING_KERNEL,
+};
+
+const defaultQuantizationAlgorithmKey = "twoPhase";
+let quantizationAlgorithm = defaultQuantizationAlgorithmKey;
+document.getElementById("quantization-algorithm-button").innerHTML =
+    quantizationAlgorithmsInfo[defaultQuantizationAlgorithmKey].name;
+
+let selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[0].number; // VISUBLOQ Premium por defecto
+document.getElementById("bricklink-piece-button").innerHTML = PIXEL_TYPE_OPTIONS[0].name;
+
+// TODO: Make this a function
+let overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+let overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+
+function handleResolutionChange() {
+    overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+    overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+    document.getElementById("width-text").title = `${(targetResolution[0] * PIXEL_WIDTH_CM).toFixed(1)} cm, ${(
+        targetResolution[0] *
+        PIXEL_WIDTH_CM *
+        INCHES_IN_CM
+    ).toFixed(1)}â€³`;
+    document.getElementById("height-text").title = `${(targetResolution[1] * PIXEL_WIDTH_CM).toFixed(1)} cm, ${(
+        targetResolution[1] *
+        PIXEL_WIDTH_CM *
+        INCHES_IN_CM
+    ).toFixed(1)}â€³`;
+    $('[data-toggle="tooltip"]').tooltip("dispose");
+    $('[data-toggle="tooltip"]').tooltip();
+    initializeCropper();
+    runStep1();
+}
+
+document.getElementById("width-slider").addEventListener(
+    "change",
+    () => {
+        document.getElementById("width-text").innerHTML = document.getElementById("width-slider").value;
+        targetResolution[0] = document.getElementById("width-slider").value;
+        handleResolutionChange();
+    },
+    false
+);
+
+document.getElementById("height-slider").addEventListener(
+    "change",
+    () => {
+        document.getElementById("height-text").innerHTML = document.getElementById("height-slider").value;
+        targetResolution[1] = document.getElementById("height-slider").value;
+        handleResolutionChange();
+    },
+    false
+);
+// document.getElementById("clear-overrides-button").addEventListener("click", () => {
+//     overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+//     runStep2();
+// });
+document.getElementById("clear-depth-overrides-button").addEventListener("click", () => {
+    overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+    runStep2();
+});
+
+document.getElementById("resolution-limit-increase-button").addEventListener("click", () => {
+    document.getElementById("height-slider").max = 256;
+    document.getElementById("width-slider").max = 256;
+    document.getElementById("resolution-limit-increase-button").hidden = true;
+});
+
+document.getElementById("color-tie-grouping-factor-slider").addEventListener("change", () => {
+    document.getElementById("color-tie-grouping-factor-text").innerHTML = document.getElementById(
+        "color-tie-grouping-factor-slider"
+    ).value;
+    runStep4();
+});
+
+let DEFAULT_STUD_MAP = "all_tile_colors";
+let DEFAULT_COLOR = "#42c0fb";
+let DEFAULT_COLOR_NAME = "Medium Azure";
+
+try {
+    const match = window.location.href.match("[?&]" + "availableColors" + "=([^&]+)");
+    const availableColorsString = match ? match[1] : null;
+    let availableColors;
+    if (match == null) {
+        availableColors = [];
+    } else {
+        availableColors = availableColorsString
+            .split(",")
+            .map((color) => color.toLowerCase())
+            .filter((color) => color.match("^#(?:[0-9a-fA-F]{3}){1,2}$"));
+    }
+
+    if (availableColors.length > 0) {
+        DEFAULT_COLOR = availableColors[0];
+        DEFAULT_COLOR_NAME = availableColors[0];
+        ALL_VALID_BRICKLINK_COLORS = availableColors
+            .map((color) => {
+                return {
+                    name: color,
+                    hex: color,
+                };
+            })
+            .concat(ALL_VALID_BRICKLINK_COLORS);
+        ALL_BRICKLINK_SOLID_COLORS = ALL_VALID_BRICKLINK_COLORS;
+        const studMap = {};
+        availableColors.forEach((color) => {
+            studMap[color] = 99999;
+        });
+        STUD_MAPS = {
+            url_colors: {
+                name: "Colors from URL",
+                officialName: "Colors from URL",
+                sortedStuds: availableColors,
+                studMap: studMap,
+            },
+            all_solid_colors: STUD_MAPS["all_solid_colors"],
+        };
+        DEFAULT_STUD_MAP = "url_colors";
+        document.getElementById("bricklink-export-card").hidden = true;
+    }
+} catch (_e) {
+    enableInteraction();
+}
+
+let selectedStudMap = STUD_MAPS[DEFAULT_STUD_MAP].studMap;
+let selectedFullSetName = STUD_MAPS[DEFAULT_STUD_MAP].officialName;
+let selectedSortedStuds = STUD_MAPS[DEFAULT_STUD_MAP].sortedStuds;
+
+function populateCustomStudSelectors(studMap, shouldRunAfterPopulation) {
+    customStudTableBody.innerHTML = "";
+    studMap.sortedStuds.forEach((stud) => {
+        const studRow = getNewCustomStudRow();
+        studRow.children[0].children[0].children[0].children[0].style.backgroundColor = stud;
+        studRow.children[0].children[0].setAttribute("title", HEX_TO_COLOR_NAME[stud] || stud);
+        studRow.children[1].children[0].children[0].value = studMap.studMap[stud];
+        customStudTableBody.appendChild(studRow);
+    });
+    if (shouldRunAfterPopulation) {
+        runCustomStudMap();
+    }
+}
+
+function mixInStudMap(studMap, runAfterMixIn) {
+    studMap.sortedStuds.forEach((stud) => {
+        let existingRow = null;
+        Array.from(customStudTableBody.children).forEach((row) => {
+            const rgb = row.children[0].children[0].children[0].children[0].style.backgroundColor
+                .replace("rgb(", "")
+                .replace(")", "")
+                .split(/,\s*/)
+                .map((shade) => parseInt(shade));
+            const rowHex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+            if (rowHex == stud && existingRow == null) {
+                existingRow = row;
+            }
+        });
+
+        if (existingRow == null) {
+            const newStudRow = getNewCustomStudRow();
+            newStudRow.children[0].children[0].children[0].innerHTML = "";
+            newStudRow.children[0].children[0].children[0].appendChild(getColorSquare(stud));
+            newStudRow.children[0].children[0].setAttribute("title", HEX_TO_COLOR_NAME[stud] || stud);
+            newStudRow.children[1].children[0].children[0].value = studMap.studMap[stud];
+            customStudTableBody.appendChild(newStudRow);
+        } else {
+            existingRow.children[1].children[0].children[0].value = Math.min(
+                parseInt(existingRow.children[1].children[0].children[0].value) + studMap.studMap[stud],
+                99999
+            );
+        }
+    });
+    // TODO: Clean up boolean logic here
+    runCustomStudMap(!runAfterMixIn);
+}
+
+// Cargar paleta fija cuando el DOM estÃ© completamente listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, cargando paleta fija...');
+    setTimeout(() => {
+        loadFixedColorPalette();
+    }, 500);
+
+    // Evento para el botón de compra/CONSTRUIR
+    var buyButton = document.getElementById('visubloq-buy-button');
+    if (buyButton) {
+        // Eliminar el botón original
+        buyButton.parentNode.removeChild(buyButton);
+    }
+
+    // Crear el botón alternativo en el mismo contenedor
+    var altButtonId = 'visubloq-buy-button-alt';
+    if (!document.getElementById(altButtonId)) {
+        var altButton = document.createElement('button');
+        altButton.id = altButtonId;
+        altButton.className = 'btn btn-success';
+        altButton.innerText = 'CONSTRUIR';
+        altButton.style = 'margin: 10px; font-weight: bold;';
+        altButton.onclick = function() {
+            // Guardar atributos antes de redirigir
+            guardarDatosPedido();
+            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
+        };
+        // Insertar el botón en el mismo contenedor donde estaba el original
+        var contenedor = document.getElementById('contenedor-boton-construir') || document.body;
+        contenedor.appendChild(altButton);
+    }
+
+    // Crear un nuevo botón alternativo que redirige correctamente
+    var altButtonId = 'visubloq-buy-button-alt';
+    if (!document.getElementById(altButtonId)) {
+        var altButton = document.createElement('button');
+        altButton.id = altButtonId;
+        altButton.className = 'btn btn-success';
+        altButton.innerText = 'CONSTRUIR (alternativo)';
+        altButton.style = 'margin: 10px; font-weight: bold;';
+        altButton.onclick = function() {
+            window.location.href = 'https://visubloq.com/products/visubloq-personalizado';
+        };
+        // Insertar el botón en el DOM, por ejemplo, al final del body
+        document.body.appendChild(altButton);
+    }
+});
+
+// Elementos relacionados con stud-maps eliminados - configuraciÃ³n automÃ¡tica a "all_tile_colors"
+
+const bricklinkPieceOptions = document.getElementById("bricklink-piece-options");
+bricklinkPieceOptions.innerHTML = "";
+PIXEL_TYPE_OPTIONS.forEach((part) => {
+    const option = document.createElement("a");
+    option.className = "dropdown-item btn";
+    option.textContent = part.name;
+    option.value = part.number;
+    option.addEventListener("click", () => {
+        document.getElementById("bricklink-piece-button").innerHTML = part.name;
+        selectedPixelPartNumber = part.number;
+        const isVariable = ("" + selectedPixelPartNumber).match("^variable.*$");
+        document.getElementById("pixel-dimensions-container-wrapper").hidden = !isVariable;
+
+        if (isVariable) {
+            const availableParts = [...document.getElementById("pixel-dimensions-container").children].forEach(
+                (input) => {
+                    const className = input.className;
+                    const uniqueVariablePixelName = selectedPixelPartNumber.replace("variable_", "");
+                    return (input.hidden = !className.includes(uniqueVariablePixelName));
+                }
+            );
+        }
+
+        onInfinitePieceCountChange();
+        updateForceInfinitePieceCountText();
+        runStep3();
+    });
+    bricklinkPieceOptions.appendChild(option);
+});
+
+function isBleedthroughEnabled() {
+    return [PIXEL_TYPE_OPTIONS[0].number, PIXEL_TYPE_OPTIONS[1].number, PIXEL_TYPE_OPTIONS[2].number].includes(selectedPixelPartNumber);
+}
+
+let selectedTiebreakTechnique = "alternatingmod";
+const TIEBREAK_TECHNIQUES = [
+    {
+        name: "None",
+        value: "none",
+    },
+    {
+        name: "Random",
+        value: "random",
+    },
+    {
+        name: "Mod 2",
+        value: "mod2",
+    },
+    {
+        name: "Mod 3",
+        value: "mod3",
+    },
+    {
+        name: "Mod 4",
+        value: "mod4",
+    },
+    {
+        name: "Mod 5",
+        value: "mod5",
+    },
+    {
+        name: "Noisy Mod 2",
+        value: "noisymod2",
+    },
+    {
+        name: "Noisy Mod 3",
+        value: "noisymod3",
+    },
+    {
+        name: "Noisy Mod 4",
+        value: "noisymod4",
+    },
+    {
+        name: "Noisy Mod 5",
+        value: "noisymod5",
+    },
+    {
+        name: "Cascading Mod",
+        value: "cascadingmod",
+    },
+    {
+        name: "Cascading Noisy Mod",
+        value: "cascadingnoisymod",
+    },
+    {
+        name: "Alternating Mod",
+        value: "alternatingmod",
+    },
+    {
+        name: "Alternating Noisy Mod",
+        value: "alternatingnoisymod",
+    },
+];
+TIEBREAK_TECHNIQUES.forEach((technique) => {
+    const option = document.createElement("a");
+    option.className = "dropdown-item btn";
+    option.textContent = technique.name;
+    option.value = technique.value;
+    option.addEventListener("click", () => {
+        document.getElementById("color-ties-resolution-button").innerHTML =
+            /*"Color Tie Resolution: " +*/
+            "Strategy: " + technique.name;
+        selectedTiebreakTechnique = technique.value;
+        runStep1();
+    });
+    document.getElementById("color-ties-resolution-options").appendChild(option);
+});
+
+let selectedInterpolationAlgorithm = "avgPooling"; // Fixed for optimal results
+/*
+// SECCIÃ“N ELIMINADA: Array de algoritmos de interpolaciÃ³n - ahora siempre usa Average Pooling
+const INTERPOLATION_ALGORITHMS = [
+    {
+        name: "Browser Default",
+        value: "default",
+    },
+    {
+        name: "Average Pooling",
+        value: "avgPooling",
+    },
+    {
+        name: "Dual Min Max Pooling",
+        value: "dualMinMaxPooling",
+    },
+    {
+        name: "Min Pooling",
+        value: "minPooling",
+    },
+    {
+        name: "Max Pooling",
+        value: "maxPooling",
+    },
+];
+INTERPOLATION_ALGORITHMS.forEach((algorithm) => {
+    const option = document.createElement("a");
+    option.className = "dropdown-item btn";
+    option.textContent = algorithm.name;
+    option.value = algorithm.value;
+    option.addEventListener("click", () => {
+        document.getElementById("interpolation-algorithm-button").innerHTML = algorithm.name;
+        selectedInterpolationAlgorithm = algorithm.value;
+        runStep2();
+    });
+    document.getElementById("interpolation-algorithm-options").appendChild(option);
+});
+*/
+
+// Color distance stuff
+function d3ColorDistanceWrapper(d3DistanceFunction) {
+    return (c1, c2) =>
+        d3DistanceFunction(d3.color(rgbToHex(c1[0], c1[1], c1[2])), d3.color(rgbToHex(c2[0], c2[1], c2[2])));
+}
+
+function RGBPixelDistanceSquared(pixel1, pixel2) {
+    let sum = 0;
+    for (let i = 0; i < 3; i++) {
+        sum += Math.abs(pixel1[i] - pixel2[i]);
+    }
+    return sum;
+}
+
+const colorDistanceFunctionsInfo = {
+    euclideanRGB: {
+        name: "Euclidean RGB",
+       
         func: RGBPixelDistanceSquared,
     },
     euclideanLAB: {
@@ -1809,1145 +2980,6 @@ let step3PixelArrayForEraser = null;
 
 //         ctx.beginPath();
 //         ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius / 2, 0, 2 * Math.PI);
-
-//         let originalPixelRGB = [
-//             overridePixelArray[pixelIndex] || step3CanvasPixelsForHover[pixelIndex],
-//             overridePixelArray[pixelIndex + 1] || step3CanvasPixelsForHover[pixelIndex + 1],
-//             overridePixelArray[pixelIndex + 2] || step3CanvasPixelsForHover[pixelIndex + 2],
-//         ];
-//         const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
-
-//         ctx.fillStyle = originalPixelHex;
-//         ctx.fill();
-//     }
-//     step3CanvasHoveredPixel = [row, col];
-// }
-
-// step3CanvasUpscaled.addEventListener("mouseup", onStep3PaintingMouseLift, false);
-
-// step3CanvasUpscaled.addEventListener(
-//     "mouseleave",
-//     () => {
-//         if (step3CanvasHoveredPixel != null) {
-//             // Clear out old highlight
-//             const i = step3CanvasHoveredPixel[0] * targetResolution[0] + step3CanvasHoveredPixel[1];
-//             const pixelIndex = i * 4;
-
-//             const radius = SCALING_FACTOR / 2;
-//             step3CanvasUpscaledContext.beginPath();
-//             step3CanvasUpscaledContext.arc(
-//                 ((i % targetResolution[0]) * 2 + 1) * radius,
-//                 (Math.floor(i / targetResolution[0]) * 2 + 1) * radius,
-//                 radius / 2,
-//                 0,
-//                 2 * Math.PI
-//             );
-
-//             let originalPixelRGB = [
-//                 overridePixelArray[pixelIndex] || step3CanvasPixelsForHover[pixelIndex],
-//                 overridePixelArray[pixelIndex + 1] || step3CanvasPixelsForHover[pixelIndex + 1],
-//                 overridePixelArray[pixelIndex + 2] || step3CanvasPixelsForHover[pixelIndex + 2],
-//             ];
-//             const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
-
-//             step3CanvasUpscaledContext.fillStyle = originalPixelHex;
-//             step3CanvasUpscaledContext.fill();
-//         }
-
-//         step3CanvasHoveredPixel = null;
-//         onStep3PaintingMouseLift();
-//     },
-//     false
-// );
-
-// step3CanvasUpscaled.addEventListener("mousemove", onMouseMoveOverStep3Canvas, false);
-
-let isTouchInBounds = false;
-// step3CanvasUpscaled.addEventListener(
-//     "touchstart",
-//     function (e) {
-//         isTouchInBounds = true;
-//         const { clientX, clientY } = e.touches[0];
-//         const mouseEvent = new MouseEvent("mousedown", {
-//             clientX,
-//             clientY,
-//         });
-//         step3CanvasUpscaled.dispatchEvent(mouseEvent);
-//     },
-//     false
-// );
-// step3CanvasUpscaled.addEventListener(
-//     "touchend",
-//     function (e) {
-//         const mouseEvent = new MouseEvent("mouseup", {});
-//         step3CanvasUpscaled.dispatchEvent(mouseEvent);
-//     },
-//     false
-// );
-// step3CanvasUpscaled.addEventListener(
-//     "touchmove",
-//     function (e) {
-//         e.preventDefault(); // prevent scrolling
-//         if (!isTouchInBounds) {
-//             return;
-//         }
-//         const { clientX, clientY } = e.touches[0];
-
-//         let mouseEventType = "mousemove";
-//         if (step3CanvasUpscaled !== document.elementFromPoint(clientX, clientY)) {
-//             isTouchInBounds = false;
-//             mouseEventType = "mouseleave";
-//         }
-//         const mouseEvent = new MouseEvent(mouseEventType, {
-//             clientX,
-//             clientY,
-//         });
-//         step3CanvasUpscaled.dispatchEvent(mouseEvent);
-//     },
-//     false
-// );
-
-step3DepthCanvasUpscaled.addEventListener(
-    "contextmenu",
-    function (event) {
-        event.preventDefault();
-        const rawRow =
-            event.clientY -
-            step3DepthCanvasUpscaled.getBoundingClientRect().y -
-            step3DepthCanvasUpscaled.offsetHeight / targetResolution[1] / 2;
-        const rawCol =
-            event.clientX -
-            step3DepthCanvasUpscaled.getBoundingClientRect().x -
-            step3DepthCanvasUpscaled.offsetWidth / targetResolution[0] / 2;
-        const row = Math.round((rawRow * targetResolution[1]) / step3DepthCanvasUpscaled.offsetHeight);
-        const col = Math.round((rawCol * targetResolution[0]) / step3DepthCanvasUpscaled.offsetWidth);
-        onDepthOverrideDecrease(row, col);
-    },
-    false
-);
-
-step3DepthCanvasUpscaled.addEventListener(
-    "click",
-    function (event) {
-        const rawRow =
-            event.clientY -
-            step3DepthCanvasUpscaled.getBoundingClientRect().y -
-            step3DepthCanvasUpscaled.offsetHeight / targetResolution[1] / 2;
-        const rawCol =
-            event.clientX -
-            step3DepthCanvasUpscaled.getBoundingClientRect().x -
-            step3DepthCanvasUpscaled.offsetWidth / targetResolution[0] / 2;
-        const row = Math.round((rawRow * targetResolution[1]) / step3DepthCanvasUpscaled.offsetHeight);
-        const col = Math.round((rawCol * targetResolution[0]) / step3DepthCanvasUpscaled.offsetWidth);
-        onDepthOverrideIncrease(row, col);
-    },
-    false
-);
-
-let step3DepthCanvasPixelsForHover = null; // only used for perf
-step3DepthCanvasUpscaled.addEventListener("mousemove", function (event) {
-    if (!document.getElementById("step-3-depth-1-collapse").className.includes("show")) {
-        return; // only highlight if the refine section is expanded
-    }
-
-    const rawRow =
-        event.clientY -
-        step3DepthCanvasUpscaled.getBoundingClientRect().y -
-        step3DepthCanvasUpscaled.offsetHeight / targetResolution[1] / 2;
-    const rawCol =
-        event.clientX -
-        step3DepthCanvasUpscaled.getBoundingClientRect().x -
-        step3DepthCanvasUpscaled.offsetWidth / targetResolution[0] / 2;
-    const pixelRow = Math.round((rawRow * targetResolution[1]) / step3DepthCanvasUpscaled.offsetHeight);
-    const pixelCol = Math.round((rawCol * targetResolution[0]) / step3DepthCanvasUpscaled.offsetWidth);
-
-    if (
-        step3CanvasHoveredPixel == null ||
-        step3CanvasHoveredPixel[0] != pixelRow ||
-        step3CanvasHoveredPixel[1] != pixelCol
-    ) {
-        const ctx = step3DepthCanvasUpscaled.getContext("2d");
-
-        ctx.lineWidth = 3;
-        step4CanvasUpscaledContext.lineWidth = 3;
-
-        const radius = SCALING_FACTOR / 2;
-        const width = targetResolution[0];
-
-        const i = pixelRow * width + pixelCol;
-
-        ctx.beginPath();
-        ctx.arc(((i % width) * 2 + 1) * radius, (Math.floor(i / width) * 2 + 1) * radius, radius / 2, 0, 2 * Math.PI);
-        let hoveredPixelRGB = [
-            step3CanvasPixelsForHover[i * 4],
-            step3CanvasPixelsForHover[i * 4 + 1],
-            step3CanvasPixelsForHover[i * 4 + 2],
-        ];
-        const hoveredPixelHex = rgbToHex(hoveredPixelRGB[0], hoveredPixelRGB[1], hoveredPixelRGB[2]);
-        ctx.fillStyle = DEFAULT_COLOR;
-        ctx.fill();
-
-        if (step3CanvasHoveredPixel != null) {
-            const i = step3CanvasHoveredPixel[0] * width + step3CanvasHoveredPixel[1];
-
-            ctx.beginPath();
-            ctx.arc(
-                ((i % width) * 2 + 1) * radius,
-                (Math.floor(i / width) * 2 + 1) * radius,
-                radius / 2,
-                0,
-                2 * Math.PI
-            );
-
-            let originalPixelRGB = [
-                step3CanvasPixelsForHover[i * 4],
-                step3CanvasPixelsForHover[i * 4 + 1],
-                step3CanvasPixelsForHover[i * 4 + 2],
-            ];
-            const depthValue = step3DepthCanvasPixelsForHover[i * 4];
-            const scaledDepthValue = Math.round(
-                Math.min((255 * (depthValue + 1)) / document.getElementById("num-depth-levels-slider").value, 255)
-            );
-            const originalPixelHex = rgbToHex(originalPixelRGB[0], originalPixelRGB[1], originalPixelRGB[2]);
-            const originalDepthPixelHex = rgbToHex(scaledDepthValue, scaledDepthValue, scaledDepthValue);
-
-            ctx.fillStyle = originalDepthPixelHex;
-            ctx.fill();
-        }
-        step3CanvasHoveredPixel = [pixelRow, pixelCol];
-    }
-});
-
-step3DepthCanvasUpscaled.addEventListener("mouseleave", function (event) {
-    const ctx = step3DepthCanvasUpscaled.getContext("2d");
-
-    if (step3CanvasHoveredPixel != null) {
-        ctx.beginPath();
-        ctx.rect(
-            step3CanvasHoveredPixel[1] * SCALING_FACTOR,
-            step3CanvasHoveredPixel[0] * SCALING_FACTOR,
-            SCALING_FACTOR,
-            SCALING_FACTOR
-        );
-        ctx.strokeStyle = "#000000";
-        ctx.stroke();
-        step4CanvasUpscaledContext.beginPath();
-        step4CanvasUpscaledContext.rect(
-            step3CanvasHoveredPixel[1] * SCALING_FACTOR,
-            step3CanvasHoveredPixel[0] * SCALING_FACTOR,
-            SCALING_FACTOR,
-            SCALING_FACTOR
-        );
-        step4CanvasUpscaledContext.strokeStyle = "#000000";
-        step4CanvasUpscaledContext.stroke();
-    }
-    step3CanvasHoveredPixel = null;
-});
-
-window.depthPreviewOptions = {};
-
-function create3dPreview() {
-    const app = new PIXI.Application({
-        resizeTo: step4Canvas3dUpscaled,
-        autoResize: true,
-        resizeThrottle: 100,
-    });
-
-    step4Canvas3dUpscaled.innerHTML = "";
-    step4Canvas3dUpscaled.appendChild(app.view);
-
-    const img = new PIXI.Sprite.from(step4CanvasUpscaled.toDataURL("image/png", 1.0));
-
-    img.width = Number(window.getComputedStyle(step4Canvas3dUpscaled).width.replace("px", ""));
-    img.height = (img.width * targetResolution[1]) / targetResolution[0];
-    app.stage.addChild(img);
-
-    const depthMap = new PIXI.Sprite.from(step3DepthCanvasUpscaled.toDataURL("image/png", 1.0));
-    app.stage.addChild(depthMap);
-
-    const displacementFilter = new PIXI.filters.DisplacementFilter(depthMap);
-    app.stage.filters = [displacementFilter];
-    displacementFilter.scale.x = 0;
-    displacementFilter.scale.y = 0;
-
-    window.depthPreviewOptions = {
-        app,
-        img,
-        depthMap,
-        displacementFilter,
-    };
-    setTimeout(depthPreviewResize, 5);
-}
-
-document.getElementById("step-4-depth-tab").addEventListener("click", () => {
-    const targetWidth = step4CanvasUpscaled.clientWidth;
-    step4Canvas3dUpscaled.clientWidth = targetWidth;
-    setTimeout(create3dPreview, 20);
-});
-
-function depthPreviewResize() {
-    if (
-        // for perf
-        document.getElementById("step-4-depth-tab").className.includes("active")
-    ) {
-        const { app, img, depthMap } = window.depthPreviewOptions;
-        const targetWidth = step4Canvas3dUpscaled.clientWidth;
-        const targetHeight = (targetWidth * targetResolution[1]) / targetResolution[0];
-        step4Canvas3dUpscaled.style.height = targetHeight + "px";
-        app.renderer.resize(targetWidth, targetHeight);
-        img.width = targetWidth;
-        img.height = targetHeight;
-        depthMap.width = targetWidth;
-        depthMap.height = targetHeight;
-    }
-}
-
-window.addEventListener("resize", depthPreviewResize);
-
-step4Canvas3dUpscaled.addEventListener("mousemove", function (e) {
-    if (
-        // for perf
-        document.getElementById("step-4-depth-tab").className.includes("active")
-    ) {
-        const { img, displacementFilter } = window.depthPreviewOptions;
-        const displacementScale = Number(document.getElementById("3d-effect-intensity").value);
-        const rawX = event.clientX - step4Canvas3dUpscaled.getBoundingClientRect().x;
-        const rawY = event.clientY - step4Canvas3dUpscaled.getBoundingClientRect().y;
-        displacementFilter.scale.x = (img.width / 2 - rawX) * displacementScale;
-        displacementFilter.scale.y = (img.height / 2 - rawY) * displacementScale;
-    }
-});
-step4Canvas3dUpscaled.addEventListener("mouseleave", function (e) {
-    if (
-        // for perf
-        document.getElementById("step-4-depth-tab").className.includes("active")
-    ) {
-        const { displacementFilter } = window.depthPreviewOptions;
-        displacementFilter.scale.x = 0;
-        displacementFilter.scale.y = 0;
-    }
-});
-
-document.getElementById("3d-effect-intensity").addEventListener("change", create3dPreview, false);
-
-function runStep4(asyncCallback) {
-    const step2PixelArray = getPixelArrayFromCanvas(step2Canvas);
-    const step3PixelArray = getPixelArrayFromCanvas(step3Canvas);
-    step4Canvas.width = 0;
-    try {
-        bricklinkCacheCanvas.width = targetResolution[0];
-        bricklinkCacheCanvas.height = targetResolution[1];
-        step4Canvas.width = targetResolution[0];
-        step4Canvas.height = targetResolution[1];
-        step4CanvasContext.clearRect(0, 0, targetResolution[0], targetResolution[1]);
-        step4CanvasUpscaledContext.clearRect(
-            0,
-            0,
-            targetResolution[0] * SCALING_FACTOR,
-            targetResolution[1] * SCALING_FACTOR
-        );
-
-        // save perf by sidestepping step 4 if every available color could
-        // theoretically fill the entire image on its owwn
-        let shouldSideStepStep4 = true;
-        Object.values(selectedStudMap).forEach((count) => {
-            if (count < targetResolution[0] * targetResolution[1]) {
-                shouldSideStepStep4 = false;
-            }
-        });
-
-        // There are three reasons step 4 should be identical to step 3
-        shouldSideStepStep4 =
-            shouldSideStepStep4 ||
-            document.getElementById("infinite-piece-count-check").checked ||
-            Object.keys(quantizationAlgorithmToTraditionalDitheringKernel).includes(quantizationAlgorithm) ||
-            ("" + selectedPixelPartNumber).match("^variable.*$");
-
-        if (!shouldSideStepStep4) {
-            const requiredStuds = targetResolution[0] * targetResolution[1];
-            let availableStuds = 0;
-            Array.from(customStudTableBody.children).forEach((stud) => {
-                availableStuds += parseInt(stud.children[1].children[0].children[0].value);
-            });
-            const missingStuds = Math.max(requiredStuds - availableStuds, 0);
-            if (missingStuds > 0) {
-                throw "Step 4 failed"; // error will be caught and interaction will be enabled
-            }
-        }
-
-        let availabilityCorrectedPixelArray;
-
-        // if we're using a traditional error dithering algorithm, this has to be true
-        if (shouldSideStepStep4) {
-            availabilityCorrectedPixelArray = step3PixelArray;
-        } else if (quantizationAlgorithm === "twoPhase") {
-            availabilityCorrectedPixelArray = correctPixelsForAvailableStuds(
-                step3PixelArray,
-                isBleedthroughEnabled() ? getDarkenedStudMap(selectedStudMap) : selectedStudMap,
-                step2PixelArray,
-                isBleedthroughEnabled() ? getDarkenedImage(overridePixelArray) : overridePixelArray,
-                selectedTiebreakTechnique,
-                document.getElementById("color-tie-grouping-factor-slider").value,
-                targetResolution[0],
-                colorDistanceFunction
-            );
-        } else {
-            // quantizationAlgorithm === 'greedy' || quantizationAlgorithm === 'greedyWithDithering'
-            availabilityCorrectedPixelArray = correctPixelsForAvailableStudsWithGreedyDynamicDithering(
-                isBleedthroughEnabled() ? getDarkenedStudMap(selectedStudMap) : selectedStudMap,
-                getArrayWithOverridesApplied(
-                    step2PixelArray,
-                    isBleedthroughEnabled() ? getDarkenedImage(overridePixelArray) : overridePixelArray
-                ), // apply overrides before running GGD
-                targetResolution[0],
-                colorDistanceFunction,
-                quantizationAlgorithm !== "greedyWithDithering", // skipDithering
-                shouldSideStepStep4 // assumeInfinitePixelCounts
-            );
-        }
-
-        drawPixelsOnCanvas(availabilityCorrectedPixelArray, step4Canvas);
-
-        const step4QuantizationError = getAverageQuantizationError(
-            step2PixelArray,
-            availabilityCorrectedPixelArray,
-            colorDistanceFunction
-        );
-        document.getElementById("step-4-quantization-error").innerHTML = step4QuantizationError.toFixed(3);
-
-        setTimeout(async () => {
-            step4CanvasUpscaledContext.imageSmoothingEnabled = false;
-            const pixelsToDraw = isBleedthroughEnabled()
-                ? revertDarkenedImage(
-                      availabilityCorrectedPixelArray,
-                      getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
-                  )
-                : availabilityCorrectedPixelArray;
-            drawPixelsOnCanvas(pixelsToDraw, bricklinkCacheCanvas);
-
-            drawStudImageOnCanvas(
-                pixelsToDraw,
-                targetResolution[0],
-                SCALING_FACTOR,
-                step4CanvasUpscaled,
-                selectedPixelPartNumber,
-                step3VariablePixelPieceDimensions
-            );
-
-            // create stud map result table
-            console.log("Generando tabla de piezas...");
-            const usedPixelsStudMap = getUsedPixelsStudMap(pixelsToDraw);
-            const usedPixelsTableBody = document.getElementById("studs-used-table-body");
-            usedPixelsTableBody.innerHTML = "";
-            console.log("Tabla encontrada:", usedPixelsTableBody);
-            console.log("Mapa de piezas:", usedPixelsStudMap);
-            const variablePixelsUsed = ("" + selectedPixelPartNumber).match("^variable.*$");
-            document.getElementById("pieces-used-dimensions-header").hidden = !variablePixelsUsed;
-            let pieceCountsForTable = {}; // map piece identifier strings to counts
-            if (variablePixelsUsed) {
-                const pixelMatrix = convertPixelArrayToMatrix(pixelsToDraw, targetResolution[0]);
-                step3VariablePixelPieceDimensions.forEach((row, i) => {
-                    row.forEach((pixelDimensions, j) => {
-                        if (pixelDimensions != null) {
-                            const pixelRGB = pixelMatrix[i][j];
-                            const pixelHex = rgbToHex(pixelRGB[0], pixelRGB[1], pixelRGB[2]);
-                            const sortedPixelDimensions =
-                                pixelDimensions[0] < pixelDimensions[1]
-                                    ? pixelDimensions
-                                    : [pixelDimensions[1], pixelDimensions[0]];
-                            studRowKey =
-                                pixelHex +
-                                "_" +
-                                sortedPixelDimensions[0] +
-                                PLATE_DIMENSIONS_DEPTH_SEPERATOR +
-                                sortedPixelDimensions[1];
-                            pieceCountsForTable[studRowKey] = (pieceCountsForTable[studRowKey] || 0) + 1;
-                        }
-                    });
-                });
-            } else {
-                pieceCountsForTable = usedPixelsStudMap;
-            }
-
-            const usedColors = Object.keys(pieceCountsForTable);
-            usedColors.sort();
-            usedColors.forEach((keyString) => {
-                const pieceKey = keyString.split("_");
-                const color = pieceKey[0];
-                const studRow = document.createElement("tr");
-                studRow.style = "height: 1px;";
-
-                const colorCell = document.createElement("td");
-                const colorSquare = getColorSquare(color);
-                colorCell.appendChild(colorSquare);
-                const colorLabel = document.createElement("small");
-                colorLabel.innerHTML = HEX_TO_COLOR_NAME[color] || color;
-                colorCell.appendChild(colorLabel);
-                studRow.appendChild(colorCell);
-
-                if (pieceKey.length > 1) {
-                    const dimensionsCell = document.createElement("td");
-                    dimensionsCell.style = "height: inherit;";
-                    const dimensionsCellChild = document.createElement("div");
-                    dimensionsCellChild.style =
-                        "height: 100%; display: flex; flex-direction:column; justify-content: center";
-                    const dimensionsCellChild2 = document.createElement("div");
-                    dimensionsCellChild2.style = "";
-                    dimensionsCellChild2.innerHTML = pieceKey[1];
-
-                    dimensionsCellChild.appendChild(dimensionsCellChild2);
-                    dimensionsCell.appendChild(dimensionsCellChild);
-                    studRow.appendChild(dimensionsCell);
-                }
-
-                const numberCell = document.createElement("td");
-                numberCell.style = "height: inherit;";
-                const numberCellChild = document.createElement("div");
-                numberCellChild.style = "height: 100%; display: flex; flex-direction:column; justify-content: center";
-                const numberCellChild2 = document.createElement("div");
-                numberCellChild2.style = "";
-                numberCellChild2.innerHTML = pieceCountsForTable[keyString];
-
-                numberCellChild.appendChild(numberCellChild2);
-                numberCell.appendChild(numberCellChild);
-                studRow.appendChild(numberCell);
-
-                usedPixelsTableBody.appendChild(studRow);
-            });
-            
-            console.log("Tabla de piezas generada con", usedColors.length, "colores");
-            
-            // Mostrar la tabla automáticamente
-            const accordionCard = document.querySelector('#step-4-accordion .card');
-            const collapseDiv = document.getElementById('step-4-1-collapse');
-            
-            if (accordionCard) {
-                accordionCard.style.display = 'block';
-            }
-            if (collapseDiv) {
-                collapseDiv.style.display = 'block';
-                collapseDiv.classList.add('show');
-            }
-
-            const missingPixelsTableBody = document.getElementById("studs-missing-table-body");
-            missingPixelsTableBody.innerHTML = "";
-
-            let missingPixelsExist = false;
-            if (!shouldSideStepStep4) {
-                // create stud map missing pieces table
-                const missingPixelsStudMap = studMapDifference(
-                    getUsedPixelsStudMap(
-                        isBleedthroughEnabled()
-                            ? revertDarkenedImage(
-                                  step3PixelArray,
-                                  getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
-                              )
-                            : step3PixelArray
-                    ),
-                    selectedStudMap
-                );
-                const usedColors = Object.keys(missingPixelsStudMap);
-                usedColors.sort();
-                usedColors.forEach((color) => {
-                    if (missingPixelsStudMap[color] > 0) {
-                        missingPixelsExist = true;
-                        const studRow = document.createElement("tr");
-                        studRow.style = "height: 1px;";
-
-                        const colorCell = document.createElement("td");
-                        const colorSquare = getColorSquare(color);
-                        colorCell.appendChild(colorSquare);
-                        const colorLabel = document.createElement("small");
-                        colorLabel.innerHTML = HEX_TO_COLOR_NAME[color] || color;
-                        colorCell.appendChild(colorLabel);
-                        studRow.appendChild(colorCell);
-
-                        const numberCell = document.createElement("td");
-                        numberCell.style = "height: inherit;";
-                        const numberCellChild = document.createElement("div");
-                        numberCellChild.style =
-                            "height: 100%; display: flex; flex-direction:column; justify-content: center";
-                        const numberCellChild2 = document.createElement("div");
-                        numberCellChild2.style = "";
-                        numberCellChild2.innerHTML = missingPixelsStudMap[color];
-
-                        numberCellChild.appendChild(numberCellChild2);
-                        numberCell.appendChild(numberCellChild);
-                        studRow.appendChild(numberCell);
-
-                        missingPixelsTableBody.appendChild(studRow);
-                    }
-                });
-            }
-            document.getElementById("studs-missing-container").hidden = !missingPixelsExist;
-
-            if (document.getElementById("step-4-depth-tab").className.includes("active")) {
-                setTimeout(create3dPreview, 50); // TODO: find better way to check that input is finished
-            }
-            if (asyncCallback) {
-                await asyncCallback();
-            }
-            enableInteraction();
-        }, 1); // TODO: find better way to check that input is finished
-    } catch (_e) {
-        enableInteraction();
-    }
-}
-
-function addWaterMark(pdf, isHighQuality) {
-    for (let i = 0; i < pdf.internal.getNumberOfPages(); i++) {
-        pdf.setPage(i + 1);
-        pdf.setFontSize(isHighQuality ? 20 : 10);
-        pdf.setTextColor(200);
-        pdf.text(
-            pdf.internal.pageSize.height * 0.25,
-            pdf.internal.pageSize.height * 0.3,
-            "Generated by lego-art-remix.com"
-        );
-        pdf.text(pdf.internal.pageSize.height * 0.25, pdf.internal.pageSize.height * 0.3 + 10, VERSION_NUMBER);
-    }
-}
-
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function setDPI(canvas, dpi) {
-    // Set up CSS size.
-    canvas.style.width = canvas.style.width || canvas.width + "px";
-    canvas.style.height = canvas.style.height || canvas.height + "px";
-
-    // Get size information.
-    var scaleFactor = dpi / 96;
-    var width = parseFloat(canvas.style.width);
-    var height = parseFloat(canvas.style.height);
-
-    // Backup the canvas contents.
-    var oldScale = canvas.width / width;
-    var backupScale = scaleFactor / oldScale;
-    var backup = canvas.cloneNode(false);
-    backup.getContext("2d").drawImage(canvas, 0, 0);
-
-    // Resize the canvas.
-    var ctx = canvas.getContext("2d");
-    canvas.width = Math.ceil(width * scaleFactor);
-    canvas.height = Math.ceil(height * scaleFactor);
-
-    // Redraw the canvas image and scale future draws.
-    ctx.setTransform(backupScale, 0, 0, backupScale, 0, 0);
-    ctx.drawImage(backup, 0, 0);
-    ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
-}
-
-async function generateInstructions() {
-    const instructionsCanvasContainer = document.getElementById("instructions-canvas-container");
-    instructionsCanvasContainer.innerHTML = "";
-    disableInteraction();
-    runStep4(async () => {
-        const isHighQuality = document.getElementById("high-quality-instructions-check").checked;
-        const step4PixelArray = getPixelArrayFromCanvas(step4Canvas);
-        const resultImage = isBleedthroughEnabled()
-            ? revertDarkenedImage(
-                  step4PixelArray,
-                  getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
-              )
-            : step4PixelArray;
-
-        const titlePageCanvas = document.createElement("canvas");
-        instructionsCanvasContainer.appendChild(titlePageCanvas);
-        const studMap = getUsedPixelsStudMap(resultImage);
-        const filteredAvailableStudHexList = selectedSortedStuds
-            .filter((pixelHex) => (studMap[pixelHex] || 0) > 0)
-            .filter(function (item, pos, self) {
-                return self.indexOf(item) === pos; // remove duplicates
-            });
-        generateInstructionTitlePage(
-            resultImage,
-            targetResolution[0],
-            PLATE_WIDTH,
-            filteredAvailableStudHexList,
-            SCALING_FACTOR,
-            step4CanvasUpscaled,
-            titlePageCanvas,
-            selectedPixelPartNumber
-        );
-        setDPI(titlePageCanvas, isHighQuality ? HIGH_DPI : LOW_DPI);
-
-        const imgData = titlePageCanvas.toDataURL("image/png", 1.0);
-
-        let pdf = new jsPDF({
-            orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
-            unit: "mm",
-            format: [titlePageCanvas.width, titlePageCanvas.height],
-        });
-
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-
-        const totalPlates = resultImage.length / (4 * PLATE_WIDTH * PLATE_WIDTH);
-
-        document.getElementById("pdf-progress-bar").style.width = `${100 / (totalPlates + 1)}%`;
-
-        document.getElementById("pdf-progress-bar").style.width = "0%";
-        document.getElementById("pdf-progress-container").hidden = false;
-        document.getElementById("download-instructions-button").hidden = true;
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, (pdfWidth * titlePageCanvas.height) / titlePageCanvas.width);
-
-        let numParts = 1;
-        for (var i = 0; i < totalPlates; i++) {
-            await sleep(50);
-            if ((i + 1) % (isHighQuality ? 20 : 50) === 0) {
-                addWaterMark(pdf, isHighQuality);
-                pdf.save(`VisuBloq_Instructions-Part-${numParts}.pdf`);
-                numParts++;
-                pdf = new jsPDF({
-                    orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
-                    unit: "mm",
-                    format: [titlePageCanvas.width, titlePageCanvas.height],
-                });
-            } else {
-                pdf.addPage();
-            }
-
-            document.getElementById("pdf-progress-bar").style.width = `${((i + 2) * 100) / (totalPlates + 1)}%`;
-
-            const instructionPageCanvas = document.createElement("canvas");
-            instructionsCanvasContainer.appendChild(instructionPageCanvas);
-
-            const subPixelArray = getSubPixelArray(resultImage, i, targetResolution[0], PLATE_WIDTH);
-
-            const row = Math.floor((i * PLATE_WIDTH) / targetResolution[0]);
-            const col = i % (targetResolution[0] / PLATE_WIDTH);
-
-            const variablePixelPieceDimensionsForPage =
-                step3VariablePixelPieceDimensions == null
-                    ? null
-                    : getSubPixelMatrix(
-                          step3VariablePixelPieceDimensions,
-                          col * PLATE_WIDTH,
-                          row * PLATE_WIDTH,
-                          PLATE_WIDTH,
-                          PLATE_WIDTH
-                      );
-            generateInstructionPage(
-                subPixelArray,
-                PLATE_WIDTH,
-                filteredAvailableStudHexList,
-                SCALING_FACTOR,
-                instructionPageCanvas,
-                i + 1,
-                selectedPixelPartNumber,
-                variablePixelPieceDimensionsForPage
-            );
-
-            setDPI(instructionPageCanvas, isHighQuality ? HIGH_DPI : LOW_DPI);
-            const imgData = instructionPageCanvas.toDataURL(`image${i + 1}/jpeg`, i);
-
-            pdf.addImage(
-                imgData,
-                "PNG",
-                0,
-                0,
-                pdfWidth,
-                (pdfWidth * instructionPageCanvas.height) / instructionPageCanvas.width
-            );
-        }
-
-        addWaterMark(pdf, isHighQuality);
-        pdf.save(numParts > 1 ? `VisuBloq_Instructions-Part-${numParts}.pdf` : "VisuBloq_Instructions.pdf");
-        document.getElementById("pdf-progress-container").hidden = true;
-        document.getElementById("download-instructions-button").hidden = false;
-        enableInteraction();
-
-        perfLoggingDatabase.ref("instructions-generated-count/total").transaction(incrementTransaction);
-        const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
-        perfLoggingDatabase
-            .ref("instructions-generated-count/per-day/" + loggingTimestamp)
-            .transaction(incrementTransaction);
-    });
-}
-
-function getUsedPlateMatrices(depthPixelArray) {
-    const availableParts = [...document.getElementById("depth-plates-container").children]
-        .map((div) => div.children[0])
-        .map((label) => label.children[0])
-        .filter((input) => input.checked)
-        .map((input) => input.name)
-        .map((part) => part.split(PLATE_DIMENSIONS_DEPTH_SEPERATOR).map((dimension) => Number(dimension)));
-    const flippedParts = [];
-    availableParts.forEach((part) => {
-        if (part[0] !== part[1]) {
-            flippedParts.push([part[1], part[0]]);
-        }
-    });
-    flippedParts.forEach((part) => availableParts.push(part));
-    const usedPlatesMatrices = [];
-    for (
-        let row = 0; // for each row of plates
-        row < Math.ceil(targetResolution[1] / PLATE_WIDTH); // round up
-        row++
-    ) {
-        for (
-            let col = 0; // for each column of plates
-            col < Math.ceil(targetResolution[0] / PLATE_WIDTH); // round up
-            col++
-        ) {
-            const horizontalOffset = col * PLATE_WIDTH;
-            const verticalOffset = row * PLATE_WIDTH;
-            const depthSubPixelMatrix = getDepthSubPixelMatrix(
-                depthPixelArray,
-                targetResolution[0],
-                horizontalOffset,
-                verticalOffset,
-                Math.min(PLATE_WIDTH, targetResolution[0] - horizontalOffset),
-                Math.min(PLATE_WIDTH, targetResolution[1] - verticalOffset)
-            );
-            const perDepthLevelMatrices = [];
-            for (
-                let depthLevel = 0; // for each depth level
-                depthLevel < Number(document.getElementById("num-depth-levels-slider").value) - 1;
-                depthLevel++
-            ) {
-                const setPixelMatrix = getSetPixelMatrixFromInputMatrix(
-                    depthSubPixelMatrix,
-                    (depthPixel, _i, _j) => depthPixel <= depthLevel
-                );
-                perDepthLevelMatrices.push(getRequiredPartMatrixFromSetPixelMatrix(setPixelMatrix, availableParts));
-            }
-            usedPlatesMatrices.push(perDepthLevelMatrices);
-        }
-    }
-    return usedPlatesMatrices;
-}
-
-async function generateDepthInstructions() {
-    const instructionsCanvasContainer = document.getElementById("depth-instructions-canvas-container");
-    instructionsCanvasContainer.innerHTML = "";
-    disableInteraction();
-
-    runStep4(async () => {
-        const isHighQuality = document.getElementById("high-quality-depth-instructions-check").checked;
-        const depthPixelArray = getPixelArrayFromCanvas(step3DepthCanvas);
-
-        const usedPlatesMatrices = getUsedPlateMatrices(depthPixelArray);
-
-        document.getElementById("depth-pdf-progress-bar").style.width = `${0}%`;
-
-        document.getElementById("depth-pdf-progress-bar").style.width = "0%";
-        document.getElementById("depth-pdf-progress-container").hidden = false;
-        document.getElementById("download-depth-instructions-button").hidden = true;
-
-        const titlePageCanvas = document.createElement("canvas");
-        instructionsCanvasContainer.innerHTML = "";
-        instructionsCanvasContainer.appendChild(titlePageCanvas);
-        generateDepthInstructionTitlePage(
-            usedPlatesMatrices,
-            targetResolution,
-            SCALING_FACTOR,
-            titlePageCanvas,
-            step3DepthCanvasUpscaled,
-            PLATE_WIDTH
-        );
-        setDPI(titlePageCanvas, isHighQuality ? HIGH_DPI : LOW_DPI);
-
-        const imgData = titlePageCanvas.toDataURL(`image_title/jpeg`, 1.0);
-
-        let pdf = new jsPDF({
-            orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
-            unit: "mm",
-            format: [titlePageCanvas.width, titlePageCanvas.height],
-        });
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-
-        let numParts = 1;
-        for (let i = 0; i < usedPlatesMatrices.length; i++) {
-            await sleep(50);
-
-            if ((i + 1) % (isHighQuality ? 20 : 50) === 0) {
-                if (pdf != null) {
-                    addWaterMark(pdf, isHighQuality);
-                    pdf.save(`VisuBloq_Instructions-Part-${numParts}.pdf`);
-
-                    numParts++;
-                }
-                pdf = new jsPDF({
-                    orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
-                    unit: "mm",
-                    format: [titlePageCanvas.width, titlePageCanvas.height],
-                });
-            } else {
-                pdf.addPage();
-            }
-
-            const instructionPageCanvas = document.createElement("canvas");
-            instructionsCanvasContainer.innerHTML = "";
-            instructionsCanvasContainer.appendChild(instructionPageCanvas);
-
-            perDepthLevelMatrices = usedPlatesMatrices[i];
-            generateDepthInstructionPage(perDepthLevelMatrices, SCALING_FACTOR, instructionPageCanvas, i + 1);
-            setDPI(instructionPageCanvas, isHighQuality ? HIGH_DPI : LOW_DPI);
-
-            const imgData = instructionPageCanvas.toDataURL(`image${i + 1}/jpeg`, i);
-
-            pdf.addImage(imgData, "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-
-            document.getElementById("depth-pdf-progress-bar").style.width = `${
-                ((i + 1) * 100) / (usedPlatesMatrices.length + 1)
-            }%`;
-        }
-
-        addWaterMark(pdf, isHighQuality);
-        pdf.save(numParts > 1 ? `VisuBloq_Instructions-Part-${numParts}.pdf` : "VisuBloq_Instructions.pdf");
-        document.getElementById("depth-pdf-progress-container").hidden = true;
-        document.getElementById("download-depth-instructions-button").hidden = false;
-        enableInteraction();
-
-        perfLoggingDatabase.ref("depth-instructions-generated-count/total").transaction(incrementTransaction);
-        const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
-        perfLoggingDatabase
-            .ref("depth-instructions-generated-count/per-day/" + loggingTimestamp)
-            .transaction(incrementTransaction);
-    });
-}
-
-document.getElementById("hogwarts-crest-example-instructions-link").addEventListener("click", () => {
-    perfLoggingDatabase.ref("examples-click-count/hogwarts-crest-instructions/total").transaction(incrementTransaction);
-    const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
-    perfLoggingDatabase
-        .ref("examples-click-count/hogwarts-crest-instructions/per-day/" + loggingTimestamp)
-        .transaction(incrementTransaction);
-});
-
-document.getElementById("31201-lego-website-link").addEventListener("click", () => {
-    perfLoggingDatabase.ref("examples-click-count/31201-lego-website-link/total").transaction(incrementTransaction);
-    const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
-    perfLoggingDatabase
-        .ref("examples-click-count/31201-lego-website-link/per-day/" + loggingTimestamp)
-        .transaction(incrementTransaction);
-});
-
-document.getElementById("download-instructions-button").addEventListener("click", async () => {
-    await generateInstructions();
-});
-
-document.getElementById("download-depth-instructions-button").addEventListener("click", async () => {
-    await generateDepthInstructions();
-});
-
-// Event listener para el botón principal de export a BrickLink
-document.getElementById("export-to-bricklink-button").addEventListener("click", () => {
-    disableInteraction();
-    const step4PixelArray = getPixelArrayFromCanvas(step4Canvas);
-    const resultImage = isBleedthroughEnabled()
-        ? revertDarkenedImage(
-              step4PixelArray,
-              getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
-          )
-        : step4PixelArray;
-    
-    navigator.clipboard.writeText(getWantedListXML(getUsedPixelsStudMap(resultImage))).then(
-        function () {
-            enableInteraction();
-        },
-        function (err) {
-            console.error("Async: Could not copy text: ", err);
-            // Fallback para navegadores que no soportan clipboard API
-            try {
-                const textArea = document.createElement("textarea");
-                textArea.value = getWantedListXML(getUsedPixelsStudMap(resultImage));
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                enableInteraction();
-            } catch (fallbackErr) {
-                console.error("Fallback copy failed: ", fallbackErr);
-                enableInteraction();
-            }
-        }
-    );
-});
-
-document.getElementById("export-depth-to-bricklink-button").addEventListener("click", () => {
-    disableInteraction();
-    const depthPixelArray = getPixelArrayFromCanvas(step3DepthCanvas);
-    const usedPlatesMatrices = getUsedPlateMatrices(depthPixelArray);
-    const depthPartsMap = getUsedDepthPartsMap(usedPlatesMatrices.flat());
-
-    navigator.clipboard.writeText(getDepthWantedListXML(depthPartsMap)).then(
-        function () {
-            enableInteraction();
-        },
-        function (err) {
-            console.error("Async: Could not copy text: ", err);
-        }
-    );
-});
-
-// Función para generar PDF para Shopify con tabla de piezas
-async function generatePDFForShopify() {
-    return new Promise((resolve, reject) => {
-        runStep4(async () => {
-            try {
-                const isHighQuality = false; // Usamos calidad estándar para Shopify
-                const step4PixelArray = getPixelArrayFromCanvas(step4Canvas);
-                const resultImage = isBleedthroughEnabled()
-                    ? revertDarkenedImage(
-                          step4PixelArray,
-                          getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
-                      )
-                    : step4PixelArray;
-
-                const titlePageCanvas = document.createElement("canvas");
-                const studMap = getUsedPixelsStudMap(resultImage);
-                const filteredAvailableStudHexList = selectedSortedStuds
-                    .filter((pixelHex) => (studMap[pixelHex] || 0) > 0)
-                    .filter(function (item, pos, self) {
-                        return self.indexOf(item) === pos; // remove duplicates
-                    });
-                
-                generateInstructionTitlePage(
-                    resultImage,
-                    targetResolution[0],
-                    PLATE_WIDTH,
-                    filteredAvailableStudHexList,
-                    SCALING_FACTOR,
-                    step4CanvasUpscaled,
-                    titlePageCanvas,
-                    selectedPixelPartNumber
-                );
-                
-                setDPI(titlePageCanvas, LOW_DPI);
-                const imgData = titlePageCanvas.toDataURL("image/png", 1.0);
-
-                const pdf = new jsPDF({
-                    orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
-                    unit: "mm",
-                    format: [titlePageCanvas.width, titlePageCanvas.height],
-                });
-
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, (pdfWidth * titlePageCanvas.height) / titlePageCanvas.width);
-
-                // Convertir PDF a blob para envío
-                const pdfBlob = pdf.output('blob');
-                const pdfBase64 = await blobToBase64(pdfBlob);
-                
-                resolve({
-                    blob: pdfBlob,
-                    base64: pdfBase64,
-                    studMap: studMap,
-                    filename: `VisuBloq_Piece_List_${Date.now()}.pdf`
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
-    });
-}
-
-// Función auxiliar para convertir blob a base64
-function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-}
-
-// 🛒 FUNCIÓN PARA GUARDAR PDF EN BASE DE DATOS (VERCEL)
-async function savePDFToDatabase(orderData, pdfData) {
-    try {
-        // URL de tu API en Vercel (cambiar por tu dominio real)
-        const apiUrl = 'https://tu-proyecto.vercel.app/api/save-pdf.php';
-        // Para desarrollo local: 'http://localhost:3000/api/save-pdf.php'
-        
-        console.log('📡 Enviando PDF a:', apiUrl);
-        
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                order: orderData,
-                pdf: pdfData
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.success) {
-            console.log('✅ PDF guardado en base de datos:', result.data);
-            return result.data;
-        } else {
-            throw new Error(result.message || 'Error desconocido del servidor');
-        }
-
-    } catch (error) {
-        console.error('❌ Error guardando PDF en base de datos:', error);
-        
-        // En caso de error, mostrar mensaje al usuario
-        if (window.location.hostname !== 'localhost') {
-            alert(`Error guardando PDF: ${error.message}\n\nEl PDF se ha generado correctamente, pero no se pudo guardar en el servidor.`);
-        }
-        
-        throw error;
-    }
-}
-
-// 📥 FUNCIÓN PARA DESCARGAR PDF DESDE SHOPIFY (para testing)
-async function downloadPDFFromShopify(orderId) {
-    try {
-        const shopifyConfig = {
-            shop: 'TU-TIENDA.myshopify.com', // ⚠️ CAMBIAR
-            accessToken: 'shpat_xxxxxxxxxxxxxxxxxxxxxxxxxx', // ⚠️ CAMBIAR
-            apiVersion: '2024-01'
-        };
-
-        // Obtener metafields del pedido
-        const metafieldsResponse = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/orders/${orderId}/metafields.json`, {
-            headers: {
-                'X-Shopify-Access-Token': shopifyConfig.accessToken,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const metafields = await metafieldsResponse.json();
-        
-        // Buscar el PDF
-        const pdfMetafield = metafields.metafields.find(mf => 
-            mf.namespace === 'visubloq' && mf.key === 'piece_list_pdf'
-        );
-        
-        const infoMetafield = metafields.metafields.find(mf => 
-            mf.namespace === 'visubloq' && mf.key === 'piece_info'
-        );
-
-        if (pdfMetafield && infoMetafield) {
-            const pdfInfo = JSON.parse(infoMetafield.value);
-            
-            // Convertir base64 a blob y descargar
-            const binaryString = atob(pdfMetafield.value);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            
-            const blob = new Blob([bytes], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = pdfInfo.filename;
             a.click();
             
             URL.revokeObjectURL(url);
