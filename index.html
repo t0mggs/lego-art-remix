@@ -607,48 +607,7 @@
                   
                   <!-- Nueva sección: EDICIÓN DE IMAGEN -->
                   <div class="card accordion-card">
-                <!-- Menú EDICIÓN movido justo encima de Pieces Used -->
-                <div class="card accordion-card">
-                  <div class="card-header" id="step-1-edicion-heading">
-                    <h5 class="mb-0">
-                      <button
-                        class="btn btn-link collapsed"
-                        data-toggle="collapse"
-                        data-target="#step-1-edicion-collapse"
-                        aria-expanded="false"
-                        aria-controls="step-1-edicion-collapse"
-                      >
-                        EDICIÓN
-                      </button>
-                    </h5>
-                  </div>
-                  <div
-                    id="step-1-edicion-collapse"
-                    class="collapse"
-                    aria-labelledby="step-1-edicion-heading"
-                    data-parent="#step-4-accordion"
-                  >
-                    <div class="card-body accordion-card-body">
-                      <!-- Saturación -->
-                      <div style="width: 100%; margin-bottom: 20px;">
-                        <div>
-                          Saturation adjustment:
-                          <span id="saturation-text">0%</span>
-                        </div>
-                        <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
-                          <button class="btn btn-sm" id="saturation-decrement" style="flex-grow: 0">-</button>
-                          <input
-                            type="range"
-                            id="saturation-slider"
-                            name="points"
-                            min="-100"
-                            max="100"
-                            style="flex-grow: 1; min-width: 10px"
-                          />
-                          <button class="btn btn-sm" id="saturation-increment" style="flex-grow: 0">+</button>
-                        </div>
-                        <button class="btn btn-info btn-sm" type="button" id="reset-saturation-button">Reset Saturation</button>
-                      </div>
+                <!-- ...existing code... -->
 
                         <!-- Brillo -->
                         <div style="width: 100%; margin-bottom: 20px;">
@@ -712,7 +671,52 @@
                 <small className="step-header-subtitle">GET DEPTH MAP</small><br />
                 <small className="step-header-subtitle">DEPTH MAP CROPPING WILL MATCH INPUT IMAGE</small>
                 <div id="step-1-depth-accordion">
+                  <!-- Menú EDICIÓN añadido justo encima de Pieces Used en STEP 4 -->
                   <div class="card accordion-card">
+                    <div class="card-header" id="step-4-edicion-heading">
+                      <h5 class="mb-0">
+                        <button
+                          class="btn btn-link collapsed"
+                          data-toggle="collapse"
+                          data-target="#step-4-edicion-collapse"
+                          aria-expanded="false"
+                          aria-controls="step-4-edicion-collapse"
+                        >
+                          EDICIÓN
+                        </button>
+                      </h5>
+                    </div>
+                    <div
+                      id="step-4-edicion-collapse"
+                      class="collapse"
+                      aria-labelledby="step-4-edicion-heading"
+                      data-parent="#step-4-accordion"
+                    >
+                      <div class="card-body accordion-card-body">
+                        <!-- Saturación -->
+                        <div style="width: 100%; margin-bottom: 20px;">
+                          <div>
+                            Saturation adjustment:
+                            <span id="saturation-text-step4">0%</span>
+                          </div>
+                          <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
+                            <button class="btn btn-sm" id="saturation-decrement-step4" style="flex-grow: 0">-</button>
+                            <input
+                              type="range"
+                              id="saturation-slider-step4"
+                              name="points"
+                              min="-100"
+                              max="100"
+                              style="flex-grow: 1; min-width: 10px"
+                            />
+                            <button class="btn btn-sm" id="saturation-increment-step4" style="flex-grow: 0">+</button>
+                          </div>
+                          <button class="btn btn-info btn-sm" type="button" id="reset-saturation-button-step4">Reset Saturation</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- ...existing code... -->
                     <div class="card-header" id="step-1-depth-1-heading">
                       <h5 class="mb-0">
                         <button
