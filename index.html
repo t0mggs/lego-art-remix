@@ -41,6 +41,23 @@
     </PageMap>
 
     <style>
+      /* ---- FIX: Ocultar Step 3 ---- */
+#step-3 > .card { 
+  display: none !important; 
+}
+
+#step-3 {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+@media (min-width: 768px) {
+  #step-1, #step-4 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+}
       /* Fuente Dortmund para VisuBloq */
       @font-face {
         font-family: 'Dortmund';
