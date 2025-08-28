@@ -2312,16 +2312,7 @@ function runStep4(asyncCallback) {
             console.log("Tabla de piezas generada con", usedColors.length, "colores");
             
             // Mostrar la tabla automáticamente
-            const accordionCard = document.querySelector('#step-4-accordion .card');
-            const collapseDiv = document.getElementById('step-4-1-collapse');
-            
-            if (accordionCard) {
-                accordionCard.style.display = 'block';
-            }
-            if (collapseDiv) {
-                collapseDiv.style.display = 'block';
-                collapseDiv.classList.add('show');
-            }
+            // ...existing code...
 
             const missingPixelsTableBody = document.getElementById("studs-missing-table-body");
             missingPixelsTableBody.innerHTML = "";
