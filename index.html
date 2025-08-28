@@ -1227,6 +1227,62 @@
                   <small id="step-4-quantization-error" style="display:none;"></small>
                 </span>
                 <div id="step-4-accordion">
+                  <div class="card accordion-card">
+  <div class="card-header" id="step-4-resolution-heading">
+    <h5 class="mb-0">
+      <button
+        class="btn btn-link collapsed"
+        data-toggle="collapse"
+        data-target="#step-4-resolution-collapse"
+        aria-expanded="false"
+        aria-controls="step-4-resolution-collapse"
+      >
+        RESOLUTION
+      </button>
+    </h5>
+  </div>
+  <div
+    id="step-4-resolution-collapse"
+    class="collapse"
+    aria-labelledby="step-4-resolution-heading"
+    data-parent="#step-4-accordion"
+  >
+    <div class="card-body accordion-card-body">
+      <b>TARGET RESOLUTION:</b>
+      <div style="width: 100%">
+        <div>
+          WIDTH:
+          <span id="width-text-final">50</span>
+        </div>
+        <input
+          type="range"
+          id="width-slider-final"
+          min="16"
+          max="128"
+          step="16"
+          value="50"
+          style="width: 100%"
+        />
+      </div>
+      <div style="width: 100%">
+        <div>
+          HEIGHT:
+          <span id="height-text-final">50</span>
+        </div>
+        <input
+          type="range"
+          id="height-slider-final"
+          min="16"
+          max="128"
+          step="16"
+          value="50"
+          style="width: 100%"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
                   <!-- Nueva sección: EDICIÓN DE IMAGEN -->
                   <div class="card accordion-card">
                     <div class="card-header" id="step-1-edicion-heading">
