@@ -1314,6 +1314,51 @@
               >
                 <small id="step-4-quantization-error" style="display:none;"></small>
               </span>
+              <!-- EDICIÓN encima de Pieces Used -->
+              <div class="card accordion-card" style="display:block;">
+                <div class="card-header" id="step-1-edicion-heading">
+                  <h5 class="mb-0">
+                    <button
+                      class="btn btn-link collapsed"
+                      data-toggle="collapse"
+                      data-target="#step-1-edicion-collapse"
+                      aria-expanded="false"
+                      aria-controls="step-1-edicion-collapse"
+                    >
+                      EDICIÓN
+                    </button>
+                  </h5>
+                </div>
+                <div
+                  id="step-1-edicion-collapse"
+                  class="collapse"
+                  aria-labelledby="step-1-edicion-heading"
+                  data-parent="#step-4-accordion"
+                >
+                  <div class="card-body accordion-card-body">
+                    <!-- Saturación -->
+                    <div style="width: 100%; margin-bottom: 20px;">
+                      <div>
+                        Saturation adjustment:
+                        <span id="saturation-text">0%</span>
+                      </div>
+                      <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
+                        <button class="btn btn-sm" id="saturation-decrement" style="flex-grow: 0">-</button>
+                        <input
+                          type="range"
+                          id="saturation-slider"
+                          min="-100"
+                          max="100"
+                          value="0"
+                          style="flex-grow: 1; margin: 0 8px"
+                        />
+                        <button class="btn btn-sm" id="saturation-increment" style="flex-grow: 0">+</button>
+                      </div>
+                    </div>
+                    <!-- Aquí iría el resto de controles de edición, incluyendo SCALE y CROP -->
+                  </div>
+                </div>
+              </div>
               <div id="step-4-accordion">
                 <div class="card accordion-card">
                   <div class="card-header" id="step-4-1-heading">
