@@ -1856,5 +1856,14 @@
           });
       }
     </script>
+    <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('step-4-1-collapse');
+    if (el) {
+      el.classList.remove('show');
+      try { $('#step-4-1-collapse').collapse({ toggle: false }); } catch(e) {}
+    }
+  });
+</script>
   </body>
 </html>
