@@ -409,7 +409,7 @@
     <div id="universal-loading-progress" style="display: none;"></div>
     <div id="universal-loading-progress-complement" style="display: none;"></div>
 
-  <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
+    <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
       <div id="step-1" class="col-6 col-md-3 hide-on-step-3-expansion">
         <div class="card" style="padding: 10px; margin-bottom: 10px">
           <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
@@ -823,7 +823,71 @@
         </div>
       </div>
 
-  <!-- Eliminado STEP 3: solo quedan STEP 1 y STEP 4 -->
+      <div id="step-3" class="col-6 col-md-3">
+        <div class="card" style="padding: 10px; margin-bottom: 10px">
+          <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                id="step-3-color-tab"
+                data-toggle="tab"
+                href="#step-3-color-tab-content"
+                role="tab"
+                aria-controls="step-1-color-tab-content"
+                aria-selected="true"
+                >Color</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                id="step-3-depth-tab"
+                data-toggle="tab" 
+                href="#step-3-depth-tab-content"
+                role="tab"
+                aria-controls="step-1-color-depth-content"
+                aria-selected="false"
+                >Depth</a
+              >
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div
+              class="tab-pane fade show active"
+              id="step-3-color-tab-content"
+              role="tabpanel"
+              aria-labelledby="step-3-color-tab"
+            >
+                <!-- STEP 3 restaurado oculto para compatibilidad con el JS -->
+                <canvas id="step-3-canvas" hidden></canvas>
+                <canvas id="step-3-canvas-upscaled" style="width: 100%; display: none;"></canvas>
+                <div style="display: none;">
+                  <h4>STEP 3</h4>
+                  <small class="step-header-subtitle">PROCESS IMAGE WITH FIXED COLOR PALETTE</small>
+                  <br />
+                  <span
+                    data-toggle="tooltip"
+                    title="This is the average per pixel quantization error. The lower this value is, the closer this image is to the image in step 2 (according to the chosen color distance function)"
+                    data-placement="top"
+                  >
+                    <small>Average</small> &#x3F5;:
+                    <small id="step-3-quantization-error"></small>
+                  </span>
+                </div>
+
+              <div id="step-3-accordion">
+                <div class="card accordion-card" style="display: none !important;">
+                  <div class="card-header" id="step-3-2-heading">
+                    <h5 class="mb-0">
+                      <button
+                        class="btn btn-link collapsed"
+                        data-toggle="collapse"
+                        data-target="#step-3-2-collapse"
+                        aria-expanded="false"
+                        aria-controls="step-3-2-collapse"
+                      >
+                        Available Colors
+                      </button>
                     </h5>
                   </div>
                   <div
@@ -1650,7 +1714,7 @@
       </div>
     </div>
 
-  <div id="image-input-card" style="text-align: center; padding-top: 40px; width: 100%;">
+    <div id="image-input-card" style="text-align: center; padding-top: 40px; width: 100%;">
       <div class="row">
         <div class="col-sm">
           <canvas id="input-canvas" hidden></canvas>
