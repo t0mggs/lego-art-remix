@@ -956,6 +956,9 @@ function drawVisuBloqPremiumPixel(ctx, x, y, radius, pixelHex) {
     ctx.lineWidth = 0.5;
     ctx.strokeRect(startX + 0.5, startY + 0.5, pixelSize - 1, pixelSize - 1);
 }
+// --- VISUAL PRESET (puedes dejarlos a true si te gusta así) ---
+const FORCE_ROUND_TILES = true;   // fuerza que todos los píxeles se dibujen redondos
+const SHOW_STUD_OVERLAY = false;  // no dibujar relieve de "stud" encima (tiles planos)
 
 function drawPixel(ctx, x, y, radius, pixelHex, strokeHex, pixelType) {
     // VISUBLOQ Premium rendering - efecto 3D realista
@@ -973,16 +976,17 @@ function drawPixel(ctx, x, y, radius, pixelHex, strokeHex, pixelType) {
     if (!("" + pixelType).match("^variable.*$")) {
         ctx.stroke();
     }
+        // Overlay de "stud" (tetón) desactivable
     if (
+        SHOW_STUD_OVERLAY &&
         [
-            PIXEL_TYPE_OPTIONS[2].number,
-            PIXEL_TYPE_OPTIONS[4].number,
-            PIXEL_TYPE_OPTIONS[5].number,
-            PIXEL_TYPE_OPTIONS[7].number,
-            PIXEL_TYPE_OPTIONS[8].number,
+            PIXEL_TYPE_OPTIONS?.[2]?.number,
+            PIXEL_TYPE_OPTIONS?.[4]?.number,
+            PIXEL_TYPE_OPTIONS?.[5]?.number,
+            PIXEL_TYPE_OPTIONS?.[7]?.number,
+            PIXEL_TYPE_OPTIONS?.[8]?.number,
         ].includes(pixelType)
     ) {
-        // draw a circle on top of the piece to represent a stud
         ctx.beginPath();
         ctx.arc(x + radius, y + radius, radius * 0.6, 0, 2 * Math.PI);
         ctx.stroke();
@@ -1783,7 +1787,7 @@ function getPlateDimensionsString(part) {
 }
 
 const TILE_DIMENSIONS_TO_PART_ID = {
-    "1 X 1": "3070b",
+    "1 X 1": 98138, // Round Tile 1x1 (con ranura)
     "1 X 2": "3069b",
     "1 X 3": 63864,
     "1 X 4": 2431,
