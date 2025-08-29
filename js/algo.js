@@ -1002,6 +1002,8 @@ function drawStudImageOnCanvas(
 
     canvas.width = width * scalingFactor;
     canvas.height = ((pixels.length / 4) * scalingFactor) / width;
+    // Set black background
+    ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width * scalingFactor, ((pixels.length / 4) * scalingFactor) / width);
 
     const radius = scalingFactor / 2;
