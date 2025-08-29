@@ -44,6 +44,7 @@
         /* Ensure custom slider styling applies in Chromium browsers (Opera GX, Chrome, Edge) */
         input[type=range] {
           -webkit-appearance: none !important;
+          appearance: none !important;
           background: transparent !important;
           width: 100%;
           height: 32px;
@@ -549,13 +550,6 @@
                       data-parent="#step-1-accordion"
                     >
                       <div class="card-body accordion-card-body">
-                        <!-- Recorte y Escalado Step 4 -->
-                        <div style="width: 100%; margin-bottom: 20px;">
-                          <button class="btn btn-warning btn-sm" id="activate-cropper-step4" style="margin-bottom: 8px;">Recortar/Escalar imagen final</button>
-                          <button class="btn btn-success btn-sm" id="apply-cropper-step4" style="margin-bottom: 8px; display:none;">Aplicar recorte</button>
-                          <button class="btn btn-secondary btn-sm" id="cancel-cropper-step4" style="margin-bottom: 8px; display:none;">Cancelar</button>
-                          <div id="cropper-step4-hint" style="margin-bottom: 8px; display:none; color:#888;">Arrastra para recortar y escalar. Haz clic en 'Aplicar recorte' para guardar.</div>
-                        </div>
                         <b>TARGET RESOLUTION:</b>
                         <div style="width: 100%">
                           <div>
