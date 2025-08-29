@@ -965,18 +965,12 @@ function drawPixel(ctx, x, y, radius, pixelHex, strokeHex, pixelType) {
     }
     
     ctx.beginPath();
-    if ([PIXEL_TYPE_OPTIONS[1].number, PIXEL_TYPE_OPTIONS[2].number].includes(pixelType)) {
-        // draw a circle
-        ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
-    } else {
-        // draw a square
-        ctx.rect(x, y, 2 * radius, 2 * radius);
-    }
+    // Always draw a circle for every pixel
+    ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
     ctx.fillStyle = pixelHex;
     ctx.fill();
     ctx.strokeStyle = strokeHex;
     if (!("" + pixelType).match("^variable.*$")) {
-        // TODO: Look at perf?
         ctx.stroke();
     }
     if (
