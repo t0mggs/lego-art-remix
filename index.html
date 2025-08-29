@@ -157,7 +157,53 @@
           box-shadow: none !important;
         }
 
-        /* Sobreescribir completamente los estilos btn-success para este botón específico */
+        /* Slider thumb mascot image for saturation, brightness, and contrast sliders */
+        #saturation-slider::-webkit-slider-thumb,
+        #brightness-slider::-webkit-slider-thumb,
+        #contrast-slider::-webkit-slider-thumb {
+          width: 32px;
+          height: 32px;
+          background: url('assets/png/icon-192x192.png') no-repeat center center;
+          background-size: contain;
+          border-radius: 50%;
+          border: none;
+          box-shadow: 0 0 2px rgba(0,0,0,0.2);
+          cursor: pointer;
+        }
+
+        #saturation-slider::-moz-range-thumb,
+        #brightness-slider::-moz-range-thumb,
+        #contrast-slider::-moz-range-thumb {
+          width: 32px;
+          height: 32px;
+          background: url('assets/png/icon-192x192.png') no-repeat center center;
+          background-size: contain;
+          border-radius: 50%;
+          border: none;
+          box-shadow: 0 0 2px rgba(0,0,0,0.2);
+          cursor: pointer;
+        }
+
+        #saturation-slider::-ms-thumb,
+        #brightness-slider::-ms-thumb,
+        #contrast-slider::-ms-thumb {
+          width: 32px;
+          height: 32px;
+          background: url('assets/png/icon-192x192.png') no-repeat center center;
+          background-size: contain;
+          border-radius: 50%;
+          border: none;
+          box-shadow: 0 0 2px rgba(0,0,0,0.2);
+          cursor: pointer;
+        }
+
+        /* For better cross-browser appearance */
+        #saturation-slider,
+        #brightness-slider,
+        #contrast-slider {
+          accent-color: #000;
+          height: 32px;
+        }
         #input-image-selector.btn-success {
           background-color: transparent !important;
           background-image: none !important;
@@ -1259,7 +1305,7 @@
                         <!-- Saturación -->
                         <div style="width: 100%; margin-bottom: 20px;">
                           <div>
-                            Saturation adjustment:
+                            SATURATION
                             <span id="saturation-text">0%</span>
                           </div>
                           <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -1280,7 +1326,7 @@
                         <!-- Brillo -->
                         <div style="width: 100%; margin-bottom: 20px;">
                           <div>
-                            Brightness adjustment:
+                            BRIGHTNESS
                             <span id="brightness-text">0</span>
                           </div>
                           <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
@@ -1301,7 +1347,7 @@
                         <!-- Contraste -->
                         <div style="width: 100%;">
                           <div>
-                            Contrast adjustment:
+                            CONTRAST
                             <span id="contrast-text">0</span>
                           </div>
                           <div style="display: flex; direction: horizontal; width: 100%; margin-bottom: 8px">
