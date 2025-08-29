@@ -313,12 +313,14 @@ const quantizationAlgorithmToTraditionalDitheringKernel = {
 };
 
 const defaultQuantizationAlgorithmKey = "twoPhase";
+
 let quantizationAlgorithm = defaultQuantizationAlgorithmKey;
 document.getElementById("quantization-algorithm-button").innerHTML =
     quantizationAlgorithmsInfo[defaultQuantizationAlgorithmKey].name;
 
-let selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[0].number; // VISUBLOQ Premium por defecto
-document.getElementById("bricklink-piece-button").innerHTML = PIXEL_TYPE_OPTIONS[0].name;
+// Set default pixel type to 1x1 Round Tile (number: 98138)
+let selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[1].number; // 1x1 Round Tile por defecto
+document.getElementById("bricklink-piece-button").innerHTML = PIXEL_TYPE_OPTIONS[1].name;
 
 // TODO: Make this a function
 let overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
