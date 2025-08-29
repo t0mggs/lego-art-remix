@@ -41,6 +41,31 @@
       </PageMap>
 
       <style>
+        /* Ensure custom slider styling applies in Chromium browsers (Opera GX, Chrome, Edge) */
+        input[type=range] {
+          -webkit-appearance: none !important;
+          background: transparent !important;
+          width: 100%;
+          height: 32px;
+        }
+        input[type=range]:focus {
+          outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+          height: 8px;
+          background: #ddd;
+          border-radius: 4px;
+        }
+        input[type=range]::-moz-range-track {
+          height: 8px;
+          background: #ddd;
+          border-radius: 4px;
+        }
+        input[type=range]::-ms-fill-lower,
+        input[type=range]::-ms-fill-upper {
+          background: #ddd;
+          border-radius: 4px;
+        }
         /* Custom slider thumb for all sliders */
         input[type=range]::-webkit-slider-thumb {
           width: 32px;
@@ -1442,17 +1467,13 @@
                         <br />
                         <small>
                           <p style="margin-left: 4px; margin-bottom: 4px">
-                            The type of piece used depends on 'Pixel Piece' under step 3
                           </p>
-                          <p style="margin-left: 4px; margin-bottom: 4px">Frame elements are not exported</p>
                           <p style="margin-left: 4px; margin-bottom: 4px">
                             <a href="https://www.bricklink.com/v2/wanted/upload.page" target="_blank">
-                              Bricklink Upload Page
                             </a>
                           </p>
                           <p style="margin-left: 4px">
                             <a href="https://www.lego.com/en-us/page/static/pick-a-brick" target="_blank">
-                              U.S. Pick a Brick Page
                             </a>
                           </p>
                         </small>
@@ -1503,24 +1524,6 @@
                             <input type="checkbox" class="checkbox-clickable" id="high-quality-instructions-check" />
                             <span style="font-size: 13px">High quality pdf</span>
                           </label>
-                        </div>
-                        <small>
-                          <p style="margin-left: 4px; margin-bottom: 4px">
-                            Longer instructions may be split into multiple files
-                          </p>
-                          <p style="margin-left: 4px; margin-bottom: 4px">Color names are Bricklink colors</p>
-                        </small>
-                        <div style="margin-left: 4px; margin-bottom: 4px">
-                          <small>
-                            <b style="color: #ff4c00">Important</b>
-                            <p>
-                              Depending on your hardware and the resolution you've chosen, the pdf can take quite a few
-                              seconds to generate. Be prepared to wait if you're generating instructions for larger
-                              resolutions, especially for high quality pdfs. Larger resolutions may also cause some
-                              slowness on the page or may not work at all on less powerful devices, so I recommend
-                              starting at the default and then going up.
-                            </p>
-                          </small>
                         </div>
                       </div>
                     </div>
@@ -1739,13 +1742,11 @@
                         </button>
                         <small style="margin-left: 4px">
                           <a href="https://www.bricklink.com/v2/wanted/upload.page" target="_blank">
-                            Bricklink Upload Page
                           </a>
                         </small>
                         <br />
                         <small style="margin-left: 4px">
                           <a href="https://www.lego.com/en-us/page/static/pick-a-brick" target="_blank">
-                            U.S. Pick a Brick Page
                           </a>
                         </small>
                       </div>
