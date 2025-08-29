@@ -320,7 +320,11 @@ document.getElementById("quantization-algorithm-button").innerHTML =
 
 // Set default pixel type to 1x1 Round Tile (number: 98138)
 let selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[1].number; // 1x1 Round Tile por defecto
-document.getElementById("bricklink-piece-button").innerHTML = PIXEL_TYPE_OPTIONS[1].name;
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("bricklink-piece-button").innerHTML = PIXEL_TYPE_OPTIONS[1].name;
+    selectedPixelPartNumber = PIXEL_TYPE_OPTIONS[1].number;
+});
 
 // TODO: Make this a function
 let overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
