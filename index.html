@@ -41,6 +41,34 @@
       </PageMap>
 
       <style>
+        /* Custom slider thumb for all sliders */
+        input[type=range]::-webkit-slider-thumb {
+          width: 32px;
+          height: 32px;
+          background: url('assets/png/slider.png') no-repeat center center;
+          background-size: contain;
+          border: none;
+          box-shadow: none;
+          cursor: pointer;
+        }
+        input[type=range]::-moz-range-thumb {
+          width: 32px;
+          height: 32px;
+          background: url('assets/png/slider.png') no-repeat center center;
+          background-size: contain;
+          border: none;
+          box-shadow: none;
+          cursor: pointer;
+        }
+        input[type=range]::-ms-thumb {
+          width: 32px;
+          height: 32px;
+          background: url('assets/png/slider.png') no-repeat center center;
+          background-size: contain;
+          border: none;
+          box-shadow: none;
+          cursor: pointer;
+        }
         /* ---- FIX: Ocultar Step 3 ---- */
   #step-3 > .card { 
     display: none !important; 
@@ -157,53 +185,7 @@
           box-shadow: none !important;
         }
 
-        /* Slider thumb mascot image for saturation, brightness, and contrast sliders */
-        #saturation-slider::-webkit-slider-thumb,
-        #brightness-slider::-webkit-slider-thumb,
-        #contrast-slider::-webkit-slider-thumb {
-          width: 32px;
-          height: 32px;
-          background: url('assets/png/icon-192x192.png') no-repeat center center;
-          background-size: contain;
-          border-radius: 50%;
-          border: none;
-          box-shadow: 0 0 2px rgba(0,0,0,0.2);
-          cursor: pointer;
-        }
-
-        #saturation-slider::-moz-range-thumb,
-        #brightness-slider::-moz-range-thumb,
-        #contrast-slider::-moz-range-thumb {
-          width: 32px;
-          height: 32px;
-          background: url('assets/png/icon-192x192.png') no-repeat center center;
-          background-size: contain;
-          border-radius: 50%;
-          border: none;
-          box-shadow: 0 0 2px rgba(0,0,0,0.2);
-          cursor: pointer;
-        }
-
-        #saturation-slider::-ms-thumb,
-        #brightness-slider::-ms-thumb,
-        #contrast-slider::-ms-thumb {
-          width: 32px;
-          height: 32px;
-          background: url('assets/png/icon-192x192.png') no-repeat center center;
-          background-size: contain;
-          border-radius: 50%;
-          border: none;
-          box-shadow: 0 0 2px rgba(0,0,0,0.2);
-          cursor: pointer;
-        }
-
-        /* For better cross-browser appearance */
-        #saturation-slider,
-        #brightness-slider,
-        #contrast-slider {
-          accent-color: #000;
-          height: 32px;
-        }
+        /* Sobreescribir completamente los estilos btn-success para este botón específico */
         #input-image-selector.btn-success {
           background-color: transparent !important;
           background-image: none !important;
