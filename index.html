@@ -490,6 +490,25 @@
       <div id="universal-loading-progress-complement" style="display: none;"></div>
 
       <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
+<div id="main-step-container" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);">
+  <div id="step-1-section">
+    <div class="card" style="padding: 10px; margin-bottom: 10px">
+      <div style="width: 100%">
+        <canvas id="step-1-canvas-upscaled" style="width: 100%" class="cropper-img"></canvas>
+      </div>
+      <!-- Aquí puedes añadir controles de recorte si lo necesitas -->
+      <button id="go-to-step4-btn" class="btn btn-primary" style="margin-top: 16px; width: 100%;">Ir a resultado</button>
+    </div>
+  </div>
+  <div id="step-4-section" style="display:none;">
+    <div class="card" style="padding: 10px; margin-bottom: 10px">
+      <div style="width: 100%">
+        <canvas id="step-4-canvas-upscaled" style="width: 100%"></canvas>
+      </div>
+      <!-- Aquí puedes añadir más controles de step4 si lo necesitas -->
+    </div>
+  </div>
+</div>
         <div id="step-1" class="col-6 col-md-3 hide-on-step-3-expansion">
           <div class="card" style="padding: 10px; margin-bottom: 10px">
             <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
