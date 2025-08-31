@@ -2620,8 +2620,7 @@ function getUsedPlateMatrices(depthPixelArray) {
                     depthSubPixelMatrix,
                     (depthPixel, _i, _j) => depthPixel <= depthLevel
                 );
-                const requiredPartMatrix = getRequiredPartMatrixFromSetPixelMatrix(setPixelMatrix, availableParts);
-                perDepthLevelMatrices.push(requiredPartMatrix);
+                perDepthLevelMatrices.push(getRequiredPartMatrixFromSetPixelMatrix(setPixelMatrix, availableParts));
             }
             usedPlatesMatrices.push(perDepthLevelMatrices);
         }
@@ -3019,11 +3018,13 @@ function isValidShopifyOrder(orderData) {
     
     // 3. Debe tener un valor monetario (indica compra real)
     if (!orderData.total_price || parseFloat(orderData.total_price) <= 0) {
+        console.log('⚠️ Pedido sin valor monetario - posiblemente una prueba');
         return false;
     }
     
     // 4. Debe tener estado de pago confirmado
     if (orderData.financial_status && orderData.financial_status !== 'paid') {
+        console.log('⚠️ Pedido no pagado - esperando confirmación de pago');
         return false;
     }
     
@@ -3342,17 +3343,363 @@ testInvalidOrder()     → Simula pedido inválido (no envía email)
     `);
 };
 
-// Función para cambiar entre pasos y ejecutar el procesamiento final
-document.addEventListener("DOMContentLoaded", function() {
-  var goToStep4Btn = document.getElementById("go-to-step4-btn");
-  if (goToStep4Btn) {
-    goToStep4Btn.addEventListener("click", function() {
-      document.getElementById("step-1-section").style.display = "none";
-      document.getElementById("step-4-section").style.display = "block";
-      // Ejecuta el procesamiento final (ajusta la función si es necesario)
-      if (typeof runStep4 === "function") {
-        runStep4();
-      }
-    });
-  }
+function triggerDepthMapGeneration() {
+    disableInteraction();
+    const worker = new Worker("js/depth-map-web-worker.js");
+
+    const loadingMessageComponent = document.getElementById("web-worker-loading-message");
+    loadingMessageComponent.hidden = false;
+
+    webWorkerInputCanvas.width = CNN_INPUT_IMAGE_WIDTH;
+    webWorkerInputCanvas.height = CNN_INPUT_IMAGE_HEIGHT;
+    webWorkerInputCanvasContext.drawImage(
+        inputImage,
+        0,
+        0,
+        inputImage.width,
+        inputImage.height,
+        0,
+        0,
+        CNN_INPUT_IMAGE_WIDTH,
+        CNN_INPUT_IMAGE_HEIGHT
+    );
+    setTimeout(() => {
+        const inputPixelArray = getPixelArrayFromCanvas(webWorkerInputCanvas);
+        worker.postMessage({
+            inputPixelArray,
+        });
+
+        worker.addEventListener("message", (e) => {
+            const { result, loadingMessage } = e.data;
+            if (result != null) {
+                webWorkerOutputCanvas.width = CNN_INPUT_IMAGE_WIDTH;
+                webWorkerOutputCanvas.height = CNN_INPUT_IMAGE_HEIGHT;
+                drawPixelsOnCanvas(result, webWorkerOutputCanvas);
+                setTimeout(() => {
+                    inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvasContext.drawImage(
+                        webWorkerOutputCanvas,
+                        0,
+                        0,
+                        CNN_INPUT_IMAGE_WIDTH,
+                        CNN_INPUT_IMAGE_HEIGHT,
+                        0,
+                        0,
+                        SERIALIZE_EDGE_LENGTH,
+                        SERIALIZE_EDGE_LENGTH
+                    );
+                    setTimeout(() => {
+                        loadingMessageComponent.hidden = true;
+                        enableInteraction();
+                        overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+                        runStep1();
+                    }, 50); // TODO: find better way to check that input is finished
+                }, 50); // TODO: find better way to check that input is finished
+            } else if (loadingMessage != null) {
+                loadingMessageComponent.innerHTML = loadingMessage;
+            } else {
+                console.log("Message from web worker: ", e.data);
+            }
+        });
+    }, 50); // TODO: find better way to check that input is finished
+}
+
+document.getElementById("generate-depth-image").addEventListener("click", triggerDepthMapGeneration);
+
+const SERIALIZE_EDGE_LENGTH = 512;
+
+function handleInputImage(e, dontClearDepth, dontLog) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        inputImage = new Image();
+        inputImage.onload = function () {
+            inputCanvas.width = SERIALIZE_EDGE_LENGTH;
+            inputCanvas.height = SERIALIZE_EDGE_LENGTH;
+            inputCanvasContext.drawImage(
+                inputImage,
+                0,
+                0,
+                inputImage.width,
+                inputImage.height,
+                0,
+                0,
+                SERIALIZE_EDGE_LENGTH,
+                SERIALIZE_EDGE_LENGTH
+            );
+
+            // remove transparency
+            const inputImagePixels = getPixelArrayFromCanvas(inputCanvas);
+            for (var i = 3; i < inputImagePixels.length; i += 4) {
+                inputImagePixels[i] = 255;
+            }
+            drawPixelsOnCanvas(inputImagePixels, inputCanvas);
+
+            if (!dontClearDepth) {
+                inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+                inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+                inputDepthCanvasContext.fillStyle = "black";
+                inputDepthCanvasContext.fillRect(0, 0, inputDepthCanvas.width, inputDepthCanvas.height);
+            }
+        };
+        inputImage.src = event.target.result;
+        
+        // Mostrar inmediatamente la interfaz de pasos para permitir el recorte
+        document.getElementById("steps-row").hidden = false;
+        document.getElementById("input-image-selector").innerHTML = "Reselect Input Image";
+        document.getElementById("image-input-new").appendChild(document.getElementById("image-input"));
+        document.getElementById("image-input-card").hidden = true;
+        document.getElementById("run-example-input-container").hidden = true;
+        
+        setTimeout(() => {
+            step1CanvasUpscaled.width = SERIALIZE_EDGE_LENGTH;
+            step1CanvasUpscaled.height = Math.floor((SERIALIZE_EDGE_LENGTH * inputImage.height) / inputImage.width);
+            step1CanvasUpscaledContext.drawImage(
+                inputCanvas,
+                0,
+                0,
+                SERIALIZE_EDGE_LENGTH,
+                SERIALIZE_EDGE_LENGTH,
+                0,
+                0,
+                step1CanvasUpscaled.width,
+                step1CanvasUpscaled.height
+            );
+
+            overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+            overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+            initializeCropper();
+            
+            runStep1();
+        }, 50); // TODO: find better way to check that input is finished
+
+        if (!dontLog) {
+            perfLoggingDatabase.ref("input-image-count/total").transaction(incrementTransaction);
+            const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
+            perfLoggingDatabase.ref("input-image-count/per-day/" + loggingTimestamp).transaction(incrementTransaction);
+        }
+    };
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+function handleInputDepthMapImage(e) {
+    const reader = new FileReader();
+    overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+    reader.onload = function (event) {
+        inputImage = new Image();
+        inputImage.onload = function () {
+            inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+            inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+            inputDepthCanvasContext.drawImage(
+                inputImage,
+                0,
+                0,
+                inputImage.width,
+                inputImage.height,
+                0,
+                0,
+                SERIALIZE_EDGE_LENGTH,
+                SERIALIZE_EDGE_LENGTH
+            );
+        };
+        inputImage.src = event.target.result;
+        setTimeout(() => {
+            runStep1();
+        }, 50); // TODO: find better way to check that input is finished
+
+        // TODO: log for perf estimation?
+    };
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+const EXAMPLES_BASE_URL = "assets/png/";
+const EXAMPLES = [
+    {
+        colorFile: "lenna.png",
+        depthFile: "lenna-depth.png",
+    },
+];
+document.getElementById("run-example-input").addEventListener("click", () => {
+    disableInteraction();
+    const example = EXAMPLES[Math.floor(Math.random() * EXAMPLES.length)];
+
+    // load in depth first, then trigger step 1
+    fetch(EXAMPLES_BASE_URL + example.depthFile)
+        .then((response) => response.blob())
+        .then((depthImage) => {
+            enableDepth();
+            // use an object url to get around possible bad browser caching race conditions
+            const depthImageURL = URL.createObjectURL(depthImage);
+            const depthReader = new FileReader();
+            depthReader.onload = function (event) {
+                inputDepthImage = new Image();
+                inputDepthImage.onload = function () {
+                    inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvasContext.drawImage(
+                        inputDepthImage,
+                        0,
+                        0,
+                        inputDepthImage.width,
+                        inputDepthImage.height,
+                        0,
+                        0,
+                        SERIALIZE_EDGE_LENGTH,
+                        SERIALIZE_EDGE_LENGTH
+                    );
+                };
+                inputDepthImage.src = depthImageURL;
+                setTimeout(() => {
+                    fetch(EXAMPLES_BASE_URL + example.colorFile)
+                        .then((response) => response.blob())
+                        .then((colorImage) => {
+                            // use an object url to get around possible bad browser caching race conditions
+                            const colorImageURL = URL.createObjectURL(colorImage);
+                            const e = {
+                                target: {
+                                    files: [colorImage],
+                                },
+                            };
+                            handleInputImage(e, true, true);
+                        });
+                }, 50); // TODO: find better way to check that input is finished
+            };
+            depthReader.readAsDataURL(depthImage);
+        });
+    perfLoggingDatabase.ref("trigger-random-example-input-count/total").transaction(incrementTransaction);
+    const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
+    perfLoggingDatabase
+        .ref("trigger-random-example-input-count/per-day/" + loggingTimestamp)
+        .transaction(incrementTransaction);
 });
+
+const imageURLMatch =
+    window.location.href.match(
+        /image=(https?((:\/\/)|(%3A%2F%2F)))?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?)/gi
+    ) ?? [];
+const imageURL =
+    imageURLMatch.length > 0 ? imageURLMatch[0].replace(/image=(https?((:\/\/)|(%3A%2F%2F)))?/gi, "") : null;
+
+if (imageURL != null) {
+    setTimeout(() => {
+        fetch("https://" + decodeURIComponent(imageURL))
+            .then((response) => response.blob())
+            .then((colorImage) => {
+                try {
+                    // use an object url to get around possible bad browser caching race conditions
+                    const colorImageURL = URL.createObjectURL(colorImage);
+                    const e = {
+                        target: {
+                            files: [colorImage],
+                        },
+                    };
+                    handleInputImage(e, true, true);
+                } catch (e) {
+                    enableInteraction();
+                }
+            })
+            .catch((err) => {
+                enableInteraction();
+            });
+    }, 50); // TODO: find better way to check that input is finished
+}
+
+const imageSelectorHidden = document.getElementById("input-image-selector-hidden");
+imageSelectorHidden.addEventListener("change", (e) => handleInputImage(e), false);
+document.getElementById("input-image-selector").addEventListener("click", () => {
+    // AÃ±adir animaciÃ³n de click
+    const button = document.getElementById("input-image-selector");
+    button.style.transform = "scale(0.95)";
+    setTimeout(() => {
+        button.style.transform = "";
+    }, 100);
+    
+    imageSelectorHidden.click();
+});
+
+const depthImageSelectorHidden = document.getElementById("input-depth-image-selector-hidden");
+depthImageSelectorHidden.addEventListener("change", handleInputDepthMapImage, false);
+document.getElementById("input-depth-image-selector").addEventListener("click", () => {
+    depthImageSelectorHidden.click();
+});
+
+window.addEventListener("appinstalled", () => {
+    perfLoggingDatabase.ref("pwa-install-count/total").transaction(incrementTransaction);
+    const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
+    perfLoggingDatabase.ref("pwa-install-count/per-day/" + loggingTimestamp).transaction(incrementTransaction);
+});
+
+const toggleTechTalkButton = document.getElementById("toggle-tech-talk-button");
+if (toggleTechTalkButton) {
+    toggleTechTalkButton.addEventListener("click", () => {
+        // small hack so the iframe only renders when open
+        const youtubeWrapper = document.getElementById("responsive-youtube");
+        if (youtubeWrapper && youtubeWrapper.innerHTML.match(/.*Loading.*/i)) {
+            youtubeWrapper.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/G58ZNurxXgQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>`;
+        }
+    });
+}
+
+enableInteraction(); // enable interaction once everything has loaded in
+
+// 🔍 FUNCIÓN SIMPLE PARA VERIFICAR SHOPIFY
+window.verifyShopifyConfig = async function() {
+    console.log('🔍 === VERIFICANDO CONFIGURACIÓN DE SHOPIFY ===');
+    
+    const shopifyConfig = {
+        shop: 'VisuBloq.myshopify.com',
+        accessToken: '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',
+        apiVersion: '2024-01'
+    };
+    
+    console.log('🏪 Tienda:', shopifyConfig.shop);
+    console.log('🔑 Token:', shopifyConfig.accessToken.substring(0, 15) + '...');
+    
+    try {
+        const response = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/shop.json`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyConfig.accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ CONFIGURACIÓN OK - Tienda:', data.shop.name);
+            console.log('💡 Ahora ejecuta: testShopifyOrderWithPDF()');
+            return true;
+        } else {
+            console.error('❌ Error:', response.status, response.statusText);
+            console.log('🔧 Necesitas configurar la app en Shopify Admin');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error de conexión:', error);
+        return false;
+    }
+};
+
+// 🧪 FUNCIÓN SIMPLE DE PRUEBA
+window.testShopifyOrderWithPDF = async function() {
+    console.log('🧪 === PRUEBA DE SHOPIFY ===');
+    
+    const mockOrder = {
+        id: Date.now(),
+        order_number: 'VB-TEST-' + Math.floor(Math.random() * 1000),
+        email: 'admin@visubloq.com',
+        customer: { first_name: 'Test', last_name: 'User' },
+        total_price: '29.99',
+        financial_status: 'paid',
+        webhook_verified: true
+    };
+    
+    console.log('📦 Pedido de prueba:', mockOrder.order_number);
+    
+    try {
+        await processShopifyOrder(mockOrder);
+        console.log('✅ PRUEBA COMPLETADA');
+    } catch (error) {
+        console.error('❌ Error en la prueba:', error);
+    }
+};
