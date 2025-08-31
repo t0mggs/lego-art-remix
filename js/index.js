@@ -2331,6 +2331,16 @@ function runStep4(asyncCallback) {
             console.log("Tabla de piezas generada con", usedColors.length, "colores");
             
             // Mostrar la tabla automáticamente
+            // Mostrar step4 y ocultar step1 al hacer clic en el botón de step1
+            document.addEventListener('DOMContentLoaded', function() {
+                var goToStep4Btn = document.getElementById('go-to-step4-button');
+                if (goToStep4Btn) {
+                    goToStep4Btn.addEventListener('click', function() {
+                        document.getElementById('step-1').style.display = 'none';
+                        document.getElementById('step-4').style.display = 'block';
+                    });
+                }
+            });
             // ...existing code...
 
             const missingPixelsTableBody = document.getElementById("studs-missing-table-body");
