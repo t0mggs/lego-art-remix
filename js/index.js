@@ -492,23 +492,6 @@ function mixInStudMap(studMap, runAfterMixIn) {
 
 // Cargar paleta fija cuando el DOM estÃ© completamente listo
 document.addEventListener('DOMContentLoaded', function() {
-    // Mostrar solo step 1 tras seleccionar imagen
-    const step1 = document.getElementById('step-1');
-    const step4 = document.getElementById('step-4');
-    if (step1 && step4) {
-        step1.style.display = 'block';
-        step4.style.display = 'none';
-        // Botón LISTO para pasar a step 4
-        const listoBtn = document.getElementById('step-1-done-button');
-        if (listoBtn) {
-            listoBtn.onclick = function() {
-                step1.style.display = 'none';
-                step4.style.display = 'block';
-                // Ejecuta el procesamiento final si es necesario
-                runStep4();
-            };
-        }
-    }
     console.log('DOM loaded, forzando recarga de paleta fija...');
     // Asegura que la tabla de colores se rellena siempre al iniciar
     loadFixedColorPalette();
