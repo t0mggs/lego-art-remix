@@ -492,11 +492,9 @@ function mixInStudMap(studMap, runAfterMixIn) {
 
 // Cargar paleta fija cuando el DOM estÃ© completamente listo
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, cargando paleta fija...');
-    setTimeout(() => {
-        loadFixedColorPalette();
-    }, 500);
-
+    console.log('DOM loaded, forzando recarga de paleta fija...');
+    // Asegura que la tabla de colores se rellena siempre al iniciar
+    loadFixedColorPalette();
     // Eliminado el botón CONSTRUIR de la interfaz por requerimiento del usuario
 });
 
@@ -839,7 +837,6 @@ async function loadFixedColorPalette() {
     "#b18cbf"
   ]
 };
-        
         // Cargar la paleta fija
         console.log('Cargando paleta fija con', paletteData.sortedStuds.length, 'colores:', paletteData.sortedStuds);
         customStudTableBody.innerHTML = "";
