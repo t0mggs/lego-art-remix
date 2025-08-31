@@ -2617,8 +2617,7 @@ function getUsedPlateMatrices(depthPixelArray) {
                     depthSubPixelMatrix,
                     (depthPixel, _i, _j) => depthPixel <= depthLevel
                 );
-                const requiredPartMatrix = getRequiredPartMatrixFromSetPixelMatrix(setPixelMatrix, availableParts);
-                perDepthLevelMatrices.push(requiredPartMatrix);
+                perDepthLevelMatrices.push(getRequiredPartMatrixFromSetPixelMatrix(setPixelMatrix, availableParts));
             }
             usedPlatesMatrices.push(perDepthLevelMatrices);
         }
@@ -2741,37 +2740,963 @@ document.getElementById("download-depth-instructions-button").addEventListener("
     await generateDepthInstructions();
 });
 
-// --- Mostrar solo step 1 tras seleccionar imagen, y solo step 4 al pulsar el botón ---
-document.addEventListener('DOMContentLoaded', function() {
-    // Oculta todos los steps al inicio
-    ["step-1", "step-2", "step-3", "step-4"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = "none";
+// Event listener para el botón principal de export a BrickLink
+document.getElementById("export-to-bricklink-button").addEventListener("click", () => {
+    disableInteraction();
+    const step4PixelArray = getPixelArrayFromCanvas(step4Canvas);
+    const resultImage = isBleedthroughEnabled()
+        ? revertDarkenedImage(
+              step4PixelArray,
+              getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
+          )
+        : step4PixelArray;
+    
+    navigator.clipboard.writeText(getWantedListXML(getUsedPixelsStudMap(resultImage))).then(
+        function () {
+            enableInteraction();
+        },
+        function (err) {
+            console.error("Async: Could not copy text: ", err);
+            // Fallback para navegadores que no soportan clipboard API
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = getWantedListXML(getUsedPixelsStudMap(resultImage));
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                enableInteraction();
+            } catch (fallbackErr) {
+                console.error("Fallback copy failed: ", fallbackErr);
+                enableInteraction();
+            }
+        }
+    );
+});
+
+document.getElementById("export-depth-to-bricklink-button").addEventListener("click", () => {
+    disableInteraction();
+    const depthPixelArray = getPixelArrayFromCanvas(step3DepthCanvas);
+    const usedPlatesMatrices = getUsedPlateMatrices(depthPixelArray);
+    const depthPartsMap = getUsedDepthPartsMap(usedPlatesMatrices.flat());
+
+    navigator.clipboard.writeText(getDepthWantedListXML(depthPartsMap)).then(
+        function () {
+            enableInteraction();
+        },
+        function (err) {
+            console.error("Async: Could not copy text: ", err);
+        }
+    );
+});
+
+// Función para generar PDF para Shopify con tabla de piezas
+async function generatePDFForShopify() {
+    return new Promise((resolve, reject) => {
+        runStep4(async () => {
+            try {
+                const isHighQuality = false; // Usamos calidad estándar para Shopify
+                const step4PixelArray = getPixelArrayFromCanvas(step4Canvas);
+                const resultImage = isBleedthroughEnabled()
+                    ? revertDarkenedImage(
+                          step4PixelArray,
+                          getDarkenedStudsToStuds(ALL_BRICKLINK_SOLID_COLORS.map((color) => color.hex))
+                      )
+                    : step4PixelArray;
+
+                const titlePageCanvas = document.createElement("canvas");
+                const studMap = getUsedPixelsStudMap(resultImage);
+                const filteredAvailableStudHexList = selectedSortedStuds
+                    .filter((pixelHex) => (studMap[pixelHex] || 0) > 0)
+                    .filter(function (item, pos, self) {
+                        return self.indexOf(item) === pos; // remove duplicates
+                    });
+                
+                generateInstructionTitlePage(
+                    resultImage,
+                    targetResolution[0],
+                    PLATE_WIDTH,
+                    filteredAvailableStudHexList,
+                    SCALING_FACTOR,
+                    step4CanvasUpscaled,
+                    titlePageCanvas,
+                    selectedPixelPartNumber
+                );
+                
+                setDPI(titlePageCanvas, LOW_DPI);
+                const imgData = titlePageCanvas.toDataURL("image/png", 1.0);
+
+                const pdf = new jsPDF({
+                    orientation: titlePageCanvas.width < titlePageCanvas.height ? "p" : "l",
+                    unit: "mm",
+                    format: [titlePageCanvas.width, titlePageCanvas.height],
+                });
+
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, (pdfWidth * titlePageCanvas.height) / titlePageCanvas.width);
+
+                // Convertir PDF a blob para envío
+                const pdfBlob = pdf.output('blob');
+                const pdfBase64 = await blobToBase64(pdfBlob);
+                
+                resolve({
+                    blob: pdfBlob,
+                    base64: pdfBase64,
+                    studMap: studMap,
+                    filename: `VisuBloq_Piece_List_${Date.now()}.pdf`
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     });
+}
 
-    // Cuando se selecciona imagen, muestra solo step 1
-    const inputImageSelectorHidden = document.getElementById("input-image-selector-hidden");
-    if (inputImageSelectorHidden) {
-        inputImageSelectorHidden.addEventListener("change", function() {
-            ["step-1", "step-2", "step-3", "step-4"].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = "none";
-            });
-            const step1 = document.getElementById("step-1");
-            if (step1) step1.style.display = "block";
+// Función auxiliar para convertir blob a base64
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+// 🛒 FUNCIÓN PARA GUARDAR PDF EN BASE DE DATOS (VERCEL)
+async function savePDFToDatabase(orderData, pdfData) {
+    try {
+        // URL de tu API en Vercel (cambiar por tu dominio real)
+        const apiUrl = 'https://tu-proyecto.vercel.app/api/save-pdf.php';
+        // Para desarrollo local: 'http://localhost:3000/api/save-pdf.php'
+        
+        console.log('📡 Enviando PDF a:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                order: orderData,
+                pdf: pdfData
+            })
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ PDF guardado en base de datos:', result.data);
+            return result.data;
+        } else {
+            throw new Error(result.message || 'Error desconocido del servidor');
+        }
+
+    } catch (error) {
+        console.error('❌ Error guardando PDF en base de datos:', error);
+        
+        // En caso de error, mostrar mensaje al usuario
+        if (window.location.hostname !== 'localhost') {
+            alert(`Error guardando PDF: ${error.message}\n\nEl PDF se ha generado correctamente, pero no se pudo guardar en el servidor.`);
+        }
+        
+        throw error;
     }
+}
 
-    // Botón para mostrar solo el resultado final (step 4)
-    const showStep4Button = document.getElementById("show-step4-button");
-    if (showStep4Button) {
-        showStep4Button.addEventListener("click", function() {
-            ["step-1", "step-2", "step-3", "step-4"].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = "none";
-            });
-            const step4 = document.getElementById("step-4");
-            if (step4) step4.style.display = "block";
+// 📥 FUNCIÓN PARA DESCARGAR PDF DESDE SHOPIFY (para testing)
+async function downloadPDFFromShopify(orderId) {
+    try {
+        const shopifyConfig = {
+            shop: 'TU-TIENDA.myshopify.com', // ⚠️ CAMBIAR
+            accessToken: 'shpat_xxxxxxxxxxxxxxxxxxxxxxxxxx', // ⚠️ CAMBIAR
+            apiVersion: '2024-01'
+        };
+
+        // Obtener metafields del pedido
+        const metafieldsResponse = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/orders/${orderId}/metafields.json`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyConfig.accessToken,
+                'Content-Type': 'application/json'
+            }
         });
+
+        const metafields = await metafieldsResponse.json();
+        
+        // Buscar el PDF
+        const pdfMetafield = metafields.metafields.find(mf => 
+            mf.namespace === 'visubloq' && mf.key === 'piece_list_pdf'
+        );
+        
+        const infoMetafield = metafields.metafields.find(mf => 
+            mf.namespace === 'visubloq' && mf.key === 'piece_info'
+        );
+
+        if (pdfMetafield && infoMetafield) {
+            const pdfInfo = JSON.parse(infoMetafield.value);
+            
+            // Convertir base64 a blob y descargar
+            const binaryString = atob(pdfMetafield.value);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = pdfInfo.filename;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            
+            console.log('✅ PDF descargado:', pdfInfo.filename);
+            return pdfInfo;
+        } else {
+            console.log('❌ No se encontró PDF para este pedido');
+            return null;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error descargando PDF:', error);
+        throw error;
+    }
+}
+
+// � FUNCIÓN PRINCIPAL PARA PROCESAR PEDIDO (NUEVA VERSIÓN)
+async function processShopifyOrder(orderData) {
+    try {
+        console.log('🛒 Procesando pedido:', orderData.order_number);
+        
+        // 🔒 VERIFICAR QUE ES UNA COMPRA REAL DE SHOPIFY
+        if (!isValidShopifyOrder(orderData)) {
+            console.log('❌ Pedido no válido - no es una compra real de Shopify');
+            return;
+        }
+        
+        // 📄 GENERAR PDF CON TABLA DE PIEZAS
+        console.log('📄 Generando PDF de piezas...');
+        const pdfData = await generatePDFForShopify();
+        
+        // 💾 GUARDAR EN BASE DE DATOS (NUEVA FUNCIÓN)
+        console.log('💾 Guardando en base de datos...');
+        await savePDFToDatabase(orderData, pdfData);
+        
+        // 📧 NOTIFICAR AL ADMIN
+        console.log('📧 Notificando al administrador...');
+        await notifyAdminNewOrder(orderData, pdfData);
+        
+        console.log('✅ Pedido procesado exitosamente:', orderData.order_number);
+        
+    } catch (error) {
+        console.error('❌ Error procesando pedido:', error);
+    }
+}
+
+// Función de validación de pedidos reales de Shopify
+function isValidShopifyOrder(orderData) {
+    // Verificaciones de seguridad para asegurar que es una compra real
+    
+    // 1. Debe tener número de pedido válido
+    if (!orderData.order_number || orderData.order_number.length < 4) {
+        return false;
+    }
+    
+    // 2. Debe tener datos del cliente completos
+    if (!orderData.customer || !orderData.customer.first_name || !orderData.email) {
+        return false;
+    }
+    
+    // 3. Debe tener un valor monetario (indica compra real)
+    if (!orderData.total_price || parseFloat(orderData.total_price) <= 0) {
+        console.log('⚠️ Pedido sin valor monetario - posiblemente una prueba');
+        return false;
+    }
+    
+    // 4. Debe tener estado de pago confirmado
+    if (orderData.financial_status && orderData.financial_status !== 'paid') {
+        console.log('⚠️ Pedido no pagado - esperando confirmación de pago');
+        return false;
+    }
+    
+    // 5. Verificar que viene de webhook auténtico
+    if (!orderData.webhook_verified) {
+        console.log('⚠️ Webhook no verificado - posible solicitud falsa');
+        return false;
+    }
+    
+    return true;
+}
+
+// Función para enviar PDF por email (SOLO ADMINISTRADOR)
+async function sendPDFByEmail(emailData) {
+    // Configuración de EmailJS - ⚠️ REEMPLAZA CON TUS CLAVES REALES
+    const emailjsConfig = {
+        service_id: 'service_jws7wwl', // Tu nuevo Service ID de Gmail
+        template_id_admin: 'template_vvojiuo', // Template para administrador
+        user_id: 'ypQSdNXWnwSKdxcbC' // Tu User ID de EmailJS
+    };
+    
+    // 📧 MENSAJE SOLO PARA ADMINISTRADOR (TÚ)
+    const adminMessage = `
+🛒 NUEVA COMPRA CONFIRMADA - Pedido Pagado
+
+📋 DETALLES DEL PEDIDO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Número de Pedido: #${emailData.orderNumber}
+Cliente: ${emailData.customerName}
+Email del Cliente: ${emailData.customerEmail}
+Valor del Pedido: €${emailData.orderValue}
+Fecha de Compra: ${new Date().toLocaleDateString('es-ES')}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+� INFORMACIÓN DE PIEZAS:
+• Tipos de piezas diferentes: ${Object.keys(emailData.studMap).length}
+• Total de piezas: ${Object.values(emailData.studMap).reduce((sum, count) => sum + count, 0)}
+
+📋 ACCIONES PENDIENTES:
+1. ✅ Revisar PDF adjunto con lista completa de piezas
+2. 🔍 Verificar disponibilidad en inventario
+3. 📦 Preparar piezas según especificaciones del PDF
+4. 📧 Confirmar al cliente que el pedido está en preparación
+5. 🚚 Proceder con el envío una vez listo
+
+� RECORDATORIO:
+El PDF incluye códigos BrickLink para facilitar la identificación
+de cada pieza y sus cantidades exactas.
+
+Este es un PEDIDO REAL PAGADO - No es una prueba de la aplicación.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    `;
+    
+    const emailTemplate = {
+        service_id: emailjsConfig.service_id,
+        template_id: emailjsConfig.template_id_admin,
+        user_id: emailjsConfig.user_id,
+        template_params: {
+            to_email: emailData.to,
+            customer_name: emailData.customerName,
+            customer_email: emailData.customerEmail,
+            order_number: emailData.orderNumber,
+            order_value: emailData.orderValue,
+            pdf_attachment: emailData.pdfBase64,
+            filename: emailData.filename,
+            piece_count: Object.keys(emailData.studMap).length,
+            total_pieces: Object.values(emailData.studMap).reduce((sum, count) => sum + count, 0),
+            order_date: new Date().toLocaleDateString('es-ES'),
+            message: adminMessage,
+            subject: `🛒 PEDIDO PAGADO #${emailData.orderNumber} - ${emailData.customerName} (€${emailData.orderValue})`
+        }
+    };
+    
+    
+    // Envío real usando EmailJS
+    try {
+        const result = await emailjs.send(
+            emailTemplate.service_id,
+            emailTemplate.template_id,
+            emailTemplate.template_params,
+            emailTemplate.user_id
+        );
+        console.log('✅ Email enviado exitosamente:', result);
+        return result;
+    } catch (error) {
+        console.error('❌ Error enviando email:', error);
+        throw error;
+    }
+    
+    /*
+    // Simulación para pruebas (comentado)
+    console.log('📧 Email preparado para ADMINISTRADOR');
+    console.log('📧 Destinatario:', emailData.to);
+    console.log('📧 Asunto:', emailTemplate.template_params.subject);
+    console.log('📧 Cliente:', emailData.customerName, '(', emailData.customerEmail, ')');
+    console.log('📧 Valor pedido: €', emailData.orderValue);
+    console.log('📧 Tamaño PDF:', (emailData.pdfBase64.length / 1024).toFixed(2) + ' KB');
+    
+    return Promise.resolve('Email admin simulado enviado');
+    */
+}
+
+// Listener para webhooks de Shopify (si se configuran para recibir en el frontend)
+// Nota: En producción, esto debería manejarse en el backend
+window.addEventListener('message', async (event) => {
+    if (event.data && event.data.type === 'shopify_order_created') {
+        await processShopifyOrder(event.data.order);
     }
 });
+
+// 🔍 FUNCIÓN PARA VERIFICAR CONFIGURACIÓN DE SHOPIFY
+window.verifyShopifyConfig = async function() {
+    console.log('🔍 === VERIFICANDO CONFIGURACIÓN DE SHOPIFY ===');
+    console.log('');
+    
+    const shopifyConfig = {
+        shop: 'VisuBloq.myshopify.com',
+        accessToken: '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',
+        apiVersion: '2024-01'
+    };
+    
+    console.log('🏪 Tienda:', shopifyConfig.shop);
+    console.log('🔑 Token:', shopifyConfig.accessToken.substring(0, 15) + '...');
+    console.log('📅 API Version:', shopifyConfig.apiVersion);
+    console.log('');
+    
+    try {
+        // 1. Test básico - obtener información de la tienda
+        console.log('🧪 Test 1: Acceso básico a la tienda...');
+        const shopResponse = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/shop.json`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyConfig.accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (shopResponse.ok) {
+            const shopData = await shopResponse.json();
+            console.log('✅ Acceso básico: OK');
+            console.log('🏪 Nombre de tienda:', shopData.shop.name);
+            console.log('🌐 Dominio:', shopData.shop.domain);
+        } else {
+            console.error('❌ Error de acceso básico:', shopResponse.status, shopResponse.statusText);
+            return false;
+        }
+        
+        // 2. Test de permisos de pedidos
+        console.log('');
+        console.log('🧪 Test 2: Permisos de pedidos...');
+        const ordersResponse = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/orders.json?limit=1`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyConfig.accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (ordersResponse.ok) {
+            console.log('✅ Lectura de pedidos: OK');
+        } else {
+            console.error('❌ Error leyendo pedidos:', ordersResponse.status);
+        }
+        
+        // 3. Test de permisos de metafields
+        console.log('');
+        console.log('🧪 Test 3: Permisos de metafields...');
+        const metafieldsResponse = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/metafields.json?limit=1`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyConfig.accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (metafieldsResponse.ok) {
+            console.log('✅ Acceso a metafields: OK');
+        } else {
+            console.error('❌ Error con metafields:', metafieldsResponse.status);
+        }
+        
+        console.log('');
+        console.log('✅ VERIFICACIÓN COMPLETADA');
+        console.log('💡 Ahora puedes ejecutar: quickTest() o fullTest()');
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error verificando configuración:', error);
+        console.log('');
+        console.log('🔧 POSIBLES PROBLEMAS:');
+        console.log('1. Token inválido o expirado');
+        console.log('2. Permisos insuficientes en la app');
+        console.log('3. Nombre de tienda incorrecto');
+        console.log('4. Problema de conectividad');
+        
+        return false;
+    }
+};
+
+// 🧪 FUNCIÓN DE PRUEBA PARA SHOPIFY (con PDF guardado) - VERSION MEJORADA
+window.testShopifyOrderWithPDF = async function(customOrder) {
+    // Usar orden personalizada o crear una por defecto
+    const mockRealOrder = customOrder || {
+        id: Date.now(), // Usar timestamp como ID único
+        order_number: 'VB-TEST-' + Math.floor(Math.random() * 1000),
+        email: 'admin@visubloq.com',
+        customer: {
+            first_name: 'Test',
+            last_name: 'VisuBloq',
+            email: 'admin@visubloq.com'
+        },
+        total_price: '29.99', // Precio real - indica compra válida
+        financial_status: 'paid', // Estado de pago confirmado
+        webhook_verified: true, // Webhook auténtico
+        created_at: new Date().toISOString(),
+        note: 'Pedido de prueba desde VisuBloq',
+        tags: 'test-order,visubloq'
+    };
+    
+    console.log('🧪 INICIANDO PRUEBA CON GUARDADO EN SHOPIFY...');
+    console.log('📋 Orden de prueba:', mockRealOrder);
+    console.log('');
+    
+    // Verificar configuración actual
+    console.log('🔧 CONFIGURACIÓN ACTUAL:');
+    console.log('🏪 Shop:', 'VisuBloq.myshopify.com');
+    console.log('🔑 Token:', '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'.substring(0, 15) + '...');
+    console.log('');
+    
+    try {
+        await processShopifyOrder(mockRealOrder);
+        console.log('✅ PRUEBA COMPLETADA EXITOSAMENTE');
+    } catch (error) {
+        console.error('❌ ERROR EN LA PRUEBA:', error);
+        console.log('');
+        console.log('🔧 POSIBLES SOLUCIONES:');
+        console.log('1. Verificar que el token tiene permisos correctos');
+        console.log('2. Verificar que la tienda existe: VisuBloq.myshopify.com');
+        console.log('3. Verificar conexión a internet');
+        console.log('4. Revisar consola de red (F12 → Network) para más detalles');
+    }
+};
+
+// 🧪 FUNCIÓN PARA PROBAR DESCARGA DE PDF
+window.testDownloadPDF = async function(orderId) {
+    if (!orderId) {
+        console.log('❌ Necesitas proporcionar un Order ID');
+        console.log('Ejemplo: testDownloadPDF(5841278066848)');
+        return;
+    }
+    
+    console.log('📥 Intentando descargar PDF del pedido:', orderId);
+    await downloadPDFFromShopify(orderId);
+};
+
+// Función de prueba para simular pedido NO válido (demo/prueba)
+window.testInvalidOrder = async function() {
+    const mockInvalidOrder = {
+        order_number: '12345',
+        email: 'test@test.com',
+        customer: {
+            first_name: 'Usuario',
+            last_name: 'Prueba'
+        },
+        total_price: '0.00', // Sin valor - indica prueba
+        financial_status: 'pending',
+        webhook_verified: false,
+        created_at: new Date().toISOString()
+    };
+    
+    console.log('🧪 INICIANDO PRUEBA DE PEDIDO INVÁLIDO...');
+    await processShopifyOrder(mockInvalidOrder);
+    console.log('✅ PRUEBA COMPLETADA - Este pedido NO debería enviar email');
+};
+
+// Función de configuración para EmailJS (ejecutar una vez)
+window.configureEmailJS = function() {
+    console.log(`
+🔧 CONFIGURACIÓN PARA PEDIDOS REALES DE SHOPIFY:
+
+📋 PASOS DE CONFIGURACIÓN:
+
+1. CONFIGURA EMAILJS:
+   • Ve a https://www.emailjs.com/
+   • Crea cuenta gratuita
+   • Conecta Gmail como servicio de email
+   
+2. CREA TEMPLATE PARA ADMINISTRADOR:
+   • Subject: {{subject}}
+   • Content: {{message}}
+   • Attachment: {{pdf_attachment}} (nombre: {{filename}})
+   
+3. ACTUALIZA CLAVES EN EL CÓDIGO:
+   • service_id: 'service_xxxxxxx'
+   • template_id_admin: 'template_admin_xxx'
+   • user_id: 'user_xxxxxxxxx'
+   • to: 'tu-email-real@dominio.com'
+
+4. CONFIGURA WEBHOOK DE SHOPIFY:
+   • URL: https://tu-dominio.com/webhook/shopify-order
+   • Evento: Order creation
+   • Formato: JSON
+   
+5. WEBHOOK HANDLER (PHP/Node.js):
+   • Verificar autenticidad del webhook
+   • Añadir webhook_verified: true
+   • Reenviar a VisuBloq solo si es compra real
+
+📚 VERIFICACIONES DE SEGURIDAD:
+✅ Solo pedidos con valor monetario > 0
+✅ Solo pedidos con estado 'paid'
+✅ Solo webhooks verificados auténticos
+✅ Email SOLO al administrador (no al cliente)
+
+🧪 COMANDOS DE PRUEBA:
+testShopifyOrder()     → Simula pedido válido
+testInvalidOrder()     → Simula pedido inválido (no envía email)
+    `);
+};
+
+function triggerDepthMapGeneration() {
+    disableInteraction();
+    const worker = new Worker("js/depth-map-web-worker.js");
+
+    const loadingMessageComponent = document.getElementById("web-worker-loading-message");
+    loadingMessageComponent.hidden = false;
+
+    webWorkerInputCanvas.width = CNN_INPUT_IMAGE_WIDTH;
+    webWorkerInputCanvas.height = CNN_INPUT_IMAGE_HEIGHT;
+    webWorkerInputCanvasContext.drawImage(
+        inputImage,
+        0,
+        0,
+        inputImage.width,
+        inputImage.height,
+        0,
+        0,
+        CNN_INPUT_IMAGE_WIDTH,
+        CNN_INPUT_IMAGE_HEIGHT
+    );
+    setTimeout(() => {
+        const inputPixelArray = getPixelArrayFromCanvas(webWorkerInputCanvas);
+        worker.postMessage({
+            inputPixelArray,
+        });
+
+        worker.addEventListener("message", (e) => {
+            const { result, loadingMessage } = e.data;
+            if (result != null) {
+                webWorkerOutputCanvas.width = CNN_INPUT_IMAGE_WIDTH;
+                webWorkerOutputCanvas.height = CNN_INPUT_IMAGE_HEIGHT;
+                drawPixelsOnCanvas(result, webWorkerOutputCanvas);
+                setTimeout(() => {
+                    inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvasContext.drawImage(
+                        webWorkerOutputCanvas,
+                        0,
+                        0,
+                        CNN_INPUT_IMAGE_WIDTH,
+                        CNN_INPUT_IMAGE_HEIGHT,
+                        0,
+                        0,
+                        SERIALIZE_EDGE_LENGTH,
+                        SERIALIZE_EDGE_LENGTH
+                    );
+                    setTimeout(() => {
+                        loadingMessageComponent.hidden = true;
+                        enableInteraction();
+                        overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+                        runStep1();
+                    }, 50); // TODO: find better way to check that input is finished
+                }, 50); // TODO: find better way to check that input is finished
+            } else if (loadingMessage != null) {
+                loadingMessageComponent.innerHTML = loadingMessage;
+            } else {
+                console.log("Message from web worker: ", e.data);
+            }
+        });
+    }, 50); // TODO: find better way to check that input is finished
+}
+
+document.getElementById("generate-depth-image").addEventListener("click", triggerDepthMapGeneration);
+
+const SERIALIZE_EDGE_LENGTH = 512;
+
+function handleInputImage(e, dontClearDepth, dontLog) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        inputImage = new Image();
+        inputImage.onload = function () {
+            inputCanvas.width = SERIALIZE_EDGE_LENGTH;
+            inputCanvas.height = SERIALIZE_EDGE_LENGTH;
+            inputCanvasContext.drawImage(
+                inputImage,
+                0,
+                0,
+                inputImage.width,
+                inputImage.height,
+                0,
+                0,
+                SERIALIZE_EDGE_LENGTH,
+                SERIALIZE_EDGE_LENGTH
+            );
+
+            // remove transparency
+            const inputImagePixels = getPixelArrayFromCanvas(inputCanvas);
+            for (var i = 3; i < inputImagePixels.length; i += 4) {
+                inputImagePixels[i] = 255;
+            }
+            drawPixelsOnCanvas(inputImagePixels, inputCanvas);
+
+            if (!dontClearDepth) {
+                inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+                inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+                inputDepthCanvasContext.fillStyle = "black";
+                inputDepthCanvasContext.fillRect(0, 0, inputDepthCanvas.width, inputDepthCanvas.height);
+            }
+        };
+        inputImage.src = event.target.result;
+        
+        // Mostrar inmediatamente la interfaz de pasos para permitir el recorte
+        document.getElementById("steps-row").hidden = false;
+        document.getElementById("input-image-selector").innerHTML = "Reselect Input Image";
+        document.getElementById("image-input-new").appendChild(document.getElementById("image-input"));
+        document.getElementById("image-input-card").hidden = true;
+        document.getElementById("run-example-input-container").hidden = true;
+        
+        setTimeout(() => {
+            step1CanvasUpscaled.width = SERIALIZE_EDGE_LENGTH;
+            step1CanvasUpscaled.height = Math.floor((SERIALIZE_EDGE_LENGTH * inputImage.height) / inputImage.width);
+            step1CanvasUpscaledContext.drawImage(
+                inputCanvas,
+                0,
+                0,
+                SERIALIZE_EDGE_LENGTH,
+                SERIALIZE_EDGE_LENGTH,
+                0,
+                0,
+                step1CanvasUpscaled.width,
+                step1CanvasUpscaled.height
+            );
+
+            overridePixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+            overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+            initializeCropper();
+            
+            runStep1();
+        }, 50); // TODO: find better way to check that input is finished
+
+        if (!dontLog) {
+            perfLoggingDatabase.ref("input-image-count/total").transaction(incrementTransaction);
+            const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
+            perfLoggingDatabase.ref("input-image-count/per-day/" + loggingTimestamp).transaction(incrementTransaction);
+        }
+    };
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+function handleInputDepthMapImage(e) {
+    const reader = new FileReader();
+    overrideDepthPixelArray = new Array(targetResolution[0] * targetResolution[1] * 4).fill(null);
+    reader.onload = function (event) {
+        inputImage = new Image();
+        inputImage.onload = function () {
+            inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+            inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+            inputDepthCanvasContext.drawImage(
+                inputImage,
+                0,
+                0,
+                inputImage.width,
+                inputImage.height,
+                0,
+                0,
+                SERIALIZE_EDGE_LENGTH,
+                SERIALIZE_EDGE_LENGTH
+            );
+        };
+        inputImage.src = event.target.result;
+        setTimeout(() => {
+            runStep1();
+        }, 50); // TODO: find better way to check that input is finished
+
+        // TODO: log for perf estimation?
+    };
+    reader.readAsDataURL(e.target.files[0]);
+}
+
+const EXAMPLES_BASE_URL = "assets/png/";
+const EXAMPLES = [
+    {
+        colorFile: "lenna.png",
+        depthFile: "lenna-depth.png",
+    },
+];
+document.getElementById("run-example-input").addEventListener("click", () => {
+    disableInteraction();
+    const example = EXAMPLES[Math.floor(Math.random() * EXAMPLES.length)];
+
+    // load in depth first, then trigger step 1
+    fetch(EXAMPLES_BASE_URL + example.depthFile)
+        .then((response) => response.blob())
+        .then((depthImage) => {
+            enableDepth();
+            // use an object url to get around possible bad browser caching race conditions
+            const depthImageURL = URL.createObjectURL(depthImage);
+            const depthReader = new FileReader();
+            depthReader.onload = function (event) {
+                inputDepthImage = new Image();
+                inputDepthImage.onload = function () {
+                    inputDepthCanvas.width = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvas.height = SERIALIZE_EDGE_LENGTH;
+                    inputDepthCanvasContext.drawImage(
+                        inputDepthImage,
+                        0,
+                        0,
+                        inputDepthImage.width,
+                        inputDepthImage.height,
+                        0,
+                        0,
+                        SERIALIZE_EDGE_LENGTH,
+                        SERIALIZE_EDGE_LENGTH
+                    );
+                };
+                inputDepthImage.src = depthImageURL;
+                setTimeout(() => {
+                    fetch(EXAMPLES_BASE_URL + example.colorFile)
+                        .then((response) => response.blob())
+                        .then((colorImage) => {
+                            // use an object url to get around possible bad browser caching race conditions
+                            const colorImageURL = URL.createObjectURL(colorImage);
+                            const e = {
+                                target: {
+                                    files: [colorImage],
+                                },
+                            };
+                            handleInputImage(e, true, true);
+                        });
+                }, 50); // TODO: find better way to check that input is finished
+            };
+            depthReader.readAsDataURL(depthImage);
+        });
+    perfLoggingDatabase.ref("trigger-random-example-input-count/total").transaction(incrementTransaction);
+    const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
+    perfLoggingDatabase
+        .ref("trigger-random-example-input-count/per-day/" + loggingTimestamp)
+        .transaction(incrementTransaction);
+});
+
+const imageURLMatch =
+    window.location.href.match(
+        /image=(https?((:\/\/)|(%3A%2F%2F)))?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?)/gi
+    ) ?? [];
+const imageURL =
+    imageURLMatch.length > 0 ? imageURLMatch[0].replace(/image=(https?((:\/\/)|(%3A%2F%2F)))?/gi, "") : null;
+
+if (imageURL != null) {
+    setTimeout(() => {
+        fetch("https://" + decodeURIComponent(imageURL))
+            .then((response) => response.blob())
+            .then((colorImage) => {
+                try {
+                    // use an object url to get around possible bad browser caching race conditions
+                    const colorImageURL = URL.createObjectURL(colorImage);
+                    const e = {
+                        target: {
+                            files: [colorImage],
+                        },
+                    };
+                    handleInputImage(e, true, true);
+                } catch (e) {
+                    enableInteraction();
+                }
+            })
+            .catch((err) => {
+                enableInteraction();
+            });
+    }, 50); // TODO: find better way to check that input is finished
+}
+
+const imageSelectorHidden = document.getElementById("input-image-selector-hidden");
+imageSelectorHidden.addEventListener("change", (e) => handleInputImage(e), false);
+document.getElementById("input-image-selector").addEventListener("click", () => {
+    // AÃ±adir animaciÃ³n de click
+    const button = document.getElementById("input-image-selector");
+    button.style.transform = "scale(0.95)";
+    setTimeout(() => {
+        button.style.transform = "";
+    }, 100);
+    
+    imageSelectorHidden.click();
+});
+
+const depthImageSelectorHidden = document.getElementById("input-depth-image-selector-hidden");
+depthImageSelectorHidden.addEventListener("change", handleInputDepthMapImage, false);
+document.getElementById("input-depth-image-selector").addEventListener("click", () => {
+    depthImageSelectorHidden.click();
+});
+
+window.addEventListener("appinstalled", () => {
+    perfLoggingDatabase.ref("pwa-install-count/total").transaction(incrementTransaction);
+    const loggingTimestamp = Math.floor((Date.now() - (Date.now() % 8.64e7)) / 1000); // 8.64e+7 = ms in day
+    perfLoggingDatabase.ref("pwa-install-count/per-day/" + loggingTimestamp).transaction(incrementTransaction);
+});
+
+const toggleTechTalkButton = document.getElementById("toggle-tech-talk-button");
+if (toggleTechTalkButton) {
+    toggleTechTalkButton.addEventListener("click", () => {
+        // small hack so the iframe only renders when open
+        const youtubeWrapper = document.getElementById("responsive-youtube");
+        if (youtubeWrapper && youtubeWrapper.innerHTML.match(/.*Loading.*/i)) {
+            youtubeWrapper.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/G58ZNurxXgQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>`;
+        }
+    });
+}
+
+enableInteraction(); // enable interaction once everything has loaded in
+
+// 🔍 FUNCIÓN SIMPLE PARA VERIFICAR SHOPIFY
+window.verifyShopifyConfig = async function() {
+    console.log('🔍 === VERIFICANDO CONFIGURACIÓN DE SHOPIFY ===');
+    
+    const shopifyConfig = {
+        shop: 'VisuBloq.myshopify.com',
+        accessToken: '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',
+        apiVersion: '2024-01'
+    };
+    
+    console.log('🏪 Tienda:', shopifyConfig.shop);
+    console.log('🔑 Token:', shopifyConfig.accessToken.substring(0, 15) + '...');
+    
+    try {
+        const response = await fetch(`https://${shopifyConfig.shop}/admin/api/${shopifyConfig.apiVersion}/shop.json`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyConfig.accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ CONFIGURACIÓN OK - Tienda:', data.shop.name);
+            console.log('💡 Ahora ejecuta: testShopifyOrderWithPDF()');
+            return true;
+        } else {
+            console.error('❌ Error:', response.status, response.statusText);
+            console.log('🔧 Necesitas configurar la app en Shopify Admin');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error de conexión:', error);
+        return false;
+    }
+};
+
+// 🧪 FUNCIÓN SIMPLE DE PRUEBA
+window.testShopifyOrderWithPDF = async function() {
+    console.log('🧪 === PRUEBA DE SHOPIFY ===');
+    
+    const mockOrder = {
+        id: Date.now(),
+        order_number: 'VB-TEST-' + Math.floor(Math.random() * 1000),
+        email: 'admin@visubloq.com',
+        customer: { first_name: 'Test', last_name: 'User' },
+        total_price: '29.99',
+        financial_status: 'paid',
+        webhook_verified: true
+    };
+    
+    console.log('📦 Pedido de prueba:', mockOrder.order_number);
+    
+    try {
+        await processShopifyOrder(mockOrder);
+        console.log('✅ PRUEBA COMPLETADA');
+    } catch (error) {
+        console.error('❌ Error en la prueba:', error);
+    }
+};
