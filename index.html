@@ -1902,4 +1902,16 @@
         }
       </script>
     </body>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var goToStep4Btn = document.getElementById('go-to-step4-button');
+    if (goToStep4Btn) {
+      goToStep4Btn.addEventListener('click', function() {
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-4').style.display = 'block';
+        if (typeof runStep4 === 'function') runStep4();
+      });
+    }
+  });
+  </script>
   </html>
