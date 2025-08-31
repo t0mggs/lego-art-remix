@@ -2338,6 +2338,7 @@ function runStep4(asyncCallback) {
                     goToStep4Btn.addEventListener('click', function() {
                         document.getElementById('step-1').style.display = 'none';
                         document.getElementById('step-4').style.display = 'block';
+                        runStep4(); // Genera y muestra la imagen final
                     });
                 }
             });
