@@ -41,41 +41,6 @@
       </PageMap>
 
       <style>
-        /* Estilos personalizados para botones principales */
-        .main-action-btn {
-          background: transparent !important;
-          border: 2px solid #000000 !important;
-          color: #000000 !important;
-          font-family: 'Dortmund', Arial, sans-serif !important;
-          font-weight: bold !important;
-          padding: 12px 30px !important;
-          border-radius: 8px !important;
-          transition: all 0.3s ease !important;
-          position: relative !important;
-          overflow: hidden !important;
-          margin: 0 auto !important;
-          display: block !important;
-          box-shadow: none !important;
-        }
-        .main-action-btn:hover {
-          background: #000000 !important;
-          color: #ffffff !important;
-          transform: translateY(-2px) !important;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        }
-        .main-action-btn:active {
-          transform: translateY(0) scale(0.98) !important;
-          transition: all 0.1s ease !important;
-          background: #000000 !important;
-          color: #ffffff !important;
-        }
-        .main-action-btn:focus {
-          background: transparent !important;
-          border-color: #000000 !important;
-          color: #000000 !important;
-          box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25) !important;
-          outline: none !important;
-        }
         /* Centrar el step1 en la pantalla */
         #step-1 {
           display: flex;
@@ -576,7 +541,7 @@
                 <div style="width: 100%">
                   <canvas id="step-1-canvas-upscaled" style="width: 100%" class="cropper-img"></canvas>
                   <div style="text-align: center; margin-top: 16px;">
-                    <button id="go-to-step4-button" class="main-action-btn">LISTO</button>
+                    <button id="go-to-step4-button" class="btn btn-info">LISTO</button>
                   </div>
                 </div>
                 <div id="step-1-accordion">
@@ -1819,7 +1784,7 @@
             <span id="image-input">
               <input type="file" id="input-image-selector-hidden" name="input-image-selector-hidden" hidden />
               <div>
-                <button class="main-action-btn" type="button" id="input-image-selector">
+                <button class="btn btn-success" type="button" id="input-image-selector">
                   SELECT IMAGE
                 </button>
               </div>
