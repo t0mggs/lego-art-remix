@@ -504,7 +504,7 @@
       <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
         <div id="step-1" class="col-6 col-md-3 hide-on-step-3-expansion">
           <div style="text-align:center; font-size:1.2em; font-weight:bold; margin-bottom:20px; color:#111; font-family:'Inter', sans-serif;">AJUSTA TU IMAGEN Y DALE A "LISTO"</div>
-          <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important;">
+          <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important; border:none !important; box-shadow:none !important;">
             <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
               <li class="nav-item">
                 <a
@@ -539,7 +539,7 @@
                 aria-labelledby="step-1-color-tab"
               >
                 <div style="width: 100%">
-                  <canvas id="step-1-canvas-upscaled" style="width: 100%; box-shadow: 0 8px 32px 0 rgba(60,60,60,0.18), 0 1.5px 6px 0 rgba(60,60,60,0.12); border-radius: 16px;" class="cropper-img"></canvas>
+                  <canvas id="step-1-canvas-upscaled" style="width: 100%" class="cropper-img"></canvas>
                   <div style="text-align: center; margin-top: 16px;">
                     <button id="go-to-step4-button" class="btn btn-info">LISTO</button>
                   </div>
@@ -1257,7 +1257,7 @@
         </div>
 
         <div id="step-4" class="col-6 col-md-3 hide-on-step-3-expansion">
-          <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important;">
+          <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important; border:none !important; box-shadow:none !important;">
             <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
               <li class="nav-item">
                 <a
@@ -1293,7 +1293,7 @@
               >
                 <canvas id="step-4-canvas" hidden></canvas>
                 <canvas id="bricklink-cache-canvas" hidden></canvas>
-                <canvas id="step-4-canvas-upscaled" style="width: 100%; box-shadow: 0 8px 32px 0 rgba(60,60,60,0.18), 0 1.5px 6px 0 rgba(60,60,60,0.12); border-radius: 16px;"></canvas>
+                <canvas id="step-4-canvas-upscaled" style="width: 100%"></canvas>
                 <br />
                 <div className="step-header-subtitle text-danger" id="nonzero-missing-pieces-warning" hidden>
                   <small>Image processing requires proper color configuration</small>
