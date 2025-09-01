@@ -41,14 +41,33 @@
       </PageMap>
 
       <style>
-        /* Centrar el step1 en la pantalla */
-        #step-1 {
+        /* Centrado general y responsivo para los steps */
+        #steps-row {
+          display: flex !important;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          min-height: calc(100vh - 20px);
+        }
+        #step-1, #step-4 {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          margin: 0 auto;
-          min-height: 60vh;
+          width: 100%;
+          max-width: 500px;
+          margin: 0 auto 24px auto;
+        }
+        @media (max-width: 768px) {
+          #step-1, #step-4 {
+            max-width: 98vw;
+            padding: 0 2vw;
+          }
+        }
+        .card {
+          width: 100%;
+          box-sizing: border-box;
         }
         #step-4 {
           display: none;
