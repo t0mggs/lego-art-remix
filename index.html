@@ -41,33 +41,14 @@
       </PageMap>
 
       <style>
-        /* Centrado general y responsivo para los steps */
-        #steps-row {
-          display: flex !important;
-          flex-wrap: wrap;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          min-height: calc(100vh - 20px);
-        }
-        #step-1, #step-4 {
+        /* Centrar el step1 en la pantalla */
+        #step-1 {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          width: 100%;
-          max-width: 500px;
-          margin: 0 auto 24px auto;
-        }
-        @media (max-width: 768px) {
-          #step-1, #step-4 {
-            max-width: 98vw;
-            padding: 0 2vw;
-          }
-        }
-        .card {
-          width: 100%;
-          box-sizing: border-box;
+          margin: 0 auto;
+          min-height: 60vh;
         }
         #step-4 {
           display: none;
@@ -520,7 +501,7 @@
       <div id="universal-loading-progress" style="display: none;"></div>
       <div id="universal-loading-progress-complement" style="display: none;"></div>
 
-      <div class="row" id="steps-row" style="margin: 10px; padding-bottom: 30px; overflow: hidden; min-height: calc(100vh - 20px);" hidden>
+  <div class="row justify-content-center align-items-center" id="steps-row" style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 20px); padding-bottom: 30px; margin: 0 auto;" hidden>
         <div id="step-1" class="col-6 col-md-3 hide-on-step-3-expansion">
           <div style="text-align:center; font-size:1.2em; font-weight:bold; margin-bottom:20px; color:#111; font-family:'Inter', sans-serif;">AJUSTA TU IMAGEN Y DALE A "LISTO"</div>
           <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important; border:none !important; box-shadow:none !important;">
