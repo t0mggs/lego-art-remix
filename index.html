@@ -77,16 +77,26 @@
           outline: none !important;
         }
         /* Centrar el step1 en la pantalla */
-        #step-1 {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto;
-          min-height: 60vh;
+        #step-1, #step-4 {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          margin: 0 auto !important;
+          min-height: 60vh !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
+          box-sizing: border-box !important;
+          position: relative !important;
         }
         #step-4 {
-          display: none;
+          display: none !important;
+        }
+        @media (max-width: 767px) {
+          #step-1, #step-4 {
+            min-height: 70vh !important;
+            padding: 0 !important;
+          }
         }
         /* Ensure custom slider styling applies in Chromium browsers (Opera GX, Chrome, Edge) */
         input[type=range] {
