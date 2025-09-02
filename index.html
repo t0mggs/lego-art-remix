@@ -1,3 +1,79 @@
+</style>
+<style>
+  /* --- Reset útil para tamaños --- */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  /* El wrapper de pasos siempre centrado cuando esté visible */
+  #steps-row {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+    min-height: 100vh;
+  }
+
+  /* Columnas de los pasos, centradas y con ancho fluido */
+  #step-1, #step-4 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 520px !important;
+    margin: 0 auto;
+  }
+
+  /* En escritorio, 2 columnas responsivas */
+  @media (min-width: 992px) {
+    #step-1, #step-4 {
+      flex: 0 0 48% !important;
+      max-width: 48% !important;
+    }
+  }
+
+  /* Canvases e imágenes SIEMPRE centrados */
+  canvas, .cropper-img, .cropper-container {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;
+  }
+
+  /* Cropper: asegura que su contenedor no “empuje” el layout */
+  .cropper-container {
+    float: none !important;
+  }
+
+  /* Tarjetas blancas sin sombras y con ancho completo del paso */
+  .card {
+    width: 100%;
+    margin: 0 auto;
+    background: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Botones dentro de controles con sliders no rompen líneas en móvil */
+  .accordion-card-body .btn.btn-sm {
+    white-space: nowrap;
+  }
+
+  /* Oculta step-4 hasta que lo pidas (por clase, no por atributo hidden) */
+  .is-hidden { display: none !important; }
+
+  /* Evita que .row de Bootstrap meta márgenes negativos en el hero inicial */
+  #image-input-card .row { margin: 0; }
+  #image-input-card .col-sm { padding: 0; }
+
+  /* En móviles, que todo respire un poco */
+  @media (max-width: 575.98px) {
+    #steps-row { padding: 12px; gap: 20px; }
+  }
+</style>
   <!DOCTYPE html>
   <html lang="en">
     <head>
