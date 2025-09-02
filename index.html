@@ -1910,7 +1910,82 @@
               console.error("Service worker registration failed, error:", error);
             });
         }
-      </script>
+      </script><style>
+  /* --- Reset útil para tamaños --- */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  /* El wrapper de pasos siempre centrado cuando esté visible */
+  #steps-row {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;                 /* centra el bloque */
+    padding: 16px;
+    display: flex;                  /* cuando NO tenga el atributo hidden */
+    justify-content: center;
+    align-items: flex-start;        /* evita saltos verticales cuando hay acordeones */
+    gap: 32px;
+    min-height: 100vh;
+  }
+
+  /* Columnas de los pasos, centradas y con ancho fluido */
+  #step-1, #step-4 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;            /* centra el contenido dentro */
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 520px !important;    /* un poco más ancho para desktop */
+    margin: 0 auto;
+  }
+
+  /* En escritorio, 2 columnas responsivas */
+  @media (min-width: 992px) {
+    #step-1, #step-4 {
+      flex: 0 0 48% !important;
+      max-width: 48% !important;
+    }
+  }
+
+  /* Canvases e imágenes SIEMPRE centrados */
+  canvas, .cropper-img, .cropper-container {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;      /* centrado horizontal real */
+  }
+
+  /* Cropper: asegura que su contenedor no “empuje” el layout */
+  .cropper-container {
+    float: none !important;
+  }
+
+  /* Tarjetas blancas sin sombras y con ancho completo del paso */
+  .card {
+    width: 100%;
+    margin: 0 auto;
+    background: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Botones dentro de controles con sliders no rompen líneas en móvil */
+  .accordion-card-body .btn.btn-sm {
+    white-space: nowrap;
+  }
+
+  /* Oculta step-4 hasta que lo pidas (por clase, no por atributo hidden) */
+  .is-hidden { display: none !important; }
+
+  /* Evita que .row de Bootstrap meta márgenes negativos en el hero inicial */
+  #image-input-card .row { margin: 0; }
+  #image-input-card .col-sm { padding: 0; }
+
+  /* En móviles, que todo respire un poco */
+  @media (max-width: 575.98px) {
+    #steps-row { padding: 12px; gap: 20px; }
+  }
+</style>
+
     </body>
   <script>
   document.addEventListener('DOMContentLoaded', function() {
