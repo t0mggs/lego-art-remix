@@ -10,8 +10,9 @@
     margin: 0 auto;
     padding: 16px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     gap: 32px;
     min-height: 100vh;
   }
@@ -29,6 +30,10 @@
 
   /* En escritorio, 2 columnas responsivas */
   @media (min-width: 992px) {
+    #steps-row {
+      flex-direction: row;
+      align-items: flex-start;
+    }
     #step-1, #step-4 {
       flex: 0 0 48% !important;
       max-width: 48% !important;
@@ -197,12 +202,6 @@
     border: 0 !important;
   }
 
-  @media (min-width: 768px) {
-    #step-1, #step-4 {
-      flex: 0 0 50% !important;
-      max-width: 50% !important;
-    }
-  }
         /* Fuente Dortmund para VisuBloq */
         @font-face {
           font-family: 'Dortmund';
@@ -577,7 +576,7 @@
       <div id="universal-loading-progress" style="display: none;"></div>
       <div id="universal-loading-progress-complement" style="display: none;"></div>
 
-  <div id="steps-row" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; gap: 32px;" hidden>
+  <div id="steps-row" hidden>
     <div id="step-1" style="max-width: 400px; width: 100%;">
           <div style="text-align:center; font-size:1.2em; font-weight:bold; margin-bottom:20px; color:#111; font-family:'Inter', sans-serif;">AJUSTA TU IMAGEN Y DALE A "LISTO"</div>
           <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important; border:none !important; box-shadow:none !important;">
