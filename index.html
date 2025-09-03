@@ -551,32 +551,32 @@
                           <button
                             class="btn btn-link collapsed"
                             data-toggle="collapse"
-                            data-target="#step-1-1-collapse"
-                            aria-expanded="false"
-                            aria-controls="step-1-1-collapse"
-                          >
-                            RESOLUTION
-                          </button>
-                        </h5>
-                      </div>
-                      <div
-                        id="step-1-1-collapse"
-                        class="collapse"
-                        aria-labelledby="step-1-1-heading"
-                        data-parent="#step-1-accordion"
-                      >
-                        <div class="card-body accordion-card-body">
-                          <b>TARGET RESOLUTION:</b>
-                          <div style="width: 100%">
-                            <div>
-                              WIDTH:
-                              <span id="width-text" data-toggle="tooltip" title="" data-placement="top">50</span>
-                            </div>
-                            <input
-                              type="range"
-                              id="width-slider"
-                              name="points"
-                              min="16"
+                                <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
+                                  <li class="nav-item">
+                                    <a
+                                      class="nav-link active"
+                                      id="step-1-color-tab"
+                                      data-toggle="tab"
+                                      href="#step-1-color-tab-content"
+                                      role="tab"
+                                      aria-controls="step-1-color-tab-content"
+                                      aria-selected="true"
+                                      >Color</a
+                                    >
+                                  </li>
+                                  <li class="nav-item">
+                                    <a
+                                      class="nav-link"
+                                      id="step-1-depth-tab"
+                                      data-toggle="tab"
+                                      href="#step-1-depth-tab-content"
+                                      role="tab"
+                                      aria-controls="step-1-color-depth-content"
+                                      aria-selected="false"
+                                      >Depth</a
+                                    >
+                                  </li>
+                                </ul>
                               max="128"
                               step="16"
                               value="50"
@@ -1256,17 +1256,8 @@
             </div>
           </div>
 
-  <div id="step-4" style="max-width: 900px; width: 100%; display: none; margin: 0 25vw 0 auto; display: flex; flex-direction: row; align-items: flex-start;">
-            <div id="step-4-buttons" style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 32px;">
-              <!-- Botones de edición -->
-              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#step-1-edicion-collapse" aria-expanded="false" aria-controls="step-1-edicion-collapse">
-                <img src="assets/png/magic-wand.png" alt="Varita mágica" width="24" height="24" style="vertical-align:middle;margin-right:8px;"> EDIT
-              </button>
-              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#step-4-1-collapse" aria-expanded="false" aria-controls="step-4-1-collapse">Pieces Used</button>
-              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#step-4-2-collapse" aria-expanded="false" aria-controls="step-4-2-collapse">Export Piece List</button>
-              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#step-4-3-collapse" aria-expanded="false" aria-controls="step-4-3-collapse">Instructions</button>
-            </div>
-            <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important; border:none !important; box-shadow:none !important; flex: 1;">
+  <div id="step-4" style="max-width: 400px; width: 100%; display: none; margin: 0 25vw 0 auto; flex-direction: column; align-items: center;">
+            <div class="card" style="padding: 10px; margin-bottom: 10px; background: #fff !important; border:none !important; box-shadow:none !important;">
               <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
                 <li class="nav-item">
                   <a
