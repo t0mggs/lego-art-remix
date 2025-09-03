@@ -828,6 +828,276 @@
             </div>
           </div>
 
+          <div id="step-3" class="col-6 col-md-3">
+            <div class="card" style="padding: 10px; margin-bottom: 10px">
+              <ul class="nav nav-tabs 3d-selector-tabs" role="tablist" style="display: none;">
+                <li class="nav-item">
+                  <a
+                    class="nav-link active"
+                    id="step-3-color-tab"
+                    data-toggle="tab"
+                    href="#step-3-color-tab-content"
+                    role="tab"
+                    aria-controls="step-1-color-tab-content"
+                    aria-selected="true"
+                    >Color</a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a
+                    class="nav-link"
+                    id="step-3-depth-tab"
+                    data-toggle="tab" 
+                    href="#step-3-depth-tab-content"
+                    role="tab"
+                    aria-controls="step-1-color-depth-content"
+                    aria-selected="false"
+                    >Depth</a
+                  >
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div
+                  class="tab-pane fade show active"
+                  id="step-3-color-tab-content"
+                  role="tabpanel"
+                  aria-labelledby="step-3-color-tab"
+                >
+                    <!-- STEP 3 restaurado oculto para compatibilidad con el JS -->
+                    <canvas id="step-3-canvas" hidden></canvas>
+                    <canvas id="step-3-canvas-upscaled" style="width: 100%; display: none;"></canvas>
+                    <div style="display: none;">
+                      <h4>STEP 3</h4>
+                      <small class="step-header-subtitle">PROCESS IMAGE WITH FIXED COLOR PALETTE</small>
+                      <br />
+                      <span
+                        data-toggle="tooltip"
+                        title="This is the average per pixel quantization error. The lower this value is, the closer this image is to the image in step 2 (according to the chosen color distance function)"
+                        data-placement="top"
+                      >
+                        <small>Average</small> &#x3F5;:
+                        <small id="step-3-quantization-error"></small>
+                      </span>
+                    </div>
+
+                  <div id="step-3-accordion">
+                    <div class="card accordion-card">
+                      <div class="card-header" id="step-3-2-heading">
+                        <h5 class="mb-0">
+                          <button
+                            class="btn btn-link collapsed"
+                            data-toggle="collapse"
+                            data-target="#step-3-2-collapse"
+                            aria-expanded="false"
+                            aria-controls="step-3-2-collapse"
+                          >
+                            Available Colors
+                          </button>
+                        </h5>
+                      </div>
+                      <div
+                        id="step-3-2-collapse"
+                        class="collapse"
+                        aria-labelledby="step-3-2-heading"
+                        data-parent="#step-3-accordion"
+                      >
+                        <div class="card-body accordion-card-body">
+                          <div id="custom-stud-map-controls" style="margin-top: 4px">
+                            <div style="margin-bottom: 20px">
+                              <small>
+                                <p style="margin-left: 4px; margin-bottom: 8px">
+                                  &#9679; This section specifies how many pieces of each color you have available to create
+                                  the image
+                                </p>
+                                <p style="margin-left: 4px; margin-bottom: 8px">&#9679; Color names are bricklink colors</p>
+                                <p style="margin-left: 4px; margin-bottom: 8px">
+                                  &#9679; Step 4 of the algorithm cannot run unless you select enough pieces to fill the
+                                  picture ('Missing Pieces' must be 0)
+                                </p>
+                                <p style="margin-left: 4px; margin-bottom: 8px">
+                                  &#9679; If you're working with an existing set, then clear the available pieces and use
+                                  the mix in option to add in the pieces from your set.
+                                </p>
+                                <b>Required Pieces: <span id="required-studs"></span></b><br />
+                                <b>Available Pieces: <span id="available-studs"></span></b><br />
+                                <b>Missing Pieces: <span id="missing-studs"></span></b><br />
+                              </small>
+                            </div>
+                            <div class="btn-group" style="margin-bottom: 10px;">
+                              <button
+                                class="btn dropdown-toggle btn-info"
+                                type="button"
+                                id="select-starting-custom-stud-map-button"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                              >
+                                Starting Custom Stud Map
+                              </button>
+                              <div
+                                class="dropdown-menu"
+                                id="select-starting-custom-stud-map-options"
+                                aria-labelledby="select-starting-custom-stud-map-button"
+                              ></div>
+                            </div>
+                            <div style="margin-left: 4px; margin-bottom: 10px;">
+                              <small id="input-stud-map-description"></small>
+                            </div>
+                            <div style="padding-bottom: 10px; display: none;">
+                              <button class="btn btn-warning" type="button" id="clear-custom-studs-button">
+                                Clear Available Pieces
+                              </button>
+                            </div>
+                            <div
+                              class="checkbox"
+                              style="margin-top: 4px; margin-left: 4px"
+                              id="infinite-piece-count-check-container"
+                            >
+                              <label class="checkbox-clickable">
+                                <input type="checkbox" class="checkbox-clickable" id="infinite-piece-count-check" />
+                                <span style="font-size: 13px">Infinite Piece Counts</span>
+                              </label>
+                            </div>
+                            <div style="margin-left: 4px" id="forced-infinite-piece-count-warning" hidden>
+                              <small>
+                                <p>
+                                  <b>Important</b>: Infinite piece counts were used, since a linear error dithering
+                                  algorithm was selected in the
+                                  <span style="font-weight: 550">'Quantization'</span>
+                                  section, or a variable piece type was selected in the
+                                  <span style="font-weight: 550">'Pixel Piece'</span>
+                                  section
+                                </p>
+                              </small>
+                            </div>
+                            <div style="margin-left: 4px">
+                              <small>
+                                <p>
+                                  <b>Note</b>: Any colors painted using the paintbrush are assumed to exist when infinite
+                                  piece counts are enabled
+                                </p>
+                              </small>
+                            </div>
+                            <table class="table">
+                              <thead>
+                                <tr>
+                                  <th scope="col">Color</th>
+                                  <th scope="col">Number Available</th>
+                                </tr>
+                              </thead>
+                              <tbody id="custom-stud-table-body"></tbody>
+                            </table>
+                            <div style="padding-bottom: 10px">
+                            </div>
+                            <div style="padding-bottom: 10px">
+                              <a id="export-stud-map-button" download="selected-studs.json" href="””">
+                                <button class="btn btn-info" type="button">Export Selected Studs</button>
+                              </a>
+                            </div>
+                            <div style="padding-bottom: 10px">
+                              <button
+                                class="btn btn-info"
+                                type="button"
+                                id="load-fixed-palette-button"
+                                style="display: none;"
+                              >
+                                Loading Color Palette...
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Sección Pixel Piece -->
+                    <div class="card accordion-card hide-on-step-3-expansion" style="display: none !important;">
+                      <div class="card-header" id="step-3-3-heading">
+                        <h5 class="mb-0">
+                          <button
+                            class="btn btn-link collapsed"
+                            data-toggle="collapse"
+                            data-target="#step-3-3-collapse"
+                            aria-expanded="false"
+                            aria-controls="step-3-3-collapse"
+                          >
+                            Pixel Piece
+                          </button>
+                        </h5>
+                      </div>
+                      <div
+                        id="step-3-3-collapse"
+                        class="collapse"
+                        aria-labelledby="step-3-3-heading"
+                        data-parent="#step-3-accordion"
+                      >
+                        <div class="card-body accordion-card-body">
+                          <div class="checkbox" style="margin-top: 4px; margin-left: 4px">
+                            <div class="btn-group">
+                              <button
+                                class="btn dropdown-toggle btn-outline-dark"
+                                type="button"
+                                id="bricklink-piece-button"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                              >
+                                Bricklink Pixel Piece
+                              </button>
+                              <div
+                                class="dropdown-menu"
+                                id="bricklink-piece-options"
+                                aria-labelledby="stud-map-button"
+                              ></div>
+                            </div>
+                            <div id="pixel-dimensions-container-wrapper" hidden style="margin-top: 8px; margin-bottom: 2px">
+                              <small>
+                                <p style="margin-bottom: 8px">
+                                  <b>Important</b>: Since a variable size pixel type was selected,
+                                  <span style="font-weight: 550">'Infinite Piece Counts'</span>
+                                  under
+                                  <span style="font-weight: 550">'Available Colors'</span>
+                                  was enabled - be careful!
+                                </p>
+                              </small>
+                              <b>Available Dimensions:</b>
+                              <div id="pixel-dimensions-container"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card accordion-card hide-on-step-3-expansion" style="display: none !important;">
+                      <div class="card-header" id="step-3-4-heading">
+                        <h5 class="mb-0">
+                          <button
+                            class="btn btn-link collapsed"
+                            data-toggle="collapse"
+                            data-target="#step-3-4-collapse"
+                            aria-expanded="false"
+                            aria-controls="step-3-4-collapse"
+                          >
+                            Quantization
+                          </button>
+                        </h5>
+                      </div>
+                      <div
+                        id="step-3-4-collapse"
+                        class="collapse"
+                        aria-labelledby="step-3-4-heading"
+                        data-parent="#step-3-accordion"
+                      >
+                        <div class="card-body accordion-card-body">
+                          <div style="margin-left: 4px">
+                            <small>
+                              <b style="margin-bottom: 2px">Color Distance Function </b>
+                              <p style="margin-bottom: 8px; margin-top: 4px">
+                                &#9679; This setting determines which distance function is used to align pixels to their
+                                closest Lego colors
+                              </p>
+                            </small>
+                            <button
+                              class="btn dropdown-toggle btn-outline-dark"
                               type="button"
                               id="distance-function-button"
                               data-toggle="dropdown"
