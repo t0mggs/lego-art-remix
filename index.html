@@ -47,11 +47,23 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
+            margin: 0 auto 0 25vw;
             min-height: 60vh;
+            max-width: 400px;
+            width: 100%;
           }
           #step-4 {
             display: none;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 25vw 0 auto;
+          }
+          @media (max-width: 768px) {
+            #step-1, #step-4 {
+              margin: 0 auto !important;
+              max-width: 98vw !important;
+              width: 98vw !important;
+            }
           }
           /* Ensure custom slider styling applies in Chromium browsers (Opera GX, Chrome, Edge) */
           input[type=range] {
