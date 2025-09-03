@@ -135,14 +135,6 @@ const step2DepthCanvasContext = step2DepthCanvas.getContext("2d");
 const step2DepthCanvasUpscaled = document.getElementById("step-2-depth-canvas-upscaled");
 const step2DepthCanvasUpscaledContext = step2DepthCanvasUpscaled.getContext("2d");
 
-    const step3Canvas = document.getElementById("step-3-canvas");
-    const step3CanvasContext = step3Canvas.getContext("2d");
-    const step3CanvasUpscaled = document.getElementById("step-3-canvas-upscaled");
-    const step3CanvasUpscaledContext = step3CanvasUpscaled.getContext("2d");
-    const step3DepthCanvas = document.getElementById("step-3-depth-canvas");
-    const step3DepthCanvasContext = step3DepthCanvas.getContext("2d");
-    const step3DepthCanvasUpscaled = document.getElementById("step-3-depth-canvas-upscaled");
-    const step3DepthCanvasUpscaledContext = step3DepthCanvasUpscaled.getContext("2d");
 
 const step4Canvas = document.getElementById("step-4-canvas");
 const step4CanvasContext = step4Canvas.getContext("2d");
