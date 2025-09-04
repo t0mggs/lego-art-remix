@@ -671,76 +671,15 @@
                 </li>
               </ul>
               <div class="tab-content">
-                <div
-                  class="tab-pane fade show active"
-                  id="step-1-color-tab-content"
-                  role="tabpanel"
-                  aria-labelledby="step-1-color-tab"
-                >
-                  <div style="width: 100%">
-                    <canvas id="step-1-canvas-upscaled" style="width: 100%" class="cropper-img"></canvas>
-                    <div style="text-align: center; margin-top: 20px;">
-                      <button id="go-to-step4-button" class="btn btn-success" style="padding: 12px 30px; font-size: 16px; font-weight: bold;">LISTO</button>
+                  <h1 style="text-align:center; font-size:2em; font-weight:bold; margin-bottom:32px; color:#111;">VISUBLOQ</h1>
+                  <div id="image-input" style="text-align: center;">
+                    <input type="file" id="input-image-selector-hidden" name="input-image-selector-hidden" hidden />
+                    <div>
+                      <button class="btn btn-success" type="button" id="input-image-selector">
+                        SELECCIONAR IMAGEN
+                      </button>
                     </div>
                   </div>
-                  <div id="step-1-accordion" style="display: none;">
-                    <div class="card accordion-card" style="display: none;">
-                      <div class="card-header" id="step-1-1-heading">
-                        <h5 class="mb-0">
-                          <button
-                            class="btn btn-link collapsed"
-                            data-toggle="collapse"
-                            data-target="#step-1-1-collapse"
-                            aria-expanded="false"
-                            aria-controls="step-1-1-collapse"
-                          >
-                            RESOLUTION
-                          </button>
-                        </h5>
-                      </div>
-                      <div
-                        id="step-1-1-collapse"
-                        class="collapse"
-                        aria-labelledby="step-1-1-heading"
-                        data-parent="#step-1-accordion"
-                      >
-                        <div class="card-body accordion-card-body">
-                          <b>TARGET RESOLUTION:</b>
-                          <div style="width: 100%">
-                            <div>
-                              WIDTH:
-                              <span id="width-text" data-toggle="tooltip" title="" data-placement="top">50</span>
-                            </div>
-                            <input
-                              type="range"
-                              id="width-slider"
-                              name="points"
-                              min="16"
-                              max="128"
-                              step="16"
-                              value="50"
-                              style="width: 100%"
-                            />
-                          </div>
-                          <div style="width: 100%">
-                            <div>
-                              HEIGHT:
-                              <span id="height-text" data-toggle="tooltip" title="" data-placement="top">50</span>
-                            </div>
-                            <input
-                              type="range"
-                              id="height-slider"
-                              name="points"
-                              min="16"
-                              max="128"
-                              step="16"
-                              value="50"
-                              style="width: 100%"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
                     <div class="card accordion-card" id="enable-depth-button-container" style="display: none;">
                       <div class="card-header" id="step-1-2-heading">
