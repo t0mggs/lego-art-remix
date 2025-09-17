@@ -41,30 +41,108 @@
         </PageMap>
 
         <style>
-          /* Centrar el step1 en la pantalla */
-          #step-1 {
+          /* Layout principal responsivo */
+          #steps-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            min-height: 100vh;
+            gap: 32px;
+          }
+          #step-1, #step-4 {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 0 25vw;
-            min-height: 60vh;
-            max-width: 400px;
             width: 100%;
-          }
-          #step-4 {
-            display: none;
             max-width: 400px;
-            width: 100%;
-            margin: 0 25vw 0 auto;
+            margin: 0 auto;
+            box-sizing: border-box;
           }
           @media (max-width: 768px) {
+            #steps-row {
+              flex-direction: column;
+              align-items: center;
+              gap: 0;
+            }
             #step-1, #step-4 {
-              margin: 0 auto !important;
               max-width: 98vw !important;
               width: 98vw !important;
+              margin: 0 auto !important;
+              min-height: unset;
+            }
+            .card {
+              margin-bottom: 16px !important;
+              padding: 8px !important;
             }
           }
+          /* Botones y controles táctiles */
+          .btn, .btn-link, button {
+            min-width: 40px;
+            min-height: 40px;
+            font-size: 1rem;
+            border-radius: 6px;
+            background: #fff;
+            color: #222;
+            border: 1px solid #e0e0e0;
+            box-shadow: none;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+          }
+          .btn:hover, .btn:focus {
+            background: #f5f5f5;
+            color: #111;
+            border: 1px solid #bdbdbd;
+          }
+          .btn-info, .btn-success, .btn-warning {
+            background: #fff !important;
+            color: #222 !important;
+            border: 1px solid #e0e0e0 !important;
+          }
+          .btn-info:hover, .btn-success:hover, .btn-warning:hover {
+            background: #f5f5f5 !important;
+            color: #111 !important;
+            border: 1px solid #bdbdbd !important;
+          }
+          /* Icono minimalista para botón EDIT */
+          #step-1-edicion-heading img {
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            background: #fafafa;
+            padding: 2px;
+            box-shadow: none;
+          }
+          /* Marco alrededor de la imagen principal */
+          .main-image-frame {
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 8px;
+            background: #fff;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 100%;
+          }
+          /* Canvas responsivos */
+          canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+          }
+          /* Cards y contenedores */
+          .card {
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            padding: 16px;
+          }
+          /* Eliminar estilos innecesarios y duplicados */
+          /* ...resto de estilos existentes y personalizados... */
           /* Ensure custom slider styling applies in Chromium browsers (Opera GX, Chrome, Edge) */
           input[type=range] {
             -webkit-appearance: none !important;
