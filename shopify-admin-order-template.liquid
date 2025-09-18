@@ -1,0 +1,131 @@
+<!-- TEMPLATE PARA MOSTRAR PDFs EN ADMIN DE PEDIDOS -->
+<!-- Uso: Copiar este código en Settings → Notifications → Order confirmation (for admin) -->
+
+<div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+  
+  <!-- Header del Pedido -->
+  <div style="background: #f8f9fa; padding: 20px; border-radius: 8px 8px 0 0; border: 1px solid #dee2e6;">
+    <h2 style="margin: 0; color: #333;">Nuevo Pedido #{{ order.order_number }}</h2>
+    <p style="margin: 5px 0 0 0; color: #666;">{{ order.created_at | date: '%d de %B de %Y a las %H:%M' }}</p>
+  </div>
+  
+  <!-- SECCIÓN PDF VISUBLOQ - DESTACADA -->
+  {% if order.attributes['VisuBloq PDF'] and order.attributes['VisuBloq PDF'] != blank %}
+  <div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px; margin: 0; border: none;">
+    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+      <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 50%; margin-right: 15px; font-size: 24px;">
+        🧱
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 18px;">DISEÑO LEGO PERSONALIZADO</h3>
+        <p style="margin: 2px 0 0 0; opacity: 0.9; font-size: 14px;">El cliente ha creado un diseño en VisuBloq</p>
+      </div>
+    </div>
+    
+    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+      <p style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">📎 Enlace al PDF de Instrucciones:</p>
+      <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; word-break: break-all; line-height: 1.4;">
+        {{ order.attributes['VisuBloq PDF'] }}
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <a href="{{ order.attributes['VisuBloq PDF'] }}" 
+         style="display: inline-block; background: rgba(255,255,255,0.2); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 0 5px; transition: background 0.2s;"
+         target="_blank">
+        📄 Ver PDF de Instrucciones
+      </a>
+      <a href="{{ order.attributes['VisuBloq PDF'] }}" 
+         download="visubloq-cliente-{{ order.order_number }}.png"
+         style="display: inline-block; background: rgba(255,255,255,0.2); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 0 5px;">
+        📥 Descargar PDF
+      </a>
+    </div>
+    
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+      <p style="margin: 0; font-size: 12px; opacity: 0.8;">
+        💡 <strong>Tip:</strong> Guarda este enlace para futuras referencias. Puedes usar este diseño para crear el producto LEGO personalizado.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Información del Cliente -->
+  <div style="background: white; padding: 20px; border: 1px solid #dee2e6; border-top: none;">
+    <h3 style="margin: 0 0 15px 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px;">👤 Información del Cliente</h3>
+    
+    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+      <div style="flex: 1;">
+        <h4 style="margin: 0 0 5px 0; color: #666; font-size: 12px; text-transform: uppercase;">Cliente</h4>
+        <p style="margin: 0; font-weight: bold;">{{ order.customer.first_name }} {{ order.customer.last_name }}</p>
+        <p style="margin: 0; color: #666;">{{ order.customer.email }}</p>
+      </div>
+      <div style="flex: 1;">
+        <h4 style="margin: 0 0 5px 0; color: #666; font-size: 12px; text-transform: uppercase;">Total</h4>
+        <p style="margin: 0; font-weight: bold; font-size: 18px; color: #28a745;">{{ order.total_price | money_with_currency }}</p>
+      </div>
+    </div>
+    
+    <!-- Dirección de Envío -->
+    <div style="margin-bottom: 20px;">
+      <h4 style="margin: 0 0 10px 0; color: #666; font-size: 12px; text-transform: uppercase;">📍 Dirección de Envío</h4>
+      <div style="background: #f8f9fa; padding: 10px; border-radius: 4px;">
+        {{ order.shipping_address | format_address }}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Productos del Pedido -->
+  <div style="background: white; padding: 20px; border: 1px solid #dee2e6; border-top: none;">
+    <h3 style="margin: 0 0 15px 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px;">🛍️ Productos</h3>
+    
+    {% for line_item in order.line_items %}
+    <div style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+      <div style="flex: 1;">
+        <p style="margin: 0; font-weight: bold;">{{ line_item.title }}</p>
+        {% if line_item.variant.title != 'Default Title' %}
+        <p style="margin: 0; color: #666; font-size: 12px;">{{ line_item.variant.title }}</p>
+        {% endif %}
+      </div>
+      <div style="text-align: center; min-width: 60px;">
+        <p style="margin: 0; color: #666;">x{{ line_item.quantity }}</p>
+      </div>
+      <div style="text-align: right; min-width: 80px;">
+        <p style="margin: 0; font-weight: bold;">{{ line_item.final_line_price | money }}</p>
+      </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Total -->
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #eee;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <p style="margin: 0; font-size: 16px; font-weight: bold;">TOTAL:</p>
+        <p style="margin: 0; font-size: 18px; font-weight: bold; color: #28a745;">{{ order.total_price | money_with_currency }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Notas del Pedido -->
+  {% if order.note and order.note != blank %}
+  <div style="background: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; border-top: none;">
+    <h4 style="margin: 0 0 10px 0; color: #856404;">📝 Notas del Pedido</h4>
+    <p style="margin: 0; color: #856404;">{{ order.note }}</p>
+  </div>
+  {% endif %}
+  
+  <!-- Footer -->
+  <div style="background: #f8f9fa; padding: 15px; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 8px 8px; text-align: center;">
+    <p style="margin: 0; color: #666; font-size: 12px;">
+      Pedido realizado en {{ shop.name }} • {{ 'now' | date: '%d de %B de %Y a las %H:%M' }}
+    </p>
+  </div>
+</div>
+
+<style>
+/* Estilos para hover en enlaces */
+a[href*="blob:"]:hover,
+a[href*="https://"]:hover {
+  background: rgba(255,255,255,0.3) !important;
+  transform: translateY(-1px);
+}
+</style>

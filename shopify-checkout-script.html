@@ -1,0 +1,250 @@
+<!-- SCRIPT PARA CHECKOUT - GUARDAR PDF EN NOTAS Y ATRIBUTOS -->
+<!-- Usar en: Shopify Admin → Settings → Checkout → Additional Scripts -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🧱 VisuBloq Checkout Script iniciado');
+    
+    // Configuración
+    const config = {
+        fieldName: 'VisuBloq PDF',
+        fieldPlaceholder: 'blob:https://... (pega aquí tu enlace de VisuBloq)',
+        validateUrls: true,
+        addToNotes: true,
+        autoSave: true
+    };
+    
+    // Crear campo de PDF
+    createVisuBloqField();
+    
+    function createVisuBloqField() {
+        const checkoutForm = document.querySelector('[data-step="contact_information"], .step__sections, .section--contact-information');
+        
+        if (!checkoutForm) {
+            setTimeout(createVisuBloqField, 1000);
+            return;
+        }
+        
+        const fieldHTML = `
+            <div class="field field--optional" id="visubloq-field-container">
+                <div class="field__input-wrapper">
+                    <label class="field__label" for="visubloq_pdf">
+                        🧱 Enlace PDF VisuBloq (opcional)
+                    </label>
+                    <input 
+                        id="visubloq_pdf" 
+                        name="attributes[${config.fieldName}]" 
+                        type="url" 
+                        class="field__input"
+                        placeholder="${config.fieldPlaceholder}"
+                        style="font-family: monospace; font-size: 12px;"
+                    />
+                    <div id="visubloq_validation" class="field__message" style="margin-top: 8px; font-size: 13px;"></div>
+                </div>
+                <div class="field__message field__message--info" style="margin-top: 8px;">
+                    💡 Si has creado un diseño LEGO en VisuBloq, pega aquí el enlace para que podamos acceder a tus instrucciones personalizadas
+                </div>
+            </div>
+        `;
+        
+        checkoutForm.insertAdjacentHTML('beforeend', fieldHTML);
+        
+        // Configurar eventos
+        setupFieldEvents();
+    }
+    
+    function setupFieldEvents() {
+        const input = document.getElementById('visubloq_pdf');
+        if (!input) return;
+        
+        // Eventos de validación
+        input.addEventListener('input', handleInputChange);
+        input.addEventListener('paste', function(e) {
+            setTimeout(() => handleInputChange(e), 100);
+        });
+        input.addEventListener('blur', handleInputChange);
+        
+        // Evento para guardar en notas
+        if (config.addToNotes) {
+            input.addEventListener('change', updateOrderNotes);
+        }
+    }
+    
+    function handleInputChange(event) {
+        const input = event.target;
+        const value = input.value.trim();
+        const validation = document.getElementById('visubloq_validation');
+        
+        if (!validation) return;
+        
+        // Limpiar validación anterior
+        validation.innerHTML = '';
+        validation.className = 'field__message';
+        
+        if (!value) {
+            return;
+        }
+        
+        // Validar URL
+        if (config.validateUrls) {
+            if (isValidVisuBloqURL(value)) {
+                showValidation('success', '✅ Enlace PDF válido detectado', validation);
+                
+                // Mostrar preview si es posible
+                if (value.startsWith('blob:') || value.startsWith('https://')) {
+                    showPDFPreview(value);
+                }
+                
+            } else {
+                showValidation('error', '❌ Enlace no válido. Debe ser un enlace blob: o https://', validation);
+            }
+        }
+        
+        // Auto-guardar
+        if (config.autoSave && value) {
+            saveToLocalStorage(value);
+        }
+    }
+    
+    function isValidVisuBloqURL(url) {
+        return url.startsWith('blob:') || 
+               url.startsWith('https://') || 
+               url.startsWith('data:image/');
+    }
+    
+    function showValidation(type, message, element) {
+        element.innerHTML = `<span style="color: ${type === 'success' ? '#28a745' : '#dc3545'};">${message}</span>`;
+        element.className = `field__message field__message--${type === 'success' ? 'success' : 'error'}`;
+    }
+    
+    function showPDFPreview(url) {
+        const container = document.getElementById('visubloq-field-container');
+        let preview = document.getElementById('visubloq-preview');
+        
+        if (preview) {
+            preview.remove();
+        }
+        
+        preview = document.createElement('div');
+        preview.id = 'visubloq-preview';
+        preview.innerHTML = `
+            <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; margin-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; color: #007bff; font-size: 14px;">🎨 Vista Previa del Diseño</h4>
+                <div style="text-align: center; background: white; padding: 10px; border-radius: 4px;">
+                    <img src="${url}" 
+                         style="max-width: 200px; max-height: 150px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; color: #666; padding: 20px;">
+                        📄 Vista previa no disponible<br>
+                        <small>El enlace se guardará correctamente</small>
+                    </div>
+                </div>
+                <p style="margin: 10px 0 0 0; font-size: 12px; color: #666; text-align: center;">
+                    ✅ Este diseño se incluirá en tu pedido
+                </p>
+            </div>
+        `;
+        
+        container.appendChild(preview);
+    }
+    
+    function updateOrderNotes() {
+        const input = document.getElementById('visubloq_pdf');
+        const value = input?.value.trim();
+        
+        if (!value || !isValidVisuBloqURL(value)) return;
+        
+        // Buscar campo de notas existente
+        let notesField = document.querySelector('textarea[name="note"]') || 
+                        document.querySelector('input[name="note"]');
+        
+        if (!notesField) {
+            // Crear campo de notas oculto
+            notesField = document.createElement('input');
+            notesField.type = 'hidden';
+            notesField.name = 'note';
+            document.querySelector('form').appendChild(notesField);
+        }
+        
+        const noteText = `🧱 VisuBloq PDF: ${value}`;
+        
+        // Actualizar notas solo si no existe ya
+        if (!notesField.value.includes('VisuBloq PDF:')) {
+            notesField.value = notesField.value ? 
+                `${notesField.value}\n\n${noteText}` : 
+                noteText;
+                
+            console.log('✅ Enlace PDF agregado a notas del pedido');
+        }
+    }
+    
+    function saveToLocalStorage(url) {
+        try {
+            localStorage.setItem('visubloq_last_pdf', url);
+            localStorage.setItem('visubloq_last_pdf_time', Date.now().toString());
+        } catch (e) {
+            console.warn('No se pudo guardar en localStorage:', e);
+        }
+    }
+    
+    function loadFromLocalStorage() {
+        try {
+            const lastPdf = localStorage.getItem('visubloq_last_pdf');
+            const lastTime = localStorage.getItem('visubloq_last_pdf_time');
+            
+            // Solo cargar si es reciente (menos de 1 hora)
+            if (lastPdf && lastTime && (Date.now() - parseInt(lastTime)) < 3600000) {
+                const input = document.getElementById('visubloq_pdf');
+                if (input && !input.value) {
+                    input.value = lastPdf;
+                    handleInputChange({ target: input });
+                }
+            }
+        } catch (e) {
+            console.warn('No se pudo cargar desde localStorage:', e);
+        }
+    }
+    
+    // Cargar PDF previo si existe
+    setTimeout(loadFromLocalStorage, 1000);
+    
+    // Estilo mejorado para el campo
+    const style = document.createElement('style');
+    style.textContent = `
+        #visubloq-field-container {
+            background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        #visubloq_pdf {
+            border: 2px solid #007bff !important;
+            border-radius: 6px !important;
+        }
+        
+        #visubloq_pdf:focus {
+            border-color: #0056b3 !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15) !important;
+        }
+        
+        .field__message--success {
+            background: #d4edda;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .field__message--error {
+            background: #f8d7da;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #f5c6cb;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    console.log('✅ VisuBloq Checkout Script completado');
+});
+</script>
