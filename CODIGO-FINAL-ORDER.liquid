@@ -1,0 +1,157 @@
+<!-- VisuBloq PDF Section - PEGAR AL FINAL DE order.liquid -->
+{% if order.attributes['VisuBloq PDF'] and order.attributes['VisuBloq PDF'] != blank %}
+<div class="visubloq-pdf-section" style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border: 2px solid #007bff; border-radius: 12px; padding: 25px; margin: 30px 0; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);">
+  
+  <!-- Header -->
+  <div style="display: flex; align-items: center; margin-bottom: 20px;">
+    <div style="background: #007bff; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 20px;">
+      🧱
+    </div>
+    <h3 style="color: #007bff; margin: 0; font-size: 1.5em; font-weight: bold;">
+      Instrucciones LEGO VisuBloq
+    </h3>
+  </div>
+  
+  <!-- PDF Content -->
+  <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    
+    <!-- Info -->
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 12px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center;">
+        <span style="font-size: 18px; margin-right: 8px;">💡</span>
+        <span style="color: #856404; font-weight: 500;">
+          Tu diseño LEGO personalizado está listo. Guarda este enlace para acceder a tus instrucciones.
+        </span>
+      </div>
+    </div>
+    
+    <!-- PDF Link -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: bold; color: #495057; margin-bottom: 8px;">
+        📎 Enlace a tus Instrucciones PDF:
+      </label>
+      <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; word-break: break-all; color: #495057;">
+        {{ order.attributes['VisuBloq PDF'] }}
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <a href="{{ order.attributes['VisuBloq PDF'] }}" 
+         target="_blank"
+         style="padding: 12px 24px; background: linear-gradient(135deg, #007bff, #0056b3); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,123,255,0.3);"
+         onmouseover="this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.transform='translateY(0)'">
+        <span style="margin-right: 8px;">📄</span>
+        Ver PDF de Instrucciones
+      </a>
+      
+      <button onclick="copyVisuBloqPDF()" 
+              style="padding: 12px 24px; background: linear-gradient(135deg, #28a745, #1e7e34); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(40,167,69,0.3);"
+              onmouseover="this.style.transform='translateY(-2px)'"
+              onmouseout="this.style.transform='translateY(0)'">
+        <span style="margin-right: 8px;">📋</span>
+        Copiar Enlace
+      </button>
+      
+      <a href="https://t0mggs.github.io/lego-art-remix" 
+         target="_blank"
+         style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(255,107,53,0.3);"
+         onmouseover="this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.transform='translateY(0)'">
+        <span style="margin-right: 8px;">🎨</span>
+        Crear Nuevo Diseño
+      </a>
+    </div>
+    
+    <!-- Additional Info -->
+    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+      <small style="color: #6c757d; display: block; margin-bottom: 5px;">
+        <strong>💾 Importante:</strong> Guarda este enlace en un lugar seguro.
+      </small>
+      <small style="color: #6c757d; display: block;">
+        <strong>🔗 Compatibilidad:</strong> El enlace funciona en cualquier dispositivo con acceso a internet.
+      </small>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript para copiar -->
+<script>
+function copyVisuBloqPDF() {
+  const pdfUrl = '{{ order.attributes['VisuBloq PDF'] }}';
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(pdfUrl).then(function() {
+      showCopySuccess();
+    }).catch(function() {
+      fallbackCopy(pdfUrl);
+    });
+  } else {
+    fallbackCopy(pdfUrl);
+  }
+}
+
+function fallbackCopy(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showCopySuccess();
+  } catch (err) {
+    alert('No se pudo copiar automáticamente. Por favor, copia manualmente el enlace.');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+function showCopySuccess() {
+  // Crear notificación visual
+  const notification = document.createElement('div');
+  notification.innerHTML = '✅ ¡Enlace copiado al portapapeles!';
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    font-weight: bold;
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-in forwards';
+    setTimeout(() => {
+      document.body.removeChild(notification);
+    }, 300);
+  }, 3000);
+}
+
+// CSS para animaciones
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+</script>
+{% endif %}

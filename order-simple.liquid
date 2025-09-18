@@ -1,0 +1,48 @@
+<!-- VisuBloq Simple - Sin errores -->
+{% assign has_visubloq_pdf = false %}
+{% if order.attributes['VisuBloq PDF'] and order.attributes['VisuBloq PDF'] != blank %}
+  {% assign has_visubloq_pdf = true %}
+{% endif %}
+
+{% if has_visubloq_pdf %}
+<div style="background: #f0f8ff; border: 2px solid #007bff; border-radius: 8px; padding: 20px; margin: 20px 0;">
+  <h3 style="color: #007bff; margin: 0 0 15px 0;">🧱 Instrucciones LEGO VisuBloq</h3>
+  
+  <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
+    <p style="margin: 0 0 10px 0;"><strong>Enlace PDF:</strong></p>
+    <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 15px; word-break: break-all; font-family: monospace; font-size: 12px;">
+      {{ order.attributes['VisuBloq PDF'] }}
+    </div>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <a href="{{ order.attributes['VisuBloq PDF'] }}" target="_blank"
+         style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+        📄 Ver PDF
+      </a>
+      <button onclick="copyToClipboard('{{ order.attributes['VisuBloq PDF'] }}')" 
+              style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        📋 Copiar Enlace
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      alert('✅ Enlace copiado al portapapeles');
+    });
+  } else {
+    // Fallback para navegadores más antiguos
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert('✅ Enlace copiado al portapapeles');
+  }
+}
+</script>
+{% endif %}

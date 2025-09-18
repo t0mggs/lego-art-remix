@@ -1,0 +1,321 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+  .customer .title {
+    font-size: calc(var(--font-heading-scale) * 2.6rem);
+  }
+
+  @media screen and (min-width: 750px) {
+    .customer .title {
+      font-size: calc(var(--font-heading-scale) * 4rem);
+    }
+  }
+{%- endstyle -%}
+
+<div class="customer account">
+  <svg style="display: none">
+    <symbol id="icon-discount" viewBox="0 0 12 12">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M7 0h3a2 2 0 012 2v3a1 1 0 01-.3.7L8 9.4a1 1 0 01-1.4 0L3 5.7a1 1 0 010-1.4L6.3.3A1 1 0 017 0z" fill="currentColor"/>
+      <path d="M9 3a1 1 0 11-2 0 1 1 0 012 0z" fill="white"/>
+    </symbol>
+  </svg>
+
+  <div class="customer__addresses">
+    <h1 class="customer__title">
+      Mi cuenta
+    </h1>
+    <a href="{{ routes.account_url }}">Volver a la cuenta</a>
+
+    <div class="customer__order">
+      {%- assign order_date = order.created_at | time_tag: format: "date_at_time" -%}
+      <h2 class="customer__order-title title">Pedido {{ order.name }} realizado el {{ order_date }}</h2>
+      
+      {%- if order.cancelled -%}
+        {%- assign cancelled_at = order.cancelled_at | time_tag: format: "date_at_time" -%}
+        <p>Pedido cancelado el {{ cancelled_at }}</p>
+        <p>Motivo: {{ order.cancel_reason_label }}</p>
+      {%- endif -%}
+
+      <table role="table" class="order-details">
+        <caption class="visually-hidden">Pedido {{ order.name }} realizado el {{ order_date }}</caption>
+        <thead role="rowgroup">
+          <tr role="row">
+            <th id="ColumnProduct" scope="col" role="columnheader">Producto</th>
+            <th id="ColumnSku" scope="col" role="columnheader">SKU</th>
+            <th id="ColumnPrice" scope="col" role="columnheader">Precio</th>
+            <th id="ColumnQuantity" scope="col" role="columnheader">Cantidad</th>
+            <th id="ColumnTotal" scope="col" role="columnheader">Total</th>
+          </tr>
+        </thead>
+        <tbody role="rowgroup">
+          {%- for line_item in order.line_items -%}
+            <tr role="row">
+              <td
+                id="Row{{ line_item.key }}"
+                headers="ColumnProduct"
+                role="rowheader"
+                scope="row"
+                data-label="Producto"
+              >
+                <div>
+                  {%- if line_item.url != blank -%}
+                    <a href="{{ line_item.url }}">{{ line_item.title }}</a>
+                  {%- else -%}
+                    <p>{{ line_item.title }}</p>
+                  {%- endif -%}
+                  {%- assign property_size = line_item.properties | size -%}
+                  {%- unless line_item.selling_plan_allocation == nil and property_size == 0 -%}
+                    <div class="properties">
+                      {%- unless line_item.product.has_only_default_variant -%}
+                        <span>{{ line_item.variant.title }}</span>
+                      {%- endunless -%}
+                      {%- unless line_item.selling_plan_allocation == nil -%}
+                        <span>{{ line_item.selling_plan_allocation.selling_plan.name }}</span>
+                      {%- endunless -%}
+                      {%- if property_size != 0 -%}
+                        {%- for property in line_item.properties -%}
+                          {% assign property_first_char = property.first | slice: 0 %}
+                          {%- if property.last != blank and property_first_char != '_' -%}
+                            <span>{{ property.first }}: {{ property.last }}</span>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      {%- endif -%}
+                    </div>
+                  {%- endunless -%}
+
+                  {%- if line_item.fulfillment -%}
+                    <div class="fulfillment">
+                      {%- assign created_at = line_item.fulfillment.created_at | time_tag: format: 'date' -%}
+                      <span>Enviado el {{ created_at }}</span>
+
+                        {%- if line_item.fulfillment.tracking_url -%}
+                          <a href="{{ line_item.fulfillment.tracking_url }}">
+                            Rastrear envío
+                          </a>
+                        {%- endif -%}
+                        <span>
+                          {{ line_item.fulfillment.tracking_company }}
+                          {%- if line_item.fulfillment.tracking_number -%} #{{ line_item.fulfillment.tracking_number }} {%- endif -%}
+                        </span>
+                    </div>
+                  {%- endif -%}
+                </div>
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnSku"
+                role="gridcell"
+                data-label="SKU"
+              >
+                {{ line_item.sku }}
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnPrice"
+                role="gridcell"
+                data-label="Precio"
+              >
+                {%- if line_item.original_price != line_item.final_price or line_item.unit_price_measurement -%}
+                  <dl>
+                    {%- if line_item.original_price != line_item.final_price -%}
+                      <dt>
+                        <span class="visually-hidden">Precio regular</span>
+                      </dt>
+                      <dd class="regular-price">
+                        <s>{{ line_item.original_price | money }}</s>
+                      </dd>
+                      <dt>
+                        <span class="visually-hidden">Precio rebajado</span>
+                      </dt>
+                      <dd>
+                        <span>{{ line_item.final_price | money }}</span>
+                      </dd>
+                    {%- else -%}
+                      <dt>
+                        <span class="visually-hidden">Precio regular</span>
+                      </dt>
+                      <dd>
+                        {{ line_item.original_price | money }}
+                      </dd>
+                    {%- endif -%}
+                    {%- if line_item.unit_price_measurement -%}
+                      <dt>
+                        <span class="visually-hidden">Precio por unidad</span>
+                      </dt>
+                      <dd class="unit-price">
+                        <span>
+                          {%- capture unit_price_separator -%}
+                            <span aria-hidden="true">/</span><span class="visually-hidden">por&nbsp;</span>
+                          {%- endcapture -%}
+                          {%- capture unit_price_base_unit -%}
+                            {%- if line_item.unit_price_measurement.reference_value != 1 -%}
+                              {{- line_item.unit_price_measurement.reference_value -}}
+                            {%- endif -%}
+                            {{ line_item.unit_price_measurement.reference_unit }}
+                          {%- endcapture -%}
+                          <span data-unit-price>{{ line_item.unit_price | money }}</span>{{- unit_price_separator -}}{{- unit_price_base_unit -}}
+                        </span>
+                      </dd>
+                    {%- endif -%}
+                  </dl>
+                {%- else -%}
+                  <span>{{ line_item.final_price | money }}</span>
+                {%- endif -%}
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnQuantity"
+                role="gridcell"
+                data-label="Cantidad"
+              >
+                {{ line_item.quantity }}
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnTotal"
+                role="gridcell"
+                data-label="Total"
+              >
+                {%- if line_item.original_line_price != line_item.final_line_price -%}
+                  <dl>
+                    <dt>
+                      <span class="visually-hidden">Precio regular</span>
+                    </dt>
+                    <dd class="regular-price">
+                      <s>{{ line_item.original_line_price | money }}</s>
+                    </dd>
+                    <dt>
+                      <span class="visually-hidden">Precio rebajado</span>
+                    </dt>
+                    <dd>
+                      {{ line_item.final_line_price | money }}
+                    </dd>
+                  </dl>
+                {%- else -%}
+                  {{ line_item.original_line_price | money }}
+                {%- endif -%}
+              </td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+        <tfoot role="rowgroup">
+          <tr role="row">
+            <td id="RowSubtotal" role="rowheader" scope="row" colspan="4">
+              Subtotal
+            </td>
+            <td headers="RowSubtotal" role="gridcell" data-label="Subtotal">{{ order.line_items_subtotal_price | money }}</td>
+          </tr>
+          {%- if order.cart_level_discount_applications != blank -%}
+            <tr role="row">
+              {%- for discount_application in order.cart_level_discount_applications -%}
+                <td id="RowDiscount" role="rowheader" scope="row" colspan="4">
+                  Descuento
+                  <span class="cart-discount">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 12 12">
+                      <use href="#icon-discount" />
+                    </svg>
+                    {{- discount_application.title -}}
+                  </span>
+                </td>
+                <td headers="RowDiscount" role="gridcell" data-label="Descuento">
+                  <div>
+                    <span>-{{ discount_application.total_allocated_amount | money }}</span>
+                    <span class="cart-discount">
+                      <svg aria-hidden="true" focusable="false" viewBox="0 0 12 12">
+                        <use href="#icon-discount" />
+                      </svg>
+                      {{- discount_application.title -}}
+                    </span>
+                  </div>
+                </td>
+              {%- endfor -%}
+            </tr>
+          {%- endif -%}
+          {%- for shipping_method in order.shipping_methods -%}
+            <tr role="row">
+              <td id="RowShipping" role="rowheader" scope="row" colspan="4">Envío ({{ shipping_method.title }})</td>
+              <td headers="RowShipping" role="gridcell" data-label="Envío ({{ shipping_method.title }})">{{ shipping_method.price | money }}</td>
+            </tr>
+          {%- endfor -%}
+          {%- for tax_line in order.tax_lines -%}
+            <tr role="row">
+              <td id="RowTax" role="rowheader" scope="row" colspan="4">Impuestos ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)</td>
+              <td headers="RowTax" role="gridcell" data-label="Impuestos ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)">{{ tax_line.price | money }}</td>
+            </tr>
+          {%- endfor -%}
+          {%- if order.total_duties -%}
+            <tr role="row">
+              <td id="RowDuties" role="rowheader" scope="row" colspan="4">Aranceles</td>
+              <td headers="RowDuties" role="gridcell" data-label="Aranceles">{{ order.total_duties | money }}</td>
+            </tr>
+          {%- endif -%}
+          <tr role="row">
+            <td id="RowTotal" role="rowheader" scope="row" colspan="4">Total</td>
+            <td headers="RowTotal" role="gridcell" data-label="Total">{{ order.total_price | money_with_currency }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="customer__order-address">
+        <div>
+          <h3>Dirección de facturación</h3>
+          <p>
+            Estado del pago: {{ order.financial_status_label }}
+          </p>
+          {{ order.billing_address | format_address }}
+        </div>
+        <div>
+          <h3>Dirección de envío</h3>
+          <p>
+            Estado del envío: {{ order.fulfillment_status_label }}
+          </p>
+          {{ order.shipping_address | format_address }}
+        </div>
+      </div>
+    </div>
+
+    <!-- VisuBloq PDF Section - SIMPLE Y SIN ERRORES -->
+    {% if order.attributes['VisuBloq PDF'] and order.attributes['VisuBloq PDF'] != blank %}
+    <div style="background: #f0f8ff; border: 2px solid #007bff; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <h3 style="color: #007bff; margin: 0 0 15px 0;">🧱 Instrucciones LEGO VisuBloq</h3>
+      
+      <div style="background: white; padding: 15px; border-radius: 6px;">
+        <p style="margin: 0 0 10px 0;"><strong>Tu enlace PDF:</strong></p>
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 15px; word-break: break-all; font-family: monospace; font-size: 12px;">
+          {{ order.attributes['VisuBloq PDF'] }}
+        </div>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="{{ order.attributes['VisuBloq PDF'] }}" target="_blank"
+             style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            📄 Ver PDF
+          </a>
+          <button onclick="copyPDFLink()" 
+                  style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            📋 Copiar Enlace
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    function copyPDFLink() {
+      const pdfUrl = '{{ order.attributes['VisuBloq PDF'] }}';
+      
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(pdfUrl).then(function() {
+          alert('✅ Enlace copiado');
+        });
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = pdfUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('✅ Enlace copiado');
+      }
+    }
+    </script>
+    {% endif %}
+
+  </div>
+</div>

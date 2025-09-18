@@ -1,0 +1,435 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+  .customer .title {
+    font-size: calc(var(--font-heading-scale) * 2.6rem);
+  }
+
+  @media screen and (min-width: 750px) {
+    .customer .title {
+      font-size: calc(var(--font-heading-scale) * 4rem);
+    }
+  }
+{%- endstyle -%}
+
+<div class="customer account">
+  <svg style="display: none">
+    <symbol id="icon-discount" viewBox="0 0 12 12">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M7 0h3a2 2 0 012 2v3a1 1 0 01-.3.7L8 9.4a1 1 0 01-1.4 0L3 5.7a1 1 0 010-1.4L6.3.3A1 1 0 017 0z" fill="currentColor"/>
+      <path d="M9 3a1 1 0 11-2 0 1 1 0 012 0z" fill="white"/>
+    </symbol>
+  </svg>
+
+  <div class="customer__addresses">
+    <h1 class="customer__title">
+      {{ 'customer.account.title' | t }}
+    </h1>
+    <a href="{{ routes.account_url }}">{{ 'customer.account.return' | t }}</a>
+
+    <div class="customer__order">
+      {%- assign order_date = order.created_at | time_tag: format: "date_at_time" -%}
+      <h2 class="customer__order-title title">{{ 'customer.order.title' | t: name: order.name, date: order_date }}</h2>
+      
+      {%- if order.cancelled -%}
+        {%- assign cancelled_at = order.cancelled_at | time_tag: format: "date_at_time" -%}
+        <p>{{ 'customer.order.cancelled' | t: date: cancelled_at }}</p>
+        <p>{{ 'customer.order.cancelled_reason' | t: reason: order.cancel_reason_label }}</p>
+      {%- endif -%}
+
+      <table role="table" class="order-details">
+        <caption class="visually-hidden">{{ 'customer.order.title' | t: name: order.name, date: order_date }}</caption>
+        <thead role="rowgroup">
+          <tr role="row">
+            <th id="ColumnProduct" scope="col" role="columnheader">{{ 'customer.order.product' | t }}</th>
+            <th id="ColumnSku" scope="col" role="columnheader">{{ 'customer.order.sku' | t }}</th>
+            <th id="ColumnPrice" scope="col" role="columnheader">{{ 'customer.order.price' | t }}</th>
+            <th id="ColumnQuantity" scope="col" role="columnheader">{{ 'customer.order.quantity' | t }}</th>
+            <th id="ColumnTotal" scope="col" role="columnheader">{{ 'customer.order.total' | t }}</th>
+          </tr>
+        </thead>
+        <tbody role="rowgroup">
+          {%- for line_item in order.line_items -%}
+            <tr role="row">
+              <td
+                id="Row{{ line_item.key }}"
+                headers="ColumnProduct"
+                role="rowheader"
+                scope="row"
+                data-label="{{ 'customer.order.product' | t }}"
+              >
+                <div>
+                  {%- if line_item.url != blank -%}
+                    <a href="{{ line_item.url }}">{{ line_item.title }}</a>
+                  {%- else -%}
+                    <p>{{ line_item.title }}</p>
+                  {%- endif -%}
+                  {%- assign property_size = line_item.properties | size -%}
+                  {%- unless line_item.selling_plan_allocation == nil and property_size == 0 -%}
+                    <div class="properties">
+                      {%- unless line_item.product.has_only_default_variant -%}
+                        <span>{{ line_item.variant.title }}</span>
+                      {%- endunless -%}
+                      {%- unless line_item.selling_plan_allocation == nil -%}
+                        <span>{{ line_item.selling_plan_allocation.selling_plan.name }}</span>
+                      {%- endunless -%}
+                      {%- if property_size != 0 -%}
+                        {%- for property in line_item.properties -%}
+                          {% assign property_first_char = property.first | slice: 0 %}
+                          {%- if property.last != blank and property_first_char != '_' -%}
+                            <span>{{ property.first }}: {{ property.last }}</span>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      {%- endif -%}
+                    </div>
+                  {%- endunless -%}
+
+                  {%- if line_item.fulfillment -%}
+                    <div class="fulfillment">
+                      {%- assign created_at = line_item.fulfillment.created_at | time_tag: format: 'date' -%}
+                      <span>{{ 'customer.order.fulfilled_at' | t: date: created_at }}</span>
+
+                        {%- if line_item.fulfillment.tracking_url -%}
+                          <a href="{{ line_item.fulfillment.tracking_url }}">
+                            {{ 'customer.order.track_shipment' | t }}
+                          </a>
+                        {%- endif -%}
+                        <span>
+                          {{ line_item.fulfillment.tracking_company }}
+                          {%- if line_item.fulfillment.tracking_number -%} #{{ line_item.fulfillment.tracking_number }} {%- endif -%}
+                        </span>
+                    </div>
+                  {%- endif -%}
+                </div>
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnSku"
+                role="gridcell"
+                data-label="{{ 'customer.order.sku' | t }}"
+              >
+                {{ line_item.sku }}
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnPrice"
+                role="gridcell"
+                data-label="{{ 'customer.order.price' | t }}"
+              >
+                {%- if line_item.original_price != line_item.final_price or line_item.unit_price_measurement -%}
+                  <dl>
+                    {%- if line_item.original_price != line_item.final_price -%}
+                      <dt>
+                        <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                      </dt>
+                      <dd class="regular-price">
+                        <s>{{ line_item.original_price | money }}</s>
+                      </dd>
+                      <dt>
+                        <span class="visually-hidden">{{ 'products.product.price.sale_price' | t }}</span>
+                      </dt>
+                      <dd>
+                        <span>{{ line_item.final_price | money }}</span>
+                      </dd>
+                    {%- else -%}
+                      <dt>
+                        <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                      </dt>
+                      <dd>
+                        {{ line_item.original_price | money }}
+                      </dd>
+                    {%- endif -%}
+                    {%- if line_item.unit_price_measurement -%}
+                      <dt>
+                        <span class="visually-hidden">{{ 'products.product.price.unit_price' | t }}</span>
+                      </dt>
+                      <dd class="unit-price">
+                        <span>
+                          {%- capture unit_price_separator -%}
+                            <span aria-hidden="true">/</span><span class="visually-hidden">{{ 'accessibility.unit_price_separator' | t }}&nbsp;</span>
+                          {%- endcapture -%}
+                          {%- capture unit_price_base_unit -%}
+                            {%- if line_item.unit_price_measurement.reference_value != 1 -%}
+                              {{- line_item.unit_price_measurement.reference_value -}}
+                            {%- endif -%}
+                            {{ line_item.unit_price_measurement.reference_unit }}
+                          {%- endcapture -%}
+                          <span data-unit-price>{{ line_item.unit_price | money }}</span>{{- unit_price_separator -}}{{- unit_price_base_unit -}}
+                        </span>
+                      </dd>
+                    {%- endif -%}
+                  </dl>
+                {%- else -%}
+                  <span>{{ line_item.final_price | money }}</span>
+                {%- endif -%}
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnQuantity"
+                role="gridcell"
+                data-label="{{ 'customer.order.quantity' | t }}"
+              >
+                {{ line_item.quantity }}
+              </td>
+              <td
+                headers="Row{{ line_item.key }} ColumnTotal"
+                role="gridcell"
+                data-label="{{ 'customer.order.total' | t }}"
+              >
+                {%- if line_item.original_line_price != line_item.final_line_price -%}
+                  <dl>
+                    <dt>
+                      <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                    </dt>
+                    <dd class="regular-price">
+                      <s>{{ line_item.original_line_price | money }}</s>
+                    </dd>
+                    <dt>
+                      <span class="visually-hidden">{{ 'products.product.price.sale_price' | t }}</span>
+                    </dt>
+                    <dd>
+                      {{ line_item.final_line_price | money }}
+                    </dd>
+                  </dl>
+                {%- else -%}
+                  {{ line_item.original_line_price | money }}
+                {%- endif -%}
+              </td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+        <tfoot role="rowgroup">
+          <tr role="row">
+            <td id="RowSubtotal" role="rowheader" scope="row" colspan="4">
+              {{ 'customer.order.subtotal' | t }}
+            </td>
+            <td headers="RowSubtotal" role="gridcell" data-label="{{ 'customer.order.subtotal' | t }}">{{ order.line_items_subtotal_price | money }}</td>
+          </tr>
+          {%- if order.cart_level_discount_applications != blank -%}
+            <tr role="row">
+              {%- for discount_application in order.cart_level_discount_applications -%}
+                <td id="RowDiscount" role="rowheader" scope="row" colspan="4">
+                  {{ 'customer.order.discount' | t }}
+                  <span class="cart-discount">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 12 12">
+                      <use href="#icon-discount" />
+                    </svg>
+                    {{- discount_application.title -}}
+                  </span>
+                </td>
+                <td headers="RowDiscount" role="gridcell" data-label="{{ 'customer.order.discount' | t }}">
+                  <div>
+                    <span>-{{ discount_application.total_allocated_amount | money }}</span>
+                    <span class="cart-discount">
+                      <svg aria-hidden="true" focusable="false" viewBox="0 0 12 12">
+                        <use href="#icon-discount" />
+                      </svg>
+                      {{- discount_application.title -}}
+                    </span>
+                  </div>
+                </td>
+              {%- endfor -%}
+            </tr>
+          {%- endif -%}
+          {%- for shipping_method in order.shipping_methods -%}
+            <tr role="row">
+              <td id="RowShipping" role="rowheader" scope="row" colspan="4">{{ 'customer.order.shipping' | t }} ({{ shipping_method.title }})</td>
+              <td headers="RowShipping" role="gridcell" data-label="{{ 'customer.order.shipping' | t }} ({{ shipping_method.title }})">{{ shipping_method.price | money }}</td>
+            </tr>
+          {%- endfor -%}
+          {%- for tax_line in order.tax_lines -%}
+            <tr role="row">
+              <td id="RowTax" role="rowheader" scope="row" colspan="4">{{ 'customer.order.tax' | t }} ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)</td>
+              <td headers="RowTax" role="gridcell" data-label="{{ 'customer.order.tax' | t }} ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)">{{ tax_line.price | money }}</td>
+            </tr>
+          {%- endfor -%}
+          {%- if order.total_duties -%}
+            <tr role="row">
+              <td id="RowDuties" role="rowheader" scope="row" colspan="4">{{ 'customer.order.duties' | t }}</td>
+              <td headers="RowDuties" role="gridcell" data-label="{{ 'customer.order.duties' | t }}">{{ order.total_duties | money }}</td>
+            </tr>
+          {%- endif -%}
+          <tr role="row">
+            <td id="RowTotal" role="rowheader" scope="row" colspan="4">{{ 'customer.order.total' | t }}</td>
+            <td headers="RowTotal" role="gridcell" data-label="{{ 'customer.order.total' | t }}">{{ order.total_price | money_with_currency }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="customer__order-address">
+        <div>
+          <h3>{{ 'customer.order.billing_address' | t }}</h3>
+          <p>
+            {{ 'customer.order.payment_status' | t }}: {{ order.financial_status_label }}
+          </p>
+          {{ order.billing_address | format_address }}
+        </div>
+        <div>
+          <h3>{{ 'customer.order.shipping_address' | t }}</h3>
+          <p>
+            {{ 'customer.order.fulfillment_status' | t }}: {{ order.fulfillment_status_label }}
+          </p>
+          {{ order.shipping_address | format_address }}
+        </div>
+      </div>
+    </div>
+
+    <!-- VisuBloq PDF Section - INTEGRADA EN EL TEMA DAWN -->
+    {% if order.attributes['VisuBloq PDF'] and order.attributes['VisuBloq PDF'] != blank %}
+    <div class="visubloq-pdf-section" style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border: 2px solid #007bff; border-radius: 12px; padding: 25px; margin: 30px 0; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);">
+      
+      <!-- Header -->
+      <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <div style="background: #007bff; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 20px;">
+          🧱
+        </div>
+        <h3 style="color: #007bff; margin: 0; font-size: 1.5em; font-weight: bold;">
+          Instrucciones LEGO VisuBloq
+        </h3>
+      </div>
+      
+      <!-- PDF Content -->
+      <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        
+        <!-- Info -->
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 12px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center;">
+            <span style="font-size: 18px; margin-right: 8px;">💡</span>
+            <span style="color: #856404; font-weight: 500;">
+              Tu diseño LEGO personalizado está listo. Guarda este enlace para acceder a tus instrucciones.
+            </span>
+          </div>
+        </div>
+        
+        <!-- PDF Link -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: bold; color: #495057; margin-bottom: 8px;">
+            📎 Enlace a tus Instrucciones PDF:
+          </label>
+          <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; word-break: break-all; color: #495057;">
+            {{ order.attributes['VisuBloq PDF'] }}
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="{{ order.attributes['VisuBloq PDF'] }}" 
+             target="_blank"
+             style="padding: 12px 24px; background: linear-gradient(135deg, #007bff, #0056b3); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,123,255,0.3);"
+             onmouseover="this.style.transform='translateY(-2px)'"
+             onmouseout="this.style.transform='translateY(0)'">
+            <span style="margin-right: 8px;">📄</span>
+            Ver PDF de Instrucciones
+          </a>
+          
+          <button onclick="copyVisuBloqPDF()" 
+                  style="padding: 12px 24px; background: linear-gradient(135deg, #28a745, #1e7e34); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(40,167,69,0.3);"
+                  onmouseover="this.style.transform='translateY(-2px)'"
+                  onmouseout="this.style.transform='translateY(0)'">
+            <span style="margin-right: 8px;">📋</span>
+            Copiar Enlace
+          </button>
+          
+          <a href="https://t0mggs.github.io/lego-art-remix" 
+             target="_blank"
+             style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b35, #e55a2b); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(255,107,53,0.3);"
+             onmouseover="this.style.transform='translateY(-2px)'"
+             onmouseout="this.style.transform='translateY(0)'">
+            <span style="margin-right: 8px;">🎨</span>
+            Crear Nuevo Diseño
+          </a>
+        </div>
+        
+        <!-- Additional Info -->
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+          <small style="color: #6c757d; display: block; margin-bottom: 5px;">
+            <strong>💾 Importante:</strong> Guarda este enlace en un lugar seguro.
+          </small>
+          <small style="color: #6c757d; display: block;">
+            <strong>🔗 Compatibilidad:</strong> El enlace funciona en cualquier dispositivo con acceso a internet.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript para copiar -->
+    <script>
+    function copyVisuBloqPDF() {
+      const pdfUrl = '{{ order.attributes['VisuBloq PDF'] }}';
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(pdfUrl).then(function() {
+          showCopySuccess();
+        }).catch(function() {
+          fallbackCopy(pdfUrl);
+        });
+      } else {
+        fallbackCopy(pdfUrl);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showCopySuccess();
+      } catch (err) {
+        alert('No se pudo copiar automáticamente. Por favor, copia manualmente el enlace.');
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    function showCopySuccess() {
+      // Crear notificación visual
+      const notification = document.createElement('div');
+      notification.innerHTML = '✅ ¡Enlace copiado al portapapeles!';
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-weight: bold;
+        animation: slideIn 0.3s ease-out;
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in forwards';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+
+    // CSS para animaciones
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+    </script>
+    {% endif %}
+    <!-- FIN VisuBloq PDF Section -->
+
+  </div>
+</div>

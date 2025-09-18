@@ -1,0 +1,148 @@
+<!-- VisuBloq Admin Panel - Dashboard Optimizado para Preparación -->
+{% comment %} Verificar si hay diseños VisuBloq en las propiedades de los productos {% endcomment %}
+{% assign has_visubloq_designs = false %}
+{% assign visubloq_count = 0 %}
+{% for line_item in order.line_items %}
+  {% if line_item.properties['Diseño VisuBloq'] %}
+    {% assign has_visubloq_designs = true %}
+    {% assign visubloq_count = visubloq_count | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% comment %} Verificar si hay atributos de VisuBloq PDF {% endcomment %}
+{% assign has_visubloq_pdf = false %}
+{% if order.attributes['VisuBloq PDF'] %}
+  {% assign has_visubloq_pdf = true %}
+{% endif %}
+
+{% comment %} Mostrar sección solo si hay contenido VisuBloq {% endcomment %}
+{% if has_visubloq_designs or has_visubloq_pdf %}
+<div style="background: #f8f9fa; border: 3px solid #ff6b35; border-radius: 10px; padding: 20px; margin: 20px 0; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.1);">
+  <h3 style="color: #ff6b35; margin: 0 0 15px 0; font-size: 1.4em; font-weight: bold;">
+    🏗️ PEDIDO VISUBLOQ #{{ order.name }}
+  </h3>
+  
+  {% if has_visubloq_designs %}
+    {% comment %} Resumen rápido {% endcomment %}
+    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 15px; margin-bottom: 20px;">
+      <strong>🎨 {{ visubloq_count }} diseño{% if visubloq_count != 1 %}s{% endif %} • {{ order.customer.first_name }} {{ order.customer.last_name }} • {{ order.total_price | money }}</strong>
+    </div>
+    
+    {% comment %} Cada diseño individual para preparar {% endcomment %}
+    {% assign design_counter = 0 %}
+    {% for line_item in order.line_items %}
+      {% if line_item.properties['Diseño VisuBloq'] %}
+        {% assign design_counter = design_counter | plus: 1 %}
+        <div style="background: white; border: 2px solid #e9ecef; border-radius: 8px; padding: 15px; margin: 10px 0;">
+          
+          {% comment %} Cabecera del diseño {% endcomment %}
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #dee2e6;">
+            <h4 style="color: #495057; margin: 0; font-size: 1.2em;">
+              🎨 Diseño {{ design_counter }}{% if visubloq_count > 1 %} de {{ visubloq_count }}{% endif %}
+            </h4>
+            <span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold;">
+              ID: {{ line_item.properties['ID Único'] | default: design_counter }}
+            </span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 250px 1fr; gap: 20px;">
+            
+            {% comment %} Imagen del diseño {% endcomment %}
+            {% if line_item.properties['Imagen del diseño'] %}
+              <div style="text-align: center;">
+                <img src="{{ line_item.properties['Imagen del diseño'] }}" 
+                     alt="Diseño {{ design_counter }}" 
+                     width="250" 
+                     height="250" 
+                     loading="lazy"
+                     style="width: 100%; height: auto; max-width: 250px; border: 2px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                
+                {% comment %} Botón PDF si existe en las propiedades del producto {% endcomment %}
+                {% if line_item.properties['PDF Instrucciones'] %}
+                  <a href="{{ line_item.properties['PDF Instrucciones'] }}" 
+                     target="_blank"
+                     style="display: inline-block; margin-top: 8px; background: #dc3545; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 0.85em; font-weight: bold;">
+                    📄 PDF Diseño {{ design_counter }}
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+            
+            {% comment %} Piezas por color - INFORMACIÓN PRINCIPAL {% endcomment %}
+            <div>
+              <h5 style="color: #495057; margin: 0 0 10px 0; font-size: 1.1em; font-weight: bold;">
+                🧱 PIEZAS POR COLOR:
+              </h5>
+              
+              {% if line_item.properties['Lista de piezas'] %}
+                {% assign pieces_data = line_item.properties['Lista de piezas'] %}
+                {% assign pieces_json = pieces_data | remove: '"' | remove: '{' | remove: '}' %}
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 15px;">
+                  {% assign pieces_pairs = pieces_json | split: ',' %}
+                  {% for piece_pair in pieces_pairs %}
+                    {% assign pair_clean = piece_pair | strip %}
+                    {% if pair_clean != '' %}
+                      {% assign color_quantity = pair_clean | split: ':' %}
+                      {% if color_quantity.size == 2 %}
+                        {% assign color_hex = color_quantity[0] | strip %}
+                        {% assign quantity = color_quantity[1] | strip %}
+                        
+                        <div style="display: flex; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 4px; border: 1px solid #e9ecef;">
+                          <div style="width: 24px; height: 24px; background-color: {{ color_hex }}; border: 1px solid #999; border-radius: 3px; margin-right: 10px; flex-shrink: 0;"></div>
+                          <span style="font-weight: bold; font-size: 1.1em; color: #495057;">{{ quantity }}</span>
+                          <span style="font-size: 0.8em; color: #6c757d; margin-left: 5px;">piezas</span>
+                        </div>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p style="color: #6c757d; font-style: italic;">No hay información detallada de piezas</p>
+              {% endif %}
+              
+            </div>
+          </div>
+          
+          {% comment %} Instrucciones de preparación {% endcomment %}
+          <div style="background: #e8f4fd; border: 1px solid #bee5eb; padding: 10px; border-radius: 5px; margin-top: 15px;">
+            <strong style="color: #0c5460;">📦 PREPARAR PAQUETE {{ design_counter }}:</strong><br>
+            <span style="font-size: 0.9em; color: #0c5460;">
+              1. Localizar piezas según colores mostrados arriba<br>
+              2. Contar cantidad exacta de cada color<br>
+              3. Empaquetar separadamente{% if visubloq_count > 1 %} ({{ visubloq_count }} paquetes total){% endif %}<br>
+              4. Etiquetar: "Diseño {{ design_counter }} - ID: {{ line_item.properties['ID Único'] | default: design_counter }}"
+            </span>
+          </div>
+          
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  
+  {% comment %} Información VisuBloq PDF de atributos de orden {% endcomment %}
+  {% if has_visubloq_pdf %}
+    <div class="visubloq-admin-section" style="margin-top: 20px; padding: 16px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007bff;">
+      <h3 style="margin: 0 0 12px 0; color: #333;">🧱 Instrucciones LEGO VisuBloq</h3>
+      <div style="margin-bottom: 12px;">
+        <strong>Enlace PDF:</strong>
+        <a href="{{ order.attributes['VisuBloq PDF'] }}" target="_blank" 
+           style="color: #007bff; text-decoration: none; word-break: break-all;">
+          {{ order.attributes['VisuBloq PDF'] }}
+        </a>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="{{ order.attributes['VisuBloq PDF'] }}" target="_blank"
+           style="padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          📄 Ver PDF
+        </a>
+        <button onclick="navigator.clipboard.writeText('{{ order.attributes['VisuBloq PDF'] }}')" 
+                style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+          📋 Copiar Enlace
+        </button>
+      </div>
+    </div>
+  {% endif %}
+  
+</div>
+{% endif %}

@@ -1,0 +1,59 @@
+<!-- Dashboard Admin VisuBloq -->
+<div class="page-width">
+  <header class="section-header">
+    <h1>🧱 VisuBloq Admin Dashboard</h1>
+    <p>Gestión de PDFs e instrucciones LEGO personalizadas</p>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+    
+    <!-- Estadísticas -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <h3>📊 Estadísticas</h3>
+      <div style="margin-top: 12px;">
+        <div style="margin-bottom: 8px;"><strong>Total órdenes con PDF:</strong> <span id="total-pdf-orders">0</span></div>
+        <div style="margin-bottom: 8px;"><strong>Esta semana:</strong> <span id="week-pdf-orders">0</span></div>
+        <div style="margin-bottom: 8px;"><strong>Último PDF:</strong> <span id="last-pdf-date">N/A</span></div>
+      </div>
+    </div>
+
+    <!-- Órdenes Recientes -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <h3>🛒 Órdenes con VisuBloq</h3>
+      <div id="recent-visubloq-orders" style="margin-top: 12px;">
+        <p style="color: #666;">Cargando órdenes...</p>
+      </div>
+    </div>
+
+    <!-- Enlaces Rápidos -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <h3>🔗 Enlaces Rápidos</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+        <a href="/admin/orders" target="_blank" 
+           style="padding: 8px 12px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; text-align: center;">
+          📋 Ver Todas las Órdenes
+        </a>
+        <a href="https://t0mggs.github.io/lego-art-remix" target="_blank"
+           style="padding: 8px 12px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; text-align: center;">
+          🧱 Ir a VisuBloq App
+        </a>
+        <a href="/admin/themes" target="_blank"
+           style="padding: 8px 12px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; text-align: center;">
+          ⚙️ Editar Tema
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Script para cargar estadísticas (básico)
+document.addEventListener('DOMContentLoaded', function() {
+  // Aquí puedes añadir llamadas a la API de Shopify para cargar estadísticas reales
+  console.log('VisuBloq Admin Dashboard cargado');
+  
+  // Ejemplo básico - estas variables deben ser alimentadas por Shopify
+  document.getElementById('total-pdf-orders').textContent = '{{ collections.all.products.size | default: 0 }}';
+  document.getElementById('last-pdf-date').textContent = new Date().toLocaleDateString();
+});
+</script>
