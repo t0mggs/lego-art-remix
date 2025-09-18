@@ -1,54 +1,70 @@
 /**
- * Sistema de compra mejorado para VisuBloq
- * UX optimizada: PDF → Código → Compra automática
+ * Sistema de compra VisuBloq - Links directos a PDFs
+ * UX simplificada: PDF → Link → Copia automática → Compra
  */
 
 class VisuBloqPurchaseSystem {
     constructor() {
-        this.trackingCode = null;
+        this.pdfLink = null;
         this.shopifyProductUrl = 'https://visubloq.com/products/visubloq-personalizado';
-        this.shopifyCatalogUrl = 'https://visubloq.com/collections/all'; // Opcional: catálogo primero
+        this.serverUrl = 'https://2daf40fb9055.ngrok-free.app'; // TU URL NGROK
         this.init();
     }
 
     init() {
-        this.trackingCode = this.generateTrackingCode();
         this.setupPDFInterception();
         this.injectModalCSS();
     }
 
-    generateTrackingCode() {
-        const timestamp = Date.now();
-        const random = Math.random().toString(36).substr(2, 6);
-        return `VB-${timestamp}-${random}`.toUpperCase();
+    generatePDFLink() {
+        const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const random = Math.random().toString(36).substr(2, 6).toUpperCase();
+        const filename = `VB-${timestamp}-${random}.pdf`;
+        return `${this.serverUrl}/pdfs/${filename}`;
     }
 
     setupPDFInterception() {
-        // Interceptar cuando se genera un PDF
-        const originalDownloadBtn = document.querySelector('#download-instructions-btn') || 
-                                   document.querySelector('.download-btn') ||
-                                   document.querySelector('[onclick*="downloadInstructions"]');
+        // Interceptar el botón "Generate Instructions PDF"
+        const instructionsBtn = document.querySelector('#download-instructions-btn') || 
+                               document.querySelector('button[onclick*="downloadInstructions"]') ||
+                               document.querySelector('button:contains("Generate Instructions PDF")');
         
-        if (originalDownloadBtn) {
-            originalDownloadBtn.addEventListener('click', () => {
-                // Esperar un poco para que se genere el PDF
-                setTimeout(() => {
-                    this.showPurchaseModal();
-                }, 2000);
+        if (instructionsBtn) {
+            instructionsBtn.addEventListener('click', (e) => {
+                e.preventDefault(); // Evitar descarga automática
+                this.handlePDFGeneration();
             });
         }
 
-        // También interceptar el botón de generar PDF genérico
+        // Interceptar cualquier botón relacionado con PDF
         document.addEventListener('click', (e) => {
             const button = e.target;
-            if (button.textContent.includes('PDF') || 
-                button.textContent.includes('Descargar') ||
+            if (button.textContent.includes('Generate Instructions PDF') || 
                 button.textContent.includes('Instrucciones')) {
-                setTimeout(() => {
-                    this.showPurchaseModal();
-                }, 2000);
+                e.preventDefault();
+                this.handlePDFGeneration();
             }
         });
+    }
+
+    async handlePDFGeneration() {
+        try {
+            // Generar link del PDF
+            this.pdfLink = this.generatePDFLink();
+            
+            // Generar y guardar el PDF en el servidor
+            await this.savePDFToServer();
+            
+            // Mostrar modal con preview y link
+            this.showResultModal();
+            
+            // Auto-copiar el link
+            this.autoCopyLink();
+            
+        } catch (error) {
+            console.error('Error generando PDF:', error);
+            alert('Error generando el diseño. Inténtalo de nuevo.');
+        }
     }
 
     showPurchaseModal() {
