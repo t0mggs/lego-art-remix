@@ -9,25 +9,25 @@
 // CONFIGURACIÓN DE BASE DE DATOS
 // ==============================================
 
-define('DB_HOST', 'localhost');  // XAMPP MySQL
+define('DB_HOST', 'localhost');
 define('DB_NAME', 'visubloq_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');  // XAMPP por defecto no tiene contraseña
+define('DB_USER', 'tu_usuario_mysql');
+define('DB_PASS', 'tu_password_mysql');
 define('DB_CHARSET', 'utf8mb4');
 
 // ==============================================
 // CONFIGURACIÓN DE SHOPIFY
 // ==============================================
 
-define('SHOPIFY_SHOP', 'tu-tienda.myshopify.com');  // Cambia por tu tienda
-define('SHOPIFY_ACCESS_TOKEN', 'shpat_xxxxxxxxxxxxxxxxxxxxx');  // Token de tu app
-define('SHOPIFY_WEBHOOK_SECRET', 'mi_secreto_webhook_muy_seguro_123');  // Secreto personalizado
+define('SHOPIFY_SHOP', 'tu-tienda.myshopify.com');
+define('SHOPIFY_ACCESS_TOKEN', 'shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+define('SHOPIFY_WEBHOOK_SECRET', 'tu_webhook_secret_seguro');
 
 // ==============================================
 // CONFIGURACIÓN DE PATHS Y URLs
 // ==============================================
 
-define('BASE_URL', 'https://abc123-def456.ngrok-free.app/VisuBloq/app');  // Cambia por tu URL
+define('BASE_URL', 'https://tu-dominio.com');
 define('BACKEND_URL', BASE_URL . '/backend');
 define('PDF_STORAGE_PATH', __DIR__ . '/../storage/pdfs/');
 define('PDF_URL_BASE', BASE_URL . '/storage/pdfs/');
@@ -37,7 +37,7 @@ define('PDF_URL_BASE', BASE_URL . '/storage/pdfs/');
 // ==============================================
 
 define('ADMIN_USERNAME', 'admin');
-define('ADMIN_PASSWORD', password_hash('admin123', PASSWORD_DEFAULT));
+define('ADMIN_PASSWORD', password_hash('tu_password_admin', PASSWORD_DEFAULT));
 
 // ==============================================
 // CONFIGURACIÓN DE PDF
@@ -99,7 +99,7 @@ function getDatabase() {
     
     if ($pdo === null) {
         try {
-            $dsn = "mysql:host=" . DB_HOST . ";port=3306;dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
             $pdo = new PDO($dsn, DB_USER, DB_PASS, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -183,14 +183,10 @@ function verifyCSRFToken($token) {
 /**
  * Respuesta JSON
  */
-function jsonResponse($success, $message, $data = null, $status = 200) {
+function jsonResponse($data, $status = 200) {
     http_response_code($status);
     header('Content-Type: application/json');
-    echo json_encode([
-        'success' => $success,
-        'message' => $message,
-        'data' => $data
-    ]);
+    echo json_encode($data);
     exit;
 }
 
@@ -204,20 +200,6 @@ function checkOrigin() {
         exit('Origin not allowed');
     }
     header("Access-Control-Allow-Origin: $origin");
-}
-
-/**
- * Log de mensajes del sistema
- */
-function logMessage($level, $message) {
-    try {
-        $pdo = getDatabase();
-        $stmt = $pdo->prepare("INSERT INTO system_logs (message, created_at) VALUES (?, NOW())");
-        $stmt->execute(["[$level] $message"]);
-    } catch (Exception $e) {
-        // Silenciar errores de logging para evitar loops
-        error_log("Error en logging: " . $e->getMessage());
-    }
 }
 
 // ==============================================

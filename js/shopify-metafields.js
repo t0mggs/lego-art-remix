@@ -44,7 +44,18 @@ async function buyCurrentDesign() {
             pieces_detail: studMap,
             design_image: designImageDataURL,
             generated_at: new Date().toISOString(),
-            unique_id: Date.now() // ID único para diferenciar múltiples diseños
+            unique_id: Date.now(), // ID único para diferenciar múltiples diseños
+            // Información técnica adicional para el backend
+            visubloq_config: {
+                dimensions: targetResolution,
+                scaling_factor: SCALING_FACTOR,
+                pixel_part_number: selectedPixelPartNumber,
+                quantization_algorithm: quantizationAlgorithm,
+                color_distance_function: defaultDistanceFunctionKey,
+                saturation: document.getElementById("saturation-slider").value,
+                brightness: document.getElementById("brightness-slider").value,
+                contrast: document.getElementById("contrast-slider").value
+            }
         };
         
         // Codificar datos para URL
@@ -53,14 +64,16 @@ async function buyCurrentDesign() {
         // Construir URL del producto con datos del diseño
         const productUrl = `https://visubloq.com/products/visubloq-personalizado?design_data=${encodedData}`;
         
-        // Guardar diseño en localStorage para recuperación
+        // Guardar diseño en localStorage para recuperación y envío posterior al backend
         localStorage.setItem('visubloq_last_design', JSON.stringify({
             designData,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            ready_for_backend: true // Marca para indicar que está listo para enviar al backend
         }));
         
         console.log('🏗️ Redirigiendo a Shopify para construir el diseño');
         console.log('🔗 URL del producto:', productUrl);
+        console.log('🧱 Datos de piezas guardados:', studMap);
         
         // Mostrar transición de carga elegante
         showLoadingTransition(() => {
@@ -177,4 +190,86 @@ if (document.readyState === 'loading') {
     addShopifyButton();
 }
 
-console.log('🏗️ VisuBloq integrado correctamente. Flujo: Diseñar → CONSTRUIR → Múltiples productos en carrito');
+// 🔗 FUNCIÓN PARA ENVIAR DATOS AL BACKEND DESPUÉS DE UNA COMPRA
+async function sendDesignDataToBackend(shopifyOrderId, designData) {
+    try {
+        console.log('📤 Enviando datos de diseño al backend:', {
+            order_id: shopifyOrderId,
+            piece_count: Object.keys(designData.pieces_detail).length
+        });
+        
+        const response = await fetch('/backend/api/save-design-data.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                shopify_order_id: shopifyOrderId,
+                piece_colors: designData.pieces_detail,
+                visubloq_config: {
+                    ...designData.visubloq_config,
+                    resolution: designData.resolution,
+                    total_pieces: designData.total_pieces,
+                    piece_types: designData.piece_types,
+                    generated_at: designData.generated_at
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ Datos de diseño enviados exitosamente al backend');
+            return true;
+        } else {
+            console.error('❌ Error del backend:', result.message);
+            return false;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error enviando datos al backend:', error);
+        return false;
+    }
+}
+
+// 🔍 FUNCIÓN PARA DETECTAR CONFIRMACIÓN DE COMPRA
+function checkForOrderConfirmation() {
+    // Esta función se ejecutaría en la página de confirmación de Shopify
+    // Para detectar cuando se ha completado una compra
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order_id') || urlParams.get('checkout_token');
+    
+    if (orderId) {
+        console.log('🛒 Compra confirmada, ID de pedido:', orderId);
+        
+        // Recuperar datos del diseño guardados
+        const savedDesign = localStorage.getItem('visubloq_last_design');
+        
+        if (savedDesign) {
+            try {
+                const designInfo = JSON.parse(savedDesign);
+                
+                if (designInfo.ready_for_backend) {
+                    console.log('📦 Enviando datos de VisuBloq al backend...');
+                    sendDesignDataToBackend(orderId, designInfo.designData);
+                    
+                    // Marcar como enviado para evitar duplicados
+                    designInfo.sent_to_backend = true;
+                    designInfo.sent_at = new Date().toISOString();
+                    localStorage.setItem('visubloq_last_design', JSON.stringify(designInfo));
+                }
+            } catch (error) {
+                console.error('❌ Error procesando datos guardados:', error);
+            }
+        }
+    }
+}
+
+// 🚀 AUTO-EJECUTAR DETECCIÓN DE PEDIDO EN PÁGINAS DE SHOPIFY
+if (window.location.hostname.includes('visubloq.com') || window.location.hostname.includes('shopify')) {
+    // Ejecutar después de un pequeño delay para asegurar que la página esté cargada
+    setTimeout(checkForOrderConfirmation, 2000);
+}
+
+console.log('🏗️ VisuBloq integrado correctamente. Flujo: Diseñar → CONSTRUIR → Múltiples productos en carrito → Backend automático');

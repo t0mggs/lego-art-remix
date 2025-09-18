@@ -20,8 +20,10 @@ CREATE TABLE order_pieces (
     order_id INT NOT NULL,
     piece_types INT NOT NULL,
     total_pieces INT NOT NULL,
-    pieces_data JSON, -- Guardará el studMap completo
+    pieces_data JSON, -- Guardará el studMap completo con detalles por color
+    pieces_by_color JSON, -- JSON específico para tracking de piezas por color
     image_resolution VARCHAR(20),
+    image_name VARCHAR(255), -- Nombre de la imagen procesada
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );

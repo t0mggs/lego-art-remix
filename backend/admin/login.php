@@ -20,22 +20,34 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 
 // Manejar login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     
-    // Verificar password (en producción usar hash más seguro)
-    if (password_verify($password, ADMIN_PASSWORD)) {
-        $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_login_time'] = time();
-        
-        logMessage('LOGIN', 'Admin login exitoso', ['ip' => $_SERVER['REMOTE_ADDR']]);
-        header('Location: index.php');
-        exit;
+    if ($username && $password) {
+        try {
+            $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET, DB_USER, DB_PASS);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmt = $pdo->prepare("SELECT id, username, password_hash FROM admin_users WHERE username = ?");
+            $stmt->execute([$username]);
+            $user = $stmt->fetch();
+            
+            if ($user && password_verify($password, $user['password_hash'])) {
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_id'] = $user['id'];
+                $_SESSION['admin_username'] = $user['username'];
+                $_SESSION['admin_login_time'] = time();
+                
+                header('Location: orders-dashboard.php');
+                exit;
+            } else {
+                $error = 'Usuario o contraseña incorrectos';
+            }
+        } catch (PDOException $e) {
+            $error = 'Error de conexión: ' . $e->getMessage();
+        }
     } else {
-        $error = 'Contraseña incorrecta';
-        logMessage('LOGIN_FAIL', 'Intento de login fallido', [
-            'ip' => $_SERVER['REMOTE_ADDR'],
-            'password_length' => strlen($password)
-        ]);
+        $error = 'Por favor completa todos los campos';
     }
 }
 ?>
@@ -96,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 500;
         }
         
-        input[type="password"] {
+        input[type="password"], input[type="text"] {
             width: 100%;
             padding: 1rem;
             border: 2px solid #e1e5e9;
@@ -105,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: border-color 0.3s;
         }
         
-        input[type="password"]:focus {
+        input[type="password"]:focus, input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -166,7 +178,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <form method="POST" action="">
             <div class="form-group">
-                <label for="password">Contraseña de Administrador:</label>
+                <label for="username">Usuario:</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    placeholder="Introduce tu usuario"
+                    autocomplete="username"
+                    value="admin"
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
                 <input 
                     type="password" 
                     id="password" 
@@ -183,8 +208,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         
         <div class="security-note">
-            🔒 <strong>Área restringida</strong><br>
-            Solo el administrador puede acceder a este panel.
+            🔒 <strong>Credenciales por defecto:</strong><br>
+            Usuario: <strong>admin</strong> / Contraseña: <strong>visubloq2025</strong><br>
+            <small>Ejecuta <a href="../setup.php">setup.php</a> si no funcionan</small>
         </div>
         
         <div class="footer">

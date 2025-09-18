@@ -1,4 +1,30 @@
 {
+  "#ffffff": "Blanco",
+  "#212121": "Negro",
+  "#595d60": "Gris Oscuro",
+  "#898788": "Gris Medio",
+  "#afb5c7": "Gris Claro",
+  "#feccb0": "Beige",
+  "#dec69c": "Arena",
+  "#e3a05b": "Naranja Claro",
+  "#ffaf7d": "Naranja",
+  "#c87080": "Rosa",
+  "#907450": "Marrón Claro",
+  "#89351d": "Marrón Oscuro",
+  "#b35408": "Marrón Medio",
+  "#b30006": "Rojo",
+  "#3399ff": "Azul Claro",
+  "#0057a6": "Azul Oscuro",
+  "#143044": "Azul Profundo",
+  "#9fc3e9": "Azul Pastel",
+  "#008a80": "Verde Oscuro",
+  "#a6ca55": "Verde Claro",
+  "#f7ba30": "Amarillo",
+  "#e79500": "Amarillo Oscuro",
+  "#f88379": "Coral",
+  "#b18cbf": "Lila"
+}
+{
   "studMap": {
     "#212121": 99999,
     "#0057a6": 99999,

@@ -34,6 +34,8 @@ if (!verifyShopifyWebhook($payload, $receivedHmac)) {
 }
 
 // Procesar pedido
+require_once __DIR__ . '/backend/config.php';
+
 $orderData = json_decode($payload, true);
 
 // ✅ VERIFICACIONES DE PEDIDO REAL
@@ -42,42 +44,61 @@ if (!$orderData ||
     floatval($orderData['total_price']) <= 0 ||
     !isset($orderData['financial_status']) ||
     $orderData['financial_status'] !== 'paid') {
-    
     error_log("❌ Pedido no válido - no es una compra real");
     http_response_code(200); // Responder OK pero no procesar
     echo json_encode(['status' => 'ignored', 'reason' => 'Not a valid paid order']);
     exit;
 }
 
-// ✅ Añadir marca de verificación
-$orderData['webhook_verified'] = true;
+// Guardar pedido en la base de datos
+try {
+    $pdo = getDatabase();
+    // Insertar pedido principal
+    $stmt = $pdo->prepare("INSERT INTO orders (shopify_order_id, order_number, customer_name, customer_email, order_value, order_status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->execute([
+        $orderData['id'],
+        $orderData['order_number'] ?? $orderData['name'],
+        $orderData['customer']['first_name'] . ' ' . $orderData['customer']['last_name'],
+        $orderData['email'],
+        $orderData['total_price'],
+        $orderData['financial_status']
+    ]);
+    $orderId = $pdo->lastInsertId();
 
-// Log del pedido válido
-error_log("✅ Pedido válido: #" . $orderData['order_number'] . " - €" . $orderData['total_price']);
+    // Recorrer cada producto personalizado (VisuBloq)
+    foreach ($orderData['line_items'] as $item) {
+        // Extraer propiedades personalizadas
+        $piecesUsed = null;
+        $config = null;
+        $imageUrl = null;
+        if (isset($item['properties']) && is_array($item['properties'])) {
+            foreach ($item['properties'] as $prop) {
+                if (isset($prop['name']) && $prop['name'] === 'pieces_used') {
+                    $piecesUsed = $prop['value'];
+                }
+                if (isset($prop['name']) && $prop['name'] === 'config') {
+                    $config = $prop['value'];
+                }
+                if (isset($prop['name']) && $prop['name'] === 'image_url') {
+                    $imageUrl = $prop['value'];
+                }
+            }
+        }
+        // Insertar en order_pieces si hay piezas
+        if ($piecesUsed) {
+            $stmt2 = $pdo->prepare("INSERT INTO order_pieces (order_id, pieces_data, image_resolution, created_at) VALUES (?, ?, ?, NOW())");
+            $stmt2->execute([
+                $orderId,
+                $piecesUsed,
+                $config ?? ''
+            ]);
+        }
+    }
+    error_log("✅ Pedido y piezas guardados en la base de datos");
+} catch (Exception $e) {
+    error_log("❌ Error guardando pedido: " . $e->getMessage());
+}
 
-// 📧 ENVIAR A VISUBLOQ PARA GENERAR PDF
-?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Procesando Pedido Shopify</title>
-    <script>
-        // Enviar datos a VisuBloq para generar PDF
-        window.parent.postMessage({
-            type: 'shopify_order_created',
-            order: <?php echo json_encode($orderData); ?>
-        }, '*');
-        
-        console.log('📦 Pedido enviado a VisuBloq:', <?php echo json_encode($orderData['order_number']); ?>);
-    </script>
-</head>
-<body>
-    <p>Procesando pedido <?php echo htmlspecialchars($orderData['order_number']); ?>...</p>
-</body>
-</html>
-
-<?php
 // Responder a Shopify
 http_response_code(200);
-error_log("✅ Pedido procesado correctamente");
-?>
+echo json_encode(['status' => 'ok']);
